@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="TransPerfect_GlobalLink::globallink" title="GlobalLink" module="TransPerfect_GlobalLink" sortOrder="75" resource="TransPerfect_GlobalLink::config"/>
+
+        <add id="TransPerfect_GlobalLink::configuration" title="Configuration" module="TransPerfect_GlobalLink" sortOrder="10" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::globallink"/>
+        <add id="TransPerfect_GlobalLink::general" title="General" module="TransPerfect_GlobalLink" sortOrder="10" action="adminhtml/system_config/edit/section/globallink" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::configuration"/>
+        <add id="TransPerfect_GlobalLink::connection" title="Connection" module="TransPerfect_GlobalLink" sortOrder="20" action="adminhtml/system_config/edit/section/globallink" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::configuration"/>
+        <add id="TransPerfect_GlobalLink::languages_mapping" title="Languages Mapping" module="TransPerfect_GlobalLink" sortOrder="30" action="adminhtml/system_store/index" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::configuration"/>
+
+        <add id="TransPerfect_GlobalLink::management" title="Management" module="TransPerfect_GlobalLink" sortOrder="20" resource="TransPerfect_GlobalLink::management" parent="TransPerfect_GlobalLink::globallink"/>
+        <add id="TransPerfect_GlobalLink::submissions" title="Submissions" module="TransPerfect_GlobalLink" sortOrder="10" action="translations/submission" resource="TransPerfect_GlobalLink::management" parent="TransPerfect_GlobalLink::management"/>
+        <add id="TransPerfect_GlobalLink::categories" title="Categories" module="TransPerfect_GlobalLink" sortOrder="30" action="translations/category/index" resource="TransPerfect_GlobalLink::management" parent="TransPerfect_GlobalLink::management"/>
+
+        <add id="TransPerfect_GlobalLink::fieldsConfiguration" title="Fields Configuration" module="TransPerfect_GlobalLink" sortOrder="30" resource="TransPerfect_GlobalLink::fieldform" parent="TransPerfect_GlobalLink::globallink"/>
+        <add id="TransPerfect_GlobalLink::product_attribute_fields" title="Products" module="TransPerfect_GlobalLink" sortOrder="10" action="translations/config_product_attribute/index" resource="TransPerfect_GlobalLink::fieldform" parent="TransPerfect_GlobalLink::fieldsConfiguration"/>
+        <add id="TransPerfect_GlobalLink::category_fields" title="Categories" module="TransPerfect_GlobalLink" sortOrder="30" action="translations/config_category/attribute" resource="TransPerfect_GlobalLink::fieldform" parent="TransPerfect_GlobalLink::fieldsConfiguration"/>
+        <add id="TransPerfect_GlobalLink::cms_page_fields" title="CMS Pages" module="TransPerfect_GlobalLink" sortOrder="40" action="translations/config_cms_page/field" resource="TransPerfect_GlobalLink::fieldform" parent="TransPerfect_GlobalLink::fieldsConfiguration"/>
+        <add id="TransPerfect_GlobalLink::cms_block_fields" title="CMS Blocks" module="TransPerfect_GlobalLink" sortOrder="50" action="translations/config_cms_block/field" resource="TransPerfect_GlobalLink::fieldform" parent="TransPerfect_GlobalLink::fieldsConfiguration"/>
+    </menu>
+</config>   

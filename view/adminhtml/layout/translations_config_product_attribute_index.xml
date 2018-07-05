@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<body>
+    <referenceBlock name="menu">
+        <action method="setActive">
+            <argument name="itemId" xsi:type="string">TransPerfect_GlobalLink::product_attribute_fields</argument>
+        </action>
+    </referenceBlock>
+    <referenceBlock name="page.title">
+        <action method="setTitleClass">
+            <argument name="class" xsi:type="string">complex</argument>
+        </action>
+    </referenceBlock>
+    <referenceContainer name="content">
+        <block class="TransPerfect\GlobalLink\Block\Adminhtml\Config\Product\Attribute\Grid" name="config.product.attribute.grid" />
+    </referenceContainer>
+    <referenceContainer name="page.main.actions">
+        <block class="TransPerfect\GlobalLink\Block\Adminhtml\AttributeSet\Switcher" name="attribute.set.switcher" template="TransPerfect_GlobalLink::attribute_set/switcher.phtml">
+            <arguments>
+                <argument name="use_confirm" xsi:type="number">1</argument>
+            </arguments>
+        </block>
+    </referenceContainer>
+</body>
+</page>

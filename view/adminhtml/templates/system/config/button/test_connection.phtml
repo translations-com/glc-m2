@@ -1,0 +1,43 @@
+<?php
+/**
+ * @var $block \TransPerfect\GlobalLink\Block\System\Config\Button\TestConnection
+ */
+?>
+
+<?php echo $block->getButtonHtml() ?>
+<span class="result" id="test_connection_result">
+    <img class="processing" hidden="hidden" alt="Test Connection" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <span id="message" style="margin-left: 10px"></span>
+</span>
+
+<script>
+    require([
+        'jquery',
+        'prototype'
+    ], function(jQuery) {
+
+        var testResult = jQuery('#test_connection_result');
+
+        jQuery('#test_connection').on('click', function () {
+            var params = {};
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                parameters: params,
+                loaderArea: false,
+                asynchronous: true,
+                onCreate: function() {
+                    testResult.find('.processing').show();
+                    testResult.find('#message').html('');
+                },
+                onSuccess: function(response) {
+                    testResult.find('.processing').hide();
+                    console.log(response.responseJSON);
+                    testResult.find('#message').html(response.responseJSON.result);
+                },
+                onError: function() {
+                    testResult.find('.processing').hide();
+                    testResult.find('#message').html('Connection failed');
+                }
+            });
+        });
+    });
+</script>

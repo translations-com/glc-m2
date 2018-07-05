@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="TransPerfect\GlobalLink\Block\Adminhtml\Category" name="translations_category_grid" />
+        </referenceContainer>
+        <referenceContainer name="page.main.actions">
+            <block class="TransPerfect\GlobalLink\Block\Adminhtml\Store\Switcher" name="store_switcher" as="store_switcher" template="TransPerfect_GlobalLink::store/switcher.phtml">
+                <arguments>
+                    <argument name="use_confirm" xsi:type="number">1</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

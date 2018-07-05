@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="transperfect_globallink_queue_save_after">
+        <observer
+            name="transperfect_globallink_queue_update_entity_status"
+            instance="TransPerfect\GlobalLink\Model\Observer\Entity\Status\InProgress" />
+    </event>
+    <event name="transperfect_globallink_receive_queue_after">
+        <observer
+            name="transperfect_globallink_receive_queue_after_emailer"
+            instance="TransPerfect\GlobalLink\Model\Observer\Queue\Email" />
+        <observer
+            name="transperfect_globallink_receive_queue_after_emailer_errors"
+            instance="TransPerfect\GlobalLink\Model\Observer\Queue\Error\Email" />
+    </event>
+    <event name="transperfect_globallink_submit_queue_after">
+        <observer
+            name="transperfect_globallink_submit_queue_after_emailer_errors"
+            instance="TransPerfect\GlobalLink\Model\Observer\Queue\Error\Email" />
+    </event>
+    <event name="transperfect_globallink_apply_translation_after">
+        <observer
+            name="transperfect_globallink_apply_translation_after_emailer_errors"
+            instance="TransPerfect\GlobalLink\Model\Observer\Queue\Error\Email" />
+    </event>
+    <event name="model_save_before">
+        <observer
+            name="transperfect_globallink_model_save_before"
+            instance="TransPerfect\GlobalLink\Model\Observer\Entity\Status\TranslationRequired"
+            disabled="false" />
+    </event>
+    <event name="model_delete_after">
+        <observer
+            name="transperfect_globallink_model_delete_after"
+            instance="TransPerfect\GlobalLink\Model\Observer\CancelEntityTranslationRequest"
+            disabled="false" />
+    </event>
+</config>

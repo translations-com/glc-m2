@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:ns="http://impl.services2.service.ws.projectdirector.gs4tr.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://impl.services2.service.ws.projectdirector.gs4tr.org">
+	<wsdl:documentation>SessionService2</wsdl:documentation>
+	<wsdl:types>
+		<xs:schema xmlns:ax22="http://impl.services2.service.ws.projectdirector.gs4tr.org/xsd"
+			attributeFormDefault="qualified" elementFormDefault="qualified"
+			targetNamespace="http://impl.services2.service.ws.projectdirector.gs4tr.org">
+			<xs:element name="login">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="username" nillable="false" type="xs:string" />
+						<xs:element name="password" nillable="false" type="xs:string" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="loginResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="return" nillable="true" type="xs:string" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="logout">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="userId" nillable="false" type="xs:string" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="logoutResponse">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="return" nillable="true" type="xs:string" />
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:schema>
+	</wsdl:types>
+	<wsdl:message name="logoutRequest">
+		<wsdl:part name="parameters" element="ns:logout" />
+	</wsdl:message>
+	<wsdl:message name="logoutResponse">
+		<wsdl:part name="parameters" element="ns:logoutResponse" />
+	</wsdl:message>
+	<wsdl:message name="loginRequest">
+		<wsdl:part name="parameters" element="ns:login" />
+	</wsdl:message>
+	<wsdl:message name="loginResponse">
+		<wsdl:part name="parameters" element="ns:loginResponse" />
+	</wsdl:message>
+	<wsdl:portType name="SessionService2PortType">
+		<wsdl:operation name="logout">
+			<wsdl:input message="ns:logoutRequest" wsaw:Action="urn:logout" />
+			<wsdl:output message="ns:logoutResponse" wsaw:Action="urn:logoutResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="login">
+			<wsdl:input message="ns:loginRequest" wsaw:Action="urn:login" />
+			<wsdl:output message="ns:loginResponse" wsaw:Action="urn:loginResponse" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="SessionService2Soap11Binding" type="ns:SessionService2PortType">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"
+			style="document" />
+		<wsdl:operation name="logout">
+			<soap:operation soapAction="urn:logout" style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="login">
+			<soap:operation soapAction="urn:login" style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="SessionService2Soap12Binding" type="ns:SessionService2PortType">
+		<soap12:binding transport="http://schemas.xmlsoap.org/soap/http"
+			style="document" />
+		<wsdl:operation name="logout">
+			<soap12:operation soapAction="urn:logout" style="document" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="login">
+			<soap12:operation soapAction="urn:login" style="document" />
+			<wsdl:input>
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:binding name="SessionService2HttpBinding" type="ns:SessionService2PortType">
+		<http:binding verb="POST" />
+		<wsdl:operation name="logout">
+			<http:operation location="SessionService2/logout" />
+			<wsdl:input>
+				<mime:content type="text/xml" part="logout" />
+			</wsdl:input>
+			<wsdl:output>
+				<mime:content type="text/xml" part="logout" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="login">
+			<http:operation location="SessionService2/login" />
+			<wsdl:input>
+				<mime:content type="text/xml" part="login" />
+			</wsdl:input>
+			<wsdl:output>
+				<mime:content type="text/xml" part="login" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="SessionService2">
+		<wsdl:port name="SessionService2HttpSoap11Endpoint" binding="ns:SessionService2Soap11Binding">
+			<soap:address
+				location="http://localhost/services/SessionService2.SessionService2HttpSoap11Endpoint" />
+		</wsdl:port>
+		<wsdl:port name="SessionService2HttpSoap12Endpoint" binding="ns:SessionService2Soap12Binding">
+			<soap12:address
+				location="http://localhost/services/SessionService2.SessionService2HttpSoap12Endpoint" />
+		</wsdl:port>
+		<wsdl:port name="SessionService2HttpEndpoint" binding="ns:SessionService2HttpBinding">
+			<http:address
+				location="http://localhost/services/SessionService2.SessionService2HttpEndpoint" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

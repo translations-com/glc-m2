@@ -1,0 +1,27 @@
+<!--
+/**
+ * TransPerfect_GlobalLink
+ *
+ * @category   TransPerfect
+ * @package    TransPerfect_GlobalLink
+ * @author     Eugene Monakov <emonakov@robofirm.com>
+ */
+-->
+<!--@subject {{trans "Error During GlobalLink Translation Submit/Receive"}} @-->
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p>{{trans "There has been an error with the GlobalLink module"}}</p>
+            <p>
+                {{trans "User ID: %userId" userId=$userId |raw}} </br>
+                {{trans "Submission name: %sub_name" sub_name=$sub_name |raw}} </br>
+                {{trans "Request date: %request_date" request_date=$request_date |raw}} </br>
+                {{trans "Due date: %due_date" due_date=$due_date |raw}} </br>
+                {{trans "Source locale: %source_locale" source_locale=$source_locale |raw}} </br>
+                {{trans "%messages" messages=$messages |raw}}
+            </p>
+        </td>
+    </tr>
+</table>
+
