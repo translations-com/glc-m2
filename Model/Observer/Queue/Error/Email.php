@@ -40,7 +40,7 @@ class Email extends BaseEmail
                         continue;
                     }*/
                     try {
-                        $exception_file_path = $this->directoryList->getPath('log') . '/exception.log';
+                        $exception_file_path = $this->directoryList->getPath('log') . '/globallink_api_request.log';
                         if (file_exists($exception_file_path)) {
                             $exception_file = file_get_contents($exception_file_path);
                         } else {
@@ -66,7 +66,7 @@ class Email extends BaseEmail
                                 ])->setTemplateVars(['messages' => $messages, 'sub_name' => $sub_name, 'request_date' => $request_date, 'due_date' => $due_date, 'source_locale' => $source_locale, 'userId' => $userId])
                             ->setFrom($sender)
                             ->addTo($recipient)
-                            ->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'exception.log')
+                            ->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log')
                             ->getTransport();
                         $transport->sendMessage();
                     } catch (\Exception $e) {

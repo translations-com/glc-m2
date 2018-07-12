@@ -91,14 +91,22 @@ class Create extends BackendAction
             'title',
             null
         );
-        $blocksToTranslate = array_keys($blockNames);
 
+        $blocksToTranslate = array_keys($blockNames);
+        $differentStoresSelected = $this->helper->differentStoresSelected(
+            $this->collectionFactory,
+            $this->getRequest()->getParam('store'),
+            $blocksToTranslate,
+            'block',
+            'store_id',
+            null
+        );
         $itemsToTranslate = [
             'ids' => $blocksToTranslate,
             'names' => $blockNames
         ];
         $this->registry->register('itemsToTranslate', $itemsToTranslate);
-
+        $this->registry->register('differentStoresSelected', $differentStoresSelected);
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

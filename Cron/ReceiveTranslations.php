@@ -200,7 +200,7 @@ class ReceiveTranslations extends Translations
                     foreach ($dom->children() as $child) {
                         $nodeValue = (string) $child;
                         $maxLength = (string)$child->attributes()->max_length;
-                        if (strlen($nodeValue) > $maxLength) {
+                        if (strlen($nodeValue) > $maxLength && $maxLength != "none") {
                             $item = $this->getItemByDocTicket($target->documentTicket);
                             $item->setStatusId(Item::STATUS_MAXLENGTH);
                             $item->save();

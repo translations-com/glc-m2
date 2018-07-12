@@ -30,6 +30,19 @@ class Form extends GenericForm
      * @var \Magento\Backend\Model\Session
      */
     protected $session;
+    /**
+     * @var boolean
+     */
+    protected $differentStoresSelected = false;
+    /**
+     * Form constructor.
+     * @param \Magento\Backend\Block\Template\Context $context
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\Data\FormFactory $formFactory
+     * @param \TransPerfect\GlobalLink\Helper\Data $helper
+     * @param \TransPerfect\GlobalLink\Model\TranslationService $translationService
+     * @param array $data
+     */
 
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
@@ -44,6 +57,7 @@ class Form extends GenericForm
         $this->session = $context->getBackendSession();
         parent::__construct($context, $registry, $formFactory, $data);
         $this->_prepareData();
+        $this->differentStoresSelected = $registry->registry('differentStoresSelected');
     }
 
     /**
@@ -90,15 +104,25 @@ class Form extends GenericForm
                 'date_format' => $dateFormat,
             ]
         );
-
-        $fieldset->addField(
-            'submission[source_language]',
-            'note',
-            [
-                'label' => __('Source language'),
-                'text' => $this->helper->getCountrybyLocaleCode($this->currentLocale),
-            ]
-        );
+        if($this->differentStoresSelected){
+            $fieldset->addField(
+                'submission[source_language]',
+                'note',
+                [
+                    'label' => __('Source language'),
+                    'text' => __('Different source languages selected, defaulting to '. $this->helper->getCountrybyLocaleCode($this->currentLocale)),
+                ]
+            );
+        } else {
+            $fieldset->addField(
+                'submission[source_language]',
+                'note',
+                [
+                    'label' => __('Source language'),
+                    'text' => $this->helper->getCountrybyLocaleCode($this->currentLocale),
+                ]
+            );
+        }
 
         $serviceProjectsData = $this->getServiceProjectsData();
         $fieldset->addField(

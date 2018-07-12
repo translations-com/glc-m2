@@ -496,6 +496,37 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         return $names;
     }
+    /**
+     * @param        $collectionFactory
+     * @param int    $storeId
+     * @param        $ids
+     * @param        $type
+     * @param string $label
+     * @param mixed $excluded
+     *
+     * @return boolean
+     */
+    public function differentStoresSelected($collectionFactory, $storeId, $ids, $type, $label = 'store_id', $excluded = true)
+    {
+        $storeIds = [];
+        $collection = $collectionFactory->create();
+        if (is_array($excluded)) {
+            $collection->addFieldToFilter("main_table.{$type}_id", ['nin' => $excluded]);
+        } elseif ($excluded !== false && !empty($ids)) {
+            $collection->addFieldToFilter("main_table.{$type}_id", ['in' => $ids]);
+        }
+        foreach ($collection as $entity) {
+            $storeIds[] = $entity->getData($label)[0];
+        }
+        foreach($storeIds as $current){
+            foreach($storeIds as $inner){
+                if($current != $inner){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * Updates translation configuration for eav attributes
