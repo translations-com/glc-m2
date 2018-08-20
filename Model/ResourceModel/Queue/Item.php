@@ -139,7 +139,31 @@ class Item extends AbstractDb
 
         return $sbmTickets;
     }
+    /**
+     * Returns distinct document tickets for given Queue
+     *
+     * @param int $queueId
+     *
+     * @return array
+     */
+    public function getDistinctDocTicketsForQueue($queueId)
+    {
+        $queueId = (int) $queueId;
+        $select = $this->getConnection()->select()
+            ->from(['main_table' => $this->getTable('globallink_job_items')])
+            ->reset(\Zend_Db_Select::COLUMNS)
+            ->columns('document_ticket')
+            ->distinct(true)
+            ->where('main_table.queue_id IN (?)', [$queueId]);
 
+        $rowset = $this->getConnection()->fetchAll($select);
+        $docTickets = [];
+        foreach ($rowset as $row) {
+            $docTickets[] = $row['document_ticket'];
+        }
+
+        return $docTickets;
+    }
     /**
      * Returns length of SQL field
      *

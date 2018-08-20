@@ -42,6 +42,7 @@ class DueDate extends AbstractRenderer
     {
         $date = $row->getData($this->getColumn()->getIndex());
         $timestamp = $this->dateTime->gmtTimestamp($date);
+        $timestamp = $timestamp - 9999;
         $date = date('M j, Y', $timestamp);
         return $date;
     }

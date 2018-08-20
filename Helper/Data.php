@@ -15,7 +15,8 @@ use \TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCus
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
 use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
-
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
 /**
  * Class Data
  *
@@ -97,6 +98,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     protected $productFieldModel;
     protected $entityAttribute;
+    /**
+     * @var \Magento\Cms\Model\ResourceModel\Page\CollectionFactory
+     */
+    protected $pageCollectionFactory;
+    /**
+     * @var \Magento\Cms\Model\ResourceModel\Block\CollectionFactory
+     */
+    protected $blockCollectionFactory;
 
     const LOGGING_LEVEL_DEBUG = 0;
     const LOGGING_LEVEL_INFO = 1;
@@ -128,7 +137,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Indexer\Model\IndexerFactory $indexerFactory,
         \Magento\Indexer\Model\Indexer\CollectionFactory $indexerCollectionFactory,
         \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel,
-        \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute
+        \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
+        PageCollectionFactory $pageCollectionFactory,
+        BlockCollectionFactory $blockCollectionFactory
     ) {
         $this->eavConfig = $eavConfig;
         $this->resource = $resource;
@@ -146,9 +157,120 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->indexerCollectionFactory = $indexerCollectionFactory;
         $this->productFieldModel = $productFieldModel;
         $this->entityAttribute = $entityAttribute;
+        $this->pageCollectionFactory = $pageCollectionFactory;
+        $this->blockCollectionFactory = $blockCollectionFactory;
         parent::__construct($context);
     }
 
+    /**
+     * @return boolean
+     */
+    public function hasDifferentStores($typeId, $ids){
+        $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
+        switch($typeId){
+            case Data::CMS_PAGE_TYPE_ID:
+                $storeViewArray = array();
+                $collection = $this->pageCollectionFactory->create();
+                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                    "main_table.row_id = store_table.row_id",
+                    []);
+                foreach($ids as $id) {
+                    foreach ($collection as $entity) {
+                        if ($entity->getData('page_id') == $id){
+                            $storeViewArray[] = $entity->getData('store_id')[0];
+                        }
+                    }
+                }
+                if(count(array_unique($storeViewArray)) > 2){
+                    return true;
+                }
+                else if(count(array_unique($storeViewArray)) == 2 && !(in_array($defaultStore, $storeViewArray) && in_array('0', $storeViewArray))){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+                break;
+            case Data::CMS_BLOCK_TYPE_ID:
+                $storeViewArray = array();
+                $collection = $this->blockCollectionFactory->create();
+                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                    "main_table.row_id = store_table.row_id",
+                    []);
+                foreach($ids as $id) {
+                    foreach ($collection as $entity) {
+                        if ($entity->getData('block_id') == $id){
+                            $storeViewArray[] = $entity->getData('store_id')[0];
+                        }
+                    }
+                }
+                if(count(array_unique($storeViewArray)) > 2){
+                    return true;
+                }
+                else if(count(array_unique($storeViewArray)) == 2 && !(in_array($defaultStore, $storeViewArray) && in_array('0', $storeViewArray))){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+                break;
+        }
+    }
+    public function getDefaultStoreViewIds($typeId, $ids){
+        $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
+        switch($typeId){
+            case Data::CMS_PAGE_TYPE_ID:
+                $newIds = array();
+                $collection = $this->pageCollectionFactory->create();
+                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                    "main_table.row_id = store_table.row_id",
+                    []);
+                foreach($ids as $id) {
+                    foreach ($collection as $entity) {
+                        if ($entity->getData('page_id') == $id){
+                            if($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore){
+                                $identifier = $entity->getData('identifier');
+                                foreach($collection as $innerEntity){
+                                    if($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)){
+                                        $newIds[] = $innerEntity->getData('page_id');
+                                    }
+                                }
+                            }
+                            else{
+                                $newIds[] = $id;
+                            }
+                        }
+                    }
+                }
+                return array_unique($newIds);
+                break;
+            case Data::CMS_BLOCK_TYPE_ID:
+                $newIds = array();
+                $collection = $this->blockCollectionFactory->create();
+                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                    "main_table.row_id = store_table.row_id",
+                    []);
+                foreach($ids as $id) {
+                    foreach ($collection as $entity) {
+                        if ($entity->getData('block_id') == $id){
+                            if($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore){
+                                $identifier = $entity->getData('identifier');
+                                foreach($collection as $innerEntity){
+                                    if($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)){
+                                        $newIds[] = $innerEntity->getData('block_id');
+                                    }
+                                }
+                            }
+                            else{
+                                $newIds[] = $id;
+                            }
+                        }
+                    }
+                }
+                return array_unique($newIds);
+                break;
+        }
+    }
     /**
      * @return array
      */

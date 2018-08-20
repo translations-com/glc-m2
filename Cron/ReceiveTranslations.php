@@ -65,7 +65,9 @@ class ReceiveTranslations extends Translations
             if ($this->mode == 'cli') {
                 $this->appState->setAreaCode('adminhtml');
             }
-
+            $logData = ['message' => "Checking for redelivery targets to finalize queue data."];
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            $this->redeliveryQueueReset();
             // get all queues that have been fully or partly sent, but haven't been finished yet
             $queues = $this->queueCollectionFactory->create();
             $queues->addFieldToFilter(
@@ -77,7 +79,7 @@ class ReceiveTranslations extends Translations
             );
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
-                $logData = ['message' => "There were no any unfinished items found. Finish."];
+                $logData = ['message' => "There were no any unfinished items found. Finishing."];
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
 
@@ -86,7 +88,6 @@ class ReceiveTranslations extends Translations
                 $this->proceedQueue($queue);
                 $processedQueues[] = $queue;
             }
-
             $this->eventManager->dispatch('transperfect_globallink_receive_queue_after', ['queues' => $processedQueues, 'items' => $this->itemCollection]);
         }
         finally{
@@ -116,6 +117,7 @@ class ReceiveTranslations extends Translations
             ['in' => [
                 Item::STATUS_INPROGRESS,
                 Item::STATUS_ERROR_DOWNLOAD,
+                Item::STATUS_MAXLENGTH,
             ]]
         );
 
@@ -139,6 +141,8 @@ class ReceiveTranslations extends Translations
 
         $targetStoreIds = [];
         foreach ($items as $item) {
+            $logData = ['message' => "Beginning download of items."];
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             if (!$item->getSubmissionTicket()) {
                 // execution can't enter here in prod, but can in dev
                 continue;
@@ -166,6 +170,7 @@ class ReceiveTranslations extends Translations
             // current queue has items which must be examined if translation completed
             try {
                 $targets = $this->translationService->receiveTranslationsByTickets(array_keys($submissionsAndItems), $queue);
+
             } catch (\Exception $e) {
                 $errorMessage = 'Exception while receiving targets by submission tickets. '.$e->getMessage();
                 $this->cliMessage($errorMessage, 'error');
@@ -177,7 +182,11 @@ class ReceiveTranslations extends Translations
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                 $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
             }
+            $targetArray = implode(array_keys($submissionsAndItems));
             if (empty($targets)) {
+                $logData = ['message' => "No targets found in PD. Finishing. Submission Item Array: {$targetArray}"];
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                $logData = null;
                 return $this;
             }
 
@@ -188,6 +197,8 @@ class ReceiveTranslations extends Translations
                     continue;
                 }
                 $targetTicket = $target->ticket;
+                $maxLengthError = false;
+                $item = $this->getItemByDocTicket($target->documentTicket);
                 try {
                     $translatedText = $this->translationService->downloadTarget($targetTicket);
 
@@ -200,8 +211,8 @@ class ReceiveTranslations extends Translations
                     foreach ($dom->children() as $child) {
                         $nodeValue = (string) $child;
                         $maxLength = (string)$child->attributes()->max_length;
-                        if (strlen($nodeValue) > $maxLength && $maxLength != "none") {
-                            $item = $this->getItemByDocTicket($target->documentTicket);
+                        if (strlen($nodeValue) > $maxLength && $maxLength != "none" && $maxLength != "") {
+                            $maxLengthError = true;
                             $item->setStatusId(Item::STATUS_MAXLENGTH);
                             $item->save();
                             $errorMessage = "Max length for field \"". (string)$child->attributes()->attribute_code . "\" for document ticket " . $target->documentTicket . " is greater than the allowed length.";
@@ -210,6 +221,20 @@ class ReceiveTranslations extends Translations
                                 'file' => __FILE__,
                                 'line' => __LINE__,
                                 'message' => $errorMessage,
+                            ];
+                            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                            $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
+                        }
+                        elseif($item->getStatusId() == Item::STATUS_MAXLENGTH)
+                        {
+                            $item->setStatusId(Item::STATUS_INPROGRESS);
+                            $item->save();
+                            $message = "Max length for document ticket " . $target->documentTicket . " has been corrected, reverting status to in progress.";
+                            $this->cliMessage($message, 'info');
+                            $logData = [
+                                'file' => __FILE__,
+                                'line' => __LINE__,
+                                'message' => $message,
                             ];
                             $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                         }
@@ -242,7 +267,6 @@ class ReceiveTranslations extends Translations
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
-
                 $this->moveItemsInDownloaded([$downloadingItemId=>$targetTicket]);
 
                 $this->cliMessage($fileName.' downloaded for item '.$downloadingItemId.' from queue '.$queue->getId());
@@ -252,6 +276,50 @@ class ReceiveTranslations extends Translations
         $this->tryToSetQueueFinished($queue);
         return $this;
     }
+    protected function redeliveryQueueReset(){
+        $xmlFolder = $this->translationService->getReceiveFolder();
+        try{
+            $targets = $this->translationService->receiveTranslationsByProject();
+        }  catch (\Exception $e) {
+            $errorMessage = 'Exception while receiving targets by submission tickets. '.$e->getMessage();
+            $this->cliMessage($errorMessage, 'error');
+            $logData = [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $errorMessage,
+            ];
+            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+        }
+        if (empty($targets)) {
+            return $this;
+        }
+        $itemResource = $this->itemResourceFactory->create();
+        // get all queues that have been submitted
+        $queues = $this->queueCollectionFactory->create();
+        $queues->addFieldToFilter(
+            'status',
+            ['in' => [
+                Queue::STATUS_FINISHED,
+            ]]
+        );
+        foreach($queues as $queue){
+            $documentTickets = $itemResource->getDistinctDocTicketsForQueue($queue->getId());
+            foreach($targets as $target){
+                if(in_array($target->documentTicket, $documentTickets)){
+                    $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered but completed in PD, resetting queue status to sent."];
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                    $queue->setStatus(Queue::STATUS_SENT);
+                    $queue->save();
+                    $item = $this->getItemByDocTicket($target->documentTicket);
+                    $item->setStatusId(Item::STATUS_ERROR_DOWNLOAD);
+                    $item->save();
+                    break;
+                }
+            }
+        }
+        return $this;
+    }
+
 
     /**
      * Update Items

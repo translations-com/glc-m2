@@ -74,7 +74,7 @@ class Create extends BackendAction
         if (!$this->_formKeyValidator->validate($this->getRequest())) {
             $this->_redirect('cms/block');
         }
-
+        $differentStoresSelected = false;
         $sessionData = $this->session->getFormData();
         if (!empty($sessionData)) {
             $blocksToTranslate = array_keys($sessionData['items']);
@@ -82,7 +82,10 @@ class Create extends BackendAction
             $collection = $this->filter->getCollection($this->collectionFactory->create());
             $blocksToTranslate = $collection->getAllIds();
         }
-
+        if($this->helper->hasDifferentStores(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate)){
+            $blocksToTranslate = $this->helper->getDefaultStoreViewIds(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate);
+            $differentStoresSelected = true;
+        }
         $blockNames = $this->helper->getOtherEntityNames(
             $this->collectionFactory,
             $this->getRequest()->getParam('store'),
@@ -93,14 +96,14 @@ class Create extends BackendAction
         );
 
         $blocksToTranslate = array_keys($blockNames);
-        $differentStoresSelected = $this->helper->differentStoresSelected(
+        /*$differentStoresSelected = $this->helper->differentStoresSelected(
             $this->collectionFactory,
             $this->getRequest()->getParam('store'),
             $blocksToTranslate,
             'block',
             'store_id',
             null
-        );
+        );*/
         $itemsToTranslate = [
             'ids' => $blocksToTranslate,
             'names' => $blockNames

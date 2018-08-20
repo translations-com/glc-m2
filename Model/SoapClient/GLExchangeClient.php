@@ -492,7 +492,7 @@ class GLExchangeClient
      */
     protected function getCanceledTargetsBySubmissions(array $parameters)
     {
-        $PDTargetObjects = $this->getConnect()->getCancelledTargetsBySubmission(
+        $PDTargetObjects = $this->getConnect()->getCancelledTargetsBySubmissions(
             $parameters['submissionTickets'],
             $this->maxCancelledCount
         );
@@ -592,5 +592,18 @@ class GLExchangeClient
         $client = $this->getConnect();
 
         return $client->getCompletedTargetsBySubmission($tickets, $this->maxTargetCount);
+    }
+
+    /**
+     * Receive translations
+     *
+     * @param $project
+     *
+     * @return PDTarget[]
+     */
+    public function receiveTranslationsByProject($project){
+        $client = $this->getConnect();
+        $pdproject = $client->getProject($project[0]);
+        return $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
     }
 }

@@ -74,7 +74,7 @@ class Create extends BackendAction
         if (!$this->_formKeyValidator->validate($this->getRequest())) {
             $this->_redirect('cms/page');
         }
-
+        $differentStoresSelected = false;
         $sessionData = $this->session->getFormData();
         if (!empty($sessionData)) {
             $pagesToTranslate = array_keys($sessionData['items']);
@@ -82,7 +82,10 @@ class Create extends BackendAction
             $collection = $this->filter->getCollection($this->collectionFactory->create());
             $pagesToTranslate = $collection->getAllIds();
         }
-
+        if($this->helper->hasDifferentStores(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate)){
+            $pagesToTranslate = $this->helper->getDefaultStoreViewIds(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate);
+            $differentStoresSelected = true;
+        }
         $pageNames = $this->helper->getOtherEntityNames(
             $this->collectionFactory,
             $this->getRequest()->getParam('store'),
@@ -92,14 +95,14 @@ class Create extends BackendAction
             null
         );
         $pagesToTranslate = array_keys($pageNames);
-        $differentStoresSelected = $this->helper->differentStoresSelected(
+        /*$differentStoresSelected = $this->helper->differentStoresSelected(
             $this->collectionFactory,
             $this->getRequest()->getParam('store'),
             $pagesToTranslate,
             'page',
             'store_id',
             null
-        );
+        );*/
         $itemsToTranslate = [
             'ids' => $pagesToTranslate,
             'names' => $pageNames

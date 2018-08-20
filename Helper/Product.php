@@ -9,6 +9,8 @@ use \TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCus
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
 use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
 
 /**
  * Class Product
@@ -47,6 +49,14 @@ class Product extends Data
     protected $productFieldModel;
     protected $entityAttribute;
     /**
+     * @var \Magento\Cms\Model\ResourceModel\Page\CollectionFactory
+     */
+    protected $pageCollectionFactory;
+    /**
+     * @var \Magento\Cms\Model\ResourceModel\Block\CollectionFactory
+     */
+    protected $blockCollectionFactory;
+    /**
      * Product constructor.
      *
      * @param \Magento\Framework\App\Helper\Context             $context
@@ -79,7 +89,9 @@ class Product extends Data
         \Magento\Indexer\Model\IndexerFactory $indexerFactory,
         \Magento\Indexer\Model\Indexer\CollectionFactory $indexerCollectionFactory,
         \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel,
-        \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute
+        \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
+        PageCollectionFactory $pageCollectionFactory,
+        BlockCollectionFactory $blockCollectionFactory
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -88,6 +100,8 @@ class Product extends Data
         $this->searchCriteriaFactory = $searchCriteriaFactory;
         $this->productFieldModel = $productFieldModel;
         $this->entityAttribute = $entityAttribute;
+        $this->pageCollectionFactory = $pageCollectionFactory;
+        $this->blockCollectionFactory = $blockCollectionFactory;
         parent::__construct(
             $context,
             $eavAttribute,
@@ -104,7 +118,9 @@ class Product extends Data
             $indexerFactory,
             $indexerCollectionFactory,
             $productFieldModel,
-            $entityAttribute
+            $entityAttribute,
+            $pageCollectionFactory,
+            $blockCollectionFactory
         );
     }
 

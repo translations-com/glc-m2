@@ -75,8 +75,7 @@ class Uninstall implements UninstallInterface
         /**
          * Removing generated rows in the core_config_data table
          */
-        $sql = "DELETE FROM `core_config_data` WHERE `path` LIKE '%globallink%';";
-        $setup->getConnection()->query($sql);
+        $setup->getConnection()->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
         /**
          * End setup
          */

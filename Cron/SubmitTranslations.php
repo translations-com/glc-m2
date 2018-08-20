@@ -34,7 +34,10 @@ class SubmitTranslations extends Translations
      * default limit if something wrong with limit from DB
      */
     const DEFAULT_LIMIT_UPLOADS = 100;
-
+    /**
+     * @var Item Name
+     */
+    protected $itemName;
     /**
      * Submit task's lock file name
      */
@@ -199,8 +202,8 @@ class SubmitTranslations extends Translations
         foreach ($items as $item) {
             $itemEntityTypeId = $item->getEntityTypeId();
             $itemEntityId = $item->getEntityId();
-
-            $filePath = $xmlFolder.'/'.$this->getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $item->getEntityName());
+            $this->itemName =  preg_replace('/[^A-Za-z0-9\-]/', '', $item->getEntityName());
+            $filePath = $xmlFolder.'/'.$this->getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $this->itemName);
 
             if (!$this->file->fileExists($filePath, true)) {
                 if ($limitUploads < 1) {
@@ -368,7 +371,7 @@ class SubmitTranslations extends Translations
     protected function sendDocument($originStoreId, $entityTypeId, $entityId, $entityData, $queue)
     {
         $fileName = $this->getXmlFileName($originStoreId, $entityTypeId, $entityId, $entityData['entity_name']);
-        $filePath = $this->translationService->getSendFolder().'/'.$fileName;
+        $filePath = $this->translationService->getSendFolder().'/'.$this->itemName .'.xml';
         $sourceStore = $this->storeManager->getStore($originStoreId);
         switch ($entityTypeId) {
             case HelperData::CATALOG_PRODUCT_TYPE_ID:

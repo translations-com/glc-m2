@@ -2,7 +2,6 @@
 /** @var $block \Magento\Backend\Block\Widget\Grid\Massaction\Extended */
 // @codingStandardsIgnoreFile
     $collection = $tmpBlock->getCollection();
-
     $ids = array();
     $maxLengthIds = array();
     foreach($collection as $item){
@@ -51,12 +50,12 @@
             <optgroup label="<?php /* @escapeNotVerified */ echo __('Mass Actions')?>">
                 <option disabled selected></option>
                 <?php if ($block->getUseSelectAll()):?>
-                    <option value="selectAll">
-                        <?php /* @escapeNotVerified */ echo __('Select All') ?>
+                    <!--<option value="selectAll">
+                        <?php /* @escapeNotVerified */ //echo __('Select All') ?>
                     </option>
                     <option value="unselectAll">
-                        <?php /* @escapeNotVerified */ echo __('Unselect All') ?>
-                    </option>
+                        <?php /* @escapeNotVerified */ //echo __('Unselect All') ?>
+                    </option> -->
                 <?php endif; ?>
                 <option value="selectVisible">
                     <?php /* @escapeNotVerified */ echo __('Select Visible') ?>

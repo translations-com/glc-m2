@@ -66,7 +66,7 @@ class TranslationStatus extends AbstractModel implements OptionSourceInterface
             'value' => self::STATUS_ENTITY_IN_PROGRESS,
         ];
         $options[] = [
-            'label' => __('Translation Required'),
+            'label' => __('Entity Has Been Modified - Translation Required'),
             'value' => self::STATUS_ENTITY_TRANSLATION_REQUIRED,
         ];
         $options[] = [
@@ -74,7 +74,7 @@ class TranslationStatus extends AbstractModel implements OptionSourceInterface
             'value' => self::STATUS_ENTITY_TRANSLATED,
         ];
         $options[] = [
-            'label' => __('Translation Required'),
+            'label' => __('New Entity - Translation Required'),
             'value' => self::STATUS_ENTITY_NULL,
         ];
         return $options;

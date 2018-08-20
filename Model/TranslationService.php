@@ -178,10 +178,30 @@ class TranslationService
             }
         }
         $this->moveItemsInError($problemTickets);
+        $ticketCount = count($targets);
+        $logData = ['message' => "Tickets were found. Count of tickets: {$ticketCount}"];
+        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        return $targets;
+    }
+    /**
+     * Receive translations
+     *
+     *
+     *
+     * @return PDTarget[]
+     * @throws Exception
+     */
+    public function receiveTranslationsByProject()
+    {
+        $targets = [];
+        try {
+            $targets = $this->glExchangeClient->receiveTranslationsByProject($this->projectShortCodes);
+        } catch (\Exception $e) {
+            throw $e;
+        }
 
         return $targets;
     }
-
     /**
      * update items status for problem tickets
      *
