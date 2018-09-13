@@ -4,12 +4,16 @@
     $collection = $tmpBlock->getCollection();
     $ids = array();
     $maxLengthIds = array();
+    $completedIds = array();
     foreach($collection as $item){
         if($item->getData('status_id') == 2){
             $ids[] = $item->getData('id');
         }
         if($item->getData('status_id') == 10){
             $maxLengthIds[] = $item->getData('id');
+        }
+        if($item->getData('status_id') == 4){
+            $completedIds[] = $item->getData('id');
         }
     }
 ?>
@@ -95,9 +99,11 @@
                 var object = <?php echo $this->getJsObjectName() ?>;
                 var readyForImport = <?php echo json_encode($ids); ?>;
                 var maxLengthErrors = <?php echo json_encode($maxLengthIds); ?>;
+                var completedIds =  <?php echo json_encode($completedIds); ?>;
                 var items = object.items;
                 var value = $(this).val();
                 var isCompleted = false;
+                var alreadyImported = false;
                 var hasErrors = false;
                 var checkedItems = object.checkedString.split(',');
                 for(var i=0; i < maxLengthErrors.length; i++){
@@ -105,12 +111,38 @@
                         hasErrors = true;
                     }
                 };
+                for(var i=0; i < completedIds.length; i++){
+                    if(checkedItems.includes(completedIds[i])){
+                        alreadyImported = true;
+                    }
+                };
                 for(var i=0; i < readyForImport.length; i++){
                     if(checkedItems.includes(readyForImport[i])){
                         isCompleted = true;
                     }
                 };
-                if(value == 'apply_translations' && hasErrors == true){
+                if(alreadyImported == true){
+                    if (items[value]) {
+                        if (varienStringArray.count(object.checkedString) == 0) {
+                            object.apply();
+                            resetMassaction();
+                            return;
+                        }
+                        alert({
+                            content: "<?php /* @escapeNotVerified */ echo __('One or more selected items has already been imported. Please de-select') ?> ",
+                            actions: {
+                                confirm: function () {
+                                    resetFlag = false;
+                                    object.apply();
+                                },
+                                always: function () {
+                                    resetMassaction();
+                                }
+                            }
+                        });
+                    }
+                }
+                else if(value == 'apply_translations' && hasErrors == true){
                     if (items[value]) {
                         if (varienStringArray.count(object.checkedString) == 0) {
                             object.apply();

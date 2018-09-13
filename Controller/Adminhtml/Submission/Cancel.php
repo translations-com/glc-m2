@@ -34,7 +34,7 @@ class Cancel extends Submission
         }
 
         $itemIds = $postData['ids'];
-
+        $completedItems = [];
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter('id', ['in' => $itemIds]);
         $itemsTotal = $items->getSize();
@@ -42,9 +42,22 @@ class Cancel extends Submission
             $this->messageManager->addErrorMessage(__('Nothing selected'));
             return $this->resultRedirect->setPath('*/*/index');
         }
+        foreach($items as $item){
+            if($item->isCompleted()){
+                if(!in_array($item->getSubmissionName(), $completedItems)) {
+                    $completedItems[] = $item->getSubmissionName();
+                }
+            }
+        }
         try {
-            $items->walk('cancelItem');
-            $this->messageManager->addSuccessMessage(__('Submissions have been moved to cancellation queue'));
+            if(count($completedItems) > 0){
+                $completedItemsString = "Cannot cancel the following submissions because they are complete in PD: ".implode(",", $completedItems) .". Please import instead.";
+                $this->messageManager->addErrorMessage($completedItemsString);
+            }
+            else{
+                $items->walk('cancelItem');
+                $this->messageManager->addSuccessMessage(__('Submissions have been moved to cancellation queue'));
+            }
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }

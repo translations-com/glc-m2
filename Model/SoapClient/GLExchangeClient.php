@@ -606,4 +606,15 @@ class GLExchangeClient
         $pdproject = $client->getProject($project[0]);
         return $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
     }
+
+    /**
+     * Receive completed targets by submission
+     * @param $submissionTicket
+     * @return [Target]
+     */
+
+    public function getCompletedTargetsBySubmission($submissionTicket){
+        $client = $this->getConnect();
+        return $client->getCompletedTargets($submissionTicket, $this->maxTargetCount);
+    }
 }

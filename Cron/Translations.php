@@ -180,6 +180,7 @@ abstract class Translations
      */
     protected $productUrlPathGenerator;
 
+
     /**
      * Translations constructor.
      *

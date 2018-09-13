@@ -12,6 +12,8 @@ class Form extends BaseForm
 {
     protected $collectionFactory;
 
+    protected $pageStoreId;
+
     protected $pageNames = [];
     /**
      * @var array $pagesToTranslate array of ids
@@ -39,6 +41,7 @@ class Form extends BaseForm
     ) {
         $this->collectionFactory = $collectionFactory;
         parent::__construct($context, $registry, $formFactory, $helper, $translationService, $data);
+        $this->pageStoreId = $registry->registry('objectStoreId');
     }
 
     /**
@@ -78,14 +81,26 @@ class Form extends BaseForm
             ]
         );
 
-        $fieldset->addField(
-            'store',
-            'hidden',
-            [
-                'name' => 'submission[store]',
-                'value' => $this->selectedStore->getId(),
-            ]
-        );
+        if($this->pageStoreId == null){
+            $fieldset->addField(
+                'store',
+                'hidden',
+                [
+                    'name' => 'submission[store]',
+                    'value' => $this->selectedStore->getId(),
+                ]
+            );
+        }
+        else{
+            $fieldset->addField(
+                'store',
+                'hidden',
+                [
+                    'name' => 'submission[store]',
+                    'value' => $this->pageStoreId,
+                ]
+            );
+        }
 
         if ($this->session->getFormData()) {
             $form->setValues($this->session->getFormData());

@@ -16,6 +16,10 @@ class Form extends GenericForm
 
     protected $localize;
 
+    protected $objectStoreId;
+
+    protected $nonDefaultDifferentStoresSelected;
+
     /**
      * @var \TransPerfect\GlobalLink\Helper\Data
      */
@@ -56,8 +60,11 @@ class Form extends GenericForm
         $this->translationService = $translationService;
         $this->session = $context->getBackendSession();
         parent::__construct($context, $registry, $formFactory, $data);
-        $this->_prepareData();
         $this->differentStoresSelected = $registry->registry('differentStoresSelected');
+        $this->objectStoreId = $registry->registry('objectStoreId');
+        $this->_prepareData();
+
+
     }
 
     /**
@@ -104,16 +111,17 @@ class Form extends GenericForm
                 'date_format' => $dateFormat,
             ]
         );
-        if($this->differentStoresSelected){
+        if($this->differentStoresSelected) {
             $fieldset->addField(
                 'submission[source_language]',
                 'note',
                 [
                     'label' => __('Source language'),
-                    'text' => __('Different source languages selected, defaulting to '. $this->helper->getCountrybyLocaleCode($this->currentLocale)),
+                    'text' => __('Cannot translate, multiple languages selected.'),
                 ]
             );
-        } else {
+        }
+        else {
             $fieldset->addField(
                 'submission[source_language]',
                 'note',
@@ -236,7 +244,12 @@ class Form extends GenericForm
      */
     protected function _prepareData()
     {
-        $storeId = $this->getSourceStoreId();
+        if($this->objectStoreId == null){
+            $storeId = $this->getSourceStoreId();
+        }
+        else{
+            $storeId = $this->objectStoreId;
+        }
         $this->selectedStore = $this->_storeManager->getStore($storeId);
 
         $selectedStoreLocale = $this->getSourceStoreLocaleCode();
@@ -388,6 +401,7 @@ class Form extends GenericForm
         $projectsArray = [['label'=>__('Select Project'), 'value'=>'']];
         $projectsMessage = '';
         $targetlocales = [];
+        $shortCodes = $this->helper->getProjectShortCodes();
 
         $locallyAvailableLocales = $this->helper->getLocales(true);
 
@@ -400,10 +414,12 @@ class Form extends GenericForm
                 ]
             );
             foreach ($response as $project) {
-                $projectsArray[] = [
-                    'label' => $project->projectInfo->name,
-                    'value' => $project->projectInfo->shortCode,
-                ];
+                if(in_array($project->projectInfo->shortCode, $shortCodes)) {
+                    $projectsArray[] = [
+                        'label' => $project->projectInfo->name,
+                        'value' => $project->projectInfo->shortCode,
+                    ];
+                }
 
                 $targetlocales[$project->projectInfo->shortCode] = [];
                 foreach ($project->projectLanguageDirections as $direction) {

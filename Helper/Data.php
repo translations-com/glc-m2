@@ -161,19 +161,80 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->blockCollectionFactory = $blockCollectionFactory;
         parent::__construct($context);
     }
+	
+	/*
+     * @return project short codes
+     */
+    public function getProjectShortCodes(){
+        return explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ));
+    }
 
+    /**
+     * @return int
+     */
+    public function getStoreId($typeId, $id)
+    {
+        $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
+        $isEnterprise = $this->isEnterprise();
+        switch ($typeId) {
+            case Data::CMS_PAGE_TYPE_ID:
+                $collection = $this->pageCollectionFactory->create();
+                if($isEnterprise) {
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                        "main_table.row_id = store_table.row_id",
+                        []);
+                }
+                else{
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                        "main_table.page_id = store_table.page_id",
+                        []);
+                }
+                foreach ($collection as $entity) {
+                    if ($entity->getData('page_id') == $id) {
+                        return $entity->getData('store_id')[0];
+                    }
+                }
+                return $defaultStore;
+            case Data::CMS_BLOCK_TYPE_ID:
+                $collection = $this->blockCollectionFactory->create();
+                if($isEnterprise) {
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                        "main_table.row_id = store_table.row_id",
+                        []);
+                }
+                else{
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                        "main_table.block_id = store_table.block_id",
+                        []);
+                }
+                foreach ($collection as $entity) {
+                    if ($entity->getData('block_id') == $id) {
+                        return $entity->getData('store_id')[0];
+                    }
+                }
+                return $defaultStore;
+        }
+    }
     /**
      * @return boolean
      */
     public function hasDifferentStores($typeId, $ids){
         $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
+        $isEnterprise = $this->isEnterprise();
         switch($typeId){
             case Data::CMS_PAGE_TYPE_ID:
                 $storeViewArray = array();
                 $collection = $this->pageCollectionFactory->create();
-                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
-                    "main_table.row_id = store_table.row_id",
-                    []);
+                if($isEnterprise) {
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                        "main_table.row_id = store_table.row_id",
+                        []);
+                }
+                else{
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                        "main_table.page_id = store_table.page_id",
+                        []);
+                }
                 foreach($ids as $id) {
                     foreach ($collection as $entity) {
                         if ($entity->getData('page_id') == $id){
@@ -194,9 +255,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             case Data::CMS_BLOCK_TYPE_ID:
                 $storeViewArray = array();
                 $collection = $this->blockCollectionFactory->create();
-                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
-                    "main_table.row_id = store_table.row_id",
-                    []);
+                if($isEnterprise) {
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                        "main_table.row_id = store_table.row_id",
+                        []);
+                }
+                else{
+                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                        "main_table.block_id = store_table.block_id",
+                        []);
+                }
                 foreach($ids as $id) {
                     foreach ($collection as $entity) {
                         if ($entity->getData('block_id') == $id){
@@ -259,6 +327,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                                     if($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)){
                                         $newIds[] = $innerEntity->getData('block_id');
                                     }
+                                    //Put an else here if we want to resolve this and still translate
                                 }
                             }
                             else{
@@ -270,6 +339,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 return array_unique($newIds);
                 break;
         }
+    }
+    /**
+     * @return boolean
+     */
+    public function defaultStoreSelected(){
+        if($this->storeManager->getDefaultStoreView()->getId() == $this->storeManager->getStore()->getId()){
+            return true;
+        }
+        return false;
     }
     /**
      * @return array

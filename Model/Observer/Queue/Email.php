@@ -22,6 +22,7 @@ class Email implements ObserverInterface
 {
     const STORE_NAME_XPATH = 'trans_email/ident_general/name';
     const STORE_MAIL_XPATH = 'trans_email/ident_general/email';
+    const PD_USERNAME = 'globallink/connection/username';
 
     /**
      * @var \Magento\Framework\Mail\Template\TransportBuilder
@@ -88,15 +89,14 @@ class Email implements ObserverInterface
         $queues = array_filter($observer->getQueues(), function ($queue) {
             return $queue->getProcessed() && $queue->hasConfirmationEmail();
         });
+        $username = $this->scopeConfig->getValue(self::PD_USERNAME);
         $itemCollection = $observer->getItems();
         $targetLocales = [];
-        $username = null;
         $submission_ticket = null;
         $document_tickets = [];
         if ($itemCollection != null) {
             foreach ($itemCollection as $item) {
                 $targetLocale = $item->getPdLocaleIsoCode();
-                $username = $item->getUsername();
                 $submission_ticket = $item->getSubmissionTicket();
                 $currentDocTicket = $item->getDocumentTicket();
                 if (!in_array($targetLocale, $targetLocales)) {
@@ -111,7 +111,7 @@ class Email implements ObserverInterface
         }
         foreach ($queues as $queue) {
             $request_date = $queue->getData('request_date');
-            $due_date = $queue->getData('due_date');
+            $receive_date =  date('m/d/Y H:i:s', $_SERVER['REQUEST_TIME']);
             $source_locale = $queue->getData('source_locale');
             $recipient = explode(',', $queue->getConfirmationEmail());
 
@@ -132,7 +132,7 @@ class Email implements ObserverInterface
                     ->setTemplateOptions([
                             'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
                             'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
-                        ])->setTemplateVars(['queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'due_date' => $due_date])
+                        ])->setTemplateVars(['queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
                     ->setFrom($sender)
                     ->addTo($recipient)
                     ->getTransport();

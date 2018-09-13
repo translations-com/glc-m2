@@ -14,11 +14,18 @@
         <td>
             <p>{{trans "There has been an error with the GlobalLink module"}}</p>
             <p>
-                {{trans "User ID: %userId" userId=$userId |raw}} </br>
-                {{trans "Submission name: %sub_name" sub_name=$sub_name |raw}} </br>
-                {{trans "Request date: %request_date" request_date=$request_date |raw}} </br>
-                {{trans "Due date: %due_date" due_date=$due_date |raw}} </br>
+                {{trans "Submission name: %submission_name" submission_name=$queue.getName() |raw}}</br>
+                {{trans "Submission ticket: %submission_ticket" submission_ticket=$submission_ticket}}</br>
+                {{trans "Document ticket(s): %document_tickets" document_tickets=$document_tickets}}</br>
+                {{trans "PD Username: %username" username=$username}}</br>
                 {{trans "Source locale: %source_locale" source_locale=$source_locale |raw}} </br>
+                {{trans "Target locale(s): %target_locale" target_locale=$target_locale |raw}} </br>
+                {{trans "Request Date: %request_date" request_date=$request_date |raw}} </br>
+                {{trans "Receive Date: %receive_date" receive_date=$receive_date |raw}} </br>
+            </p>
+        </td>
+        <td>
+            <p>
                 {{trans "%messages" messages=$messages |raw}}
             </p>
         </td>

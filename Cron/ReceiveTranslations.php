@@ -225,7 +225,7 @@ class ReceiveTranslations extends Translations
                             $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                         }
-                        elseif($item->getStatusId() == Item::STATUS_MAXLENGTH)
+                        elseif($item->getStatusId() == Item::STATUS_MAXLENGTH && $maxLengthError != true)
                         {
                             $item->setStatusId(Item::STATUS_INPROGRESS);
                             $item->save();

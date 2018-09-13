@@ -371,7 +371,7 @@ class SubmitTranslations extends Translations
     protected function sendDocument($originStoreId, $entityTypeId, $entityId, $entityData, $queue)
     {
         $fileName = $this->getXmlFileName($originStoreId, $entityTypeId, $entityId, $entityData['entity_name']);
-        $filePath = $this->translationService->getSendFolder().'/'.$this->itemName .'.xml';
+        $filePath = $this->translationService->getSendFolder().'/'.$fileName;
         $sourceStore = $this->storeManager->getStore($originStoreId);
         switch ($entityTypeId) {
             case HelperData::CATALOG_PRODUCT_TYPE_ID:
@@ -507,7 +507,7 @@ class SubmitTranslations extends Translations
      */
     protected function getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $itemEntityName)
     {
-        $name = $itemEntityName;
+        $name = $this->itemName =  preg_replace('/[^A-Za-z0-9\-]/', '', $itemEntityName);
 
         if (empty($name)) {
             $name = 'store_'.$originStoreId.'-'
@@ -982,6 +982,8 @@ class SubmitTranslations extends Translations
         $fieldNames = $this->getFieldsToTranslate(HelperData::CATALOG_CATEGORY_TYPE_ID);
 
         $category = $this->categoryRepository->get($entityId, $storeId);
+
+
 
         $attrArr = [];
         $optArr = [];

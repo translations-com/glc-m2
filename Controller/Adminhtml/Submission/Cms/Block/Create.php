@@ -47,6 +47,10 @@ class Create extends BackendAction
 
     protected $resultPageFactory = false;
 
+    protected $messageManager;
+
+    protected $resultRedirect;
+
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
@@ -64,6 +68,8 @@ class Create extends BackendAction
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
         $this->logger = $logger;
+        $this->messageManager = $context->getMessageManager();
+        $this->resultRedirect = $context->getResultRedirectFactory()->create();
     }
 
     /**
@@ -75,16 +81,23 @@ class Create extends BackendAction
             $this->_redirect('cms/block');
         }
         $differentStoresSelected = false;
+        $nonDefaultDifferentStoresSelected = false;
+        $blockStoreId = null;
         $sessionData = $this->session->getFormData();
+
         if (!empty($sessionData)) {
             $blocksToTranslate = array_keys($sessionData['items']);
         } else {
             $collection = $this->filter->getCollection($this->collectionFactory->create());
             $blocksToTranslate = $collection->getAllIds();
         }
+        $originalSelectedCount = count($blocksToTranslate);
+        $originalBlocksToTranslate = $blocksToTranslate;
         if($this->helper->hasDifferentStores(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate)){
-            $blocksToTranslate = $this->helper->getDefaultStoreViewIds(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate);
             $differentStoresSelected = true;
+        }
+        else if($this->helper->defaultStoreSelected()){
+            $blockStoreId = $this->helper->getStoreId(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate[0]);
         }
         $blockNames = $this->helper->getOtherEntityNames(
             $this->collectionFactory,
@@ -108,8 +121,15 @@ class Create extends BackendAction
             'ids' => $blocksToTranslate,
             'names' => $blockNames
         ];
+        if($differentStoresSelected){
+            $completedItemsString = "Cannot create submission as multiple source stores are selected. Please select only one source language.";
+            $this->messageManager->addErrorMessage($completedItemsString);
+            return $this->resultRedirect->setPath($this->_redirect->getRefererUrl());
+        }
         $this->registry->register('itemsToTranslate', $itemsToTranslate);
         $this->registry->register('differentStoresSelected', $differentStoresSelected);
+        //$this->registry->register('nonDefaultDifferentStoresSelected', $nonDefaultDifferentStoresSelected);
+        $this->registry->register('objectStoreId', $blockStoreId);
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

@@ -45,7 +45,11 @@ class Create extends BackendAction
      */
     protected $filter;
 
+    protected $messageManager;
+
     protected $resultPageFactory = false;
+
+    protected $resultRedirect;
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
@@ -64,6 +68,8 @@ class Create extends BackendAction
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
         $this->logger = $logger;
+        $this->messageManager = $context->getMessageManager();
+        $this->resultRedirect = $context->getResultRedirectFactory()->create();
     }
 
     /**
@@ -75,7 +81,10 @@ class Create extends BackendAction
             $this->_redirect('cms/page');
         }
         $differentStoresSelected = false;
+        $nonDefaultDifferentStoresSelected = false;
+        $pageStoreId = null;
         $sessionData = $this->session->getFormData();
+
         if (!empty($sessionData)) {
             $pagesToTranslate = array_keys($sessionData['items']);
         } else {
@@ -83,8 +92,10 @@ class Create extends BackendAction
             $pagesToTranslate = $collection->getAllIds();
         }
         if($this->helper->hasDifferentStores(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate)){
-            $pagesToTranslate = $this->helper->getDefaultStoreViewIds(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate);
             $differentStoresSelected = true;
+        }
+        else if($this->helper->defaultStoreSelected()){
+            $pageStoreId = $this->helper->getStoreId(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate[0]);
         }
         $pageNames = $this->helper->getOtherEntityNames(
             $this->collectionFactory,
@@ -107,8 +118,14 @@ class Create extends BackendAction
             'ids' => $pagesToTranslate,
             'names' => $pageNames
         ];
+        if($differentStoresSelected){
+            $completedItemsString = "Cannot create submission as multiple source stores are selected. Please select only one source language.";
+            $this->messageManager->addErrorMessage($completedItemsString);
+            return $this->resultRedirect->setPath($this->_redirect->getRefererUrl());
+        }
         $this->registry->register('itemsToTranslate', $itemsToTranslate);
         $this->registry->register('differentStoresSelected', $differentStoresSelected);
+        $this->registry->register('objectStoreId', $pageStoreId);
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

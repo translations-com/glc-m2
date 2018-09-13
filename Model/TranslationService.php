@@ -378,4 +378,12 @@ class TranslationService
 
         return $path;
     }
+
+    /**
+     * Gets completed targets by submission
+     * @return Target[]
+     */
+    public function getCompletedTargetsBySubmission($submissionTicket){
+        return $this->glExchangeClient->getCompletedTargetsBySubmission($submissionTicket);
+    }
 }

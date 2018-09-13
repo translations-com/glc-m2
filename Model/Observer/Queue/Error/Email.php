@@ -21,6 +21,7 @@ class Email extends BaseEmail
 {
     const ERROR_RECIPIENT_EMAIL_XPATH = 'globallink/general/email_address';
     const ERROR_EMAIL_ENABLE_XPATH = 'globallink/general/email_errors';
+    const PD_USERNAME = 'globallink/connection/username';
 
     /**
      * {@inheritdoc}
@@ -28,11 +29,33 @@ class Email extends BaseEmail
     public function execute(Observer $observer)
     {
         $recipient = explode(',', $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH));
+        $username = $this->scopeConfig->getValue(self::PD_USERNAME);
         $enabled = (bool)$this->scopeConfig->getValue(self::ERROR_EMAIL_ENABLE_XPATH);
         $firstRecipient = $recipient[count($recipient)-1];
         if ($enabled && !empty($firstRecipient)) {
             /** @var \TransPerfect\GlobalLink\Model\Queue[] $queues */
             $queues = $observer->getQueues();
+            $itemCollection = $observer->getItems();
+            $targetLocales = [];
+            $submission_ticket = "Not available";
+            $document_tickets = "Not available";
+            $target_locale = "Not available";
+            if ($itemCollection != null) {
+                $document_tickets = [];
+                foreach ($itemCollection as $item) {
+                    $targetLocale = $item->getPdLocaleIsoCode();
+                    $submission_ticket = $item->getSubmissionTicket();
+                    $currentDocTicket = $item->getDocumentTicket();
+                    if (!in_array($targetLocale, $targetLocales)) {
+                        $targetLocales[] = $targetLocale;
+                    }
+                    if (!in_array($currentDocTicket, $document_tickets)) {
+                        $document_tickets[] = $currentDocTicket;
+                    }
+                }
+                $target_locale = implode(', ', $targetLocales);
+                $document_tickets = implode(', ', $document_tickets);
+            }
             foreach ($queues as $queue) {
                 if ($queue->hasQueueErrors()) {
                     $messages = implode(PHP_EOL, $queue->getQueueErrors());
@@ -49,7 +72,7 @@ class Email extends BaseEmail
 
                         $sub_name = $queue->getName();
                         $request_date = $queue->getData('request_date');
-                        $due_date = $queue->getData('due_date');
+                        $receive_date =  date('m/d/Y H:i:s', $_SERVER['REQUEST_TIME']);
                         $source_locale = $queue->getData('source_locale');
                         $userId = $queue->getData('magento_admin_user_requested_by');
                         $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
@@ -63,7 +86,7 @@ class Email extends BaseEmail
                             ->setTemplateOptions([
                                     'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
                                     'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
-                                ])->setTemplateVars(['messages' => $messages, 'sub_name' => $sub_name, 'request_date' => $request_date, 'due_date' => $due_date, 'source_locale' => $source_locale, 'userId' => $userId])
+                                ])->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
                             ->setFrom($sender)
                             ->addTo($recipient)
                             ->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log')

@@ -298,11 +298,11 @@ class Item extends AbstractModel
             self::STATUS_NEW => 'Queued',
             self::STATUS_INPROGRESS => 'In Progress',
             self::STATUS_FINISHED => 'Ready to Import',
-            self::STATUS_ERROR_DOWNLOAD => 'Downloading failed',
+            self::STATUS_ERROR_DOWNLOAD => 'Cancelled - Source Page Deleted',
             self::STATUS_APPLIED => 'Completed',
             self::STATUS_FOR_CANCEL => 'Waiting to be Cancelled',
             self::STATUS_FOR_DELETE => 'Cancelled',
-            self::STATUS_CANCEL_FAILED => 'Cancel call failed',
+            self::STATUS_CANCEL_FAILED => 'Cancel Failed Once, Will Retry',
             self::STATUS_ERROR_UPLOAD => 'Uploading failed',
             self::STATUS_MAXLENGTH => 'Max Length Error'
         ];
@@ -406,24 +406,35 @@ class Item extends AbstractModel
         try {
             switch ($this->getStatusId()) {
                 case self::STATUS_NEW:
-                case self::STATUS_ERROR_UPLOAD:
-                    // remove item which haven't been sent yet
-                    //return $this->removeItem();
                     $this->setStatusId(self::STATUS_FOR_DELETE);
                     $this->getResource()->save($this);
                     break;
+                case self::STATUS_ERROR_UPLOAD:
+                    // remove item which haven't been sent yet
+                    //return $this->removeItem();
+                    //$this->setStatusId(self::STATUS_FOR_DELETE);
+                    //$this->getResource()->save($this);
+                    break;
 
                 case self::STATUS_FINISHED:
+                    $this->setStatusId(self::STATUS_FOR_DELETE);
+                    $this->getResource()->save($this);
+                    break;
                 case self::STATUS_APPLIED:
                     // can't cancel finished item
                     break;
 
                 case self::STATUS_INPROGRESS:
+                    $this->setStatusId(self::STATUS_FOR_DELETE);
+                    $this->getResource()->save($this);
+                    break;
                 case self::STATUS_CANCEL_FAILED:
                 case self::STATUS_ERROR_DOWNLOAD:
                     // move item in cancellation queue
-                    $this->setStatusId(self::STATUS_FOR_CANCEL);
-                    $this->getResource()->save($this);
+                    //$this->setStatusId(self::STATUS_FOR_DELETE);
+                    //$this->getResource()->save($this);
+                    break;
+                case self::STATUS_MAXLENGTH:
                     break;
             }
         } catch (\Exception $e) {
@@ -432,6 +443,19 @@ class Item extends AbstractModel
         }
 
         return $this;
+    }
+    /**
+     * Makes an API call to see if the item is completed on the PD side
+     */
+    public function isCompleted(){
+        $submissionTicket = $this->getSubmissionTicket();
+        $completedTargets = $this->translationService->getCompletedTargetsBySubmission($this->getSubmissionTicket());
+        if(count($completedTargets) > 0){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     /**
