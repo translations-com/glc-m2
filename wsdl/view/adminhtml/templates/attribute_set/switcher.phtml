@@ -1,0 +1,113 @@
+<?php
+/* @var $block TransPerfect\GlobalLink\Block\Adminhtml\AttributeSet\Switcher */
+?>
+<div class="attribute-set-switcher store-switcher">
+    <span class="attribute-set-switcher-label store-switcher-label"><?php  echo __('Choose Attribute Set:') ?></span>
+    <div class="actions dropdown closable">
+        <input type="hidden" name="product_attribute_set" value="55"/>
+        <input type="hidden" name="attribute_set_switcher" id="attribute_set_switcher"
+               data-role="attribute-set-id" data-param="attribute_set"
+               value="<?php echo $block->escapeHtml($block->getStoreId()) ?>"
+               onchange="switchAttributeSet(this);"<?php echo $block->getUiId()?> />
+
+        <button type="button" class="admin__action-dropdown" data-mage-init='{"dropdown":{}}' data-toggle="dropdown" aria-haspopup="true" id="attribute-set-change-button">
+            <?php $currentAttributeSet = $block->getCurrentAttributeSet() ?>
+            <?php echo $currentAttributeSet ? $currentAttributeSet->getAttributeSetName() : 'Select Attribute Set'?>
+        </button>
+
+        <ul class="dropdown-menu" data-role="attribute-set-list">
+            <?php foreach ($block->getAttributeSets() as $attributeSet): ?>
+                <li><a data-role="attribute-set-id" data-value="<?php echo $attributeSet->getAttributeSetId() ?>" href="#"><?php echo $attributeSet->getAttributeSetName() ?></a></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>
+
+<script>
+require([
+    'jquery',
+    'Magento_Ui/js/modal/confirm'
+], function(jQuery, confirm){
+
+    (function($) {
+        var $attributeSetList = $('[data-role=attribute-set-list]');
+        $attributeSetList.on('click', '[data-value]', function(event) {
+            var val = $(event.target).data('value');
+            var role = $(event.target).data('role');
+            var switcher = $('[data-role='+role+']');
+
+            event.preventDefault();
+
+            if (!switcher.val() || val != switcher.val()) {
+                switcher.val(val).trigger('change'); // Set the value & trigger event
+            }
+        });
+    })(jQuery);
+
+    var scopeSwitcherHandler;
+
+    function switchAttributeSet(obj) {
+        var switcher = jQuery(obj);
+        var attributeSetId = switcher.val();
+        var scopeParams = '';
+        if (attributeSetId) {
+            scopeParams = switcher.data('param') + '/' + attributeSetId + '/';
+        }
+
+        if (obj.switchParams) {
+            scopeParams += obj.switchParams;
+        }
+
+        if ((typeof scopeSwitcherHandler) != 'undefined') {
+            var switcherParams = {
+                attributeSetId: attributeSetId,
+                scopeParams: scopeParams,
+                useConfirm: <?php echo (int)$block->getUseConfirm() ?>
+            };
+            scopeSwitcherHandler(switcherParams);
+        } else {
+
+            <?php if ($block->getUseConfirm() && $block->getCurrentAttributeSetId()): ?>
+
+            confirm({
+                content:  "<?php /* @escapeNotVerified */ echo __('Please confirm Attribute Set switching. All data that hasn\'t been saved will be lost.') ?>",
+                actions: {
+                    confirm: function() {
+                        reload();
+                    },
+                    cancel: function() {
+                        obj.value = '<?php echo $block->escapeHtml($block->getStoreId()) ?>';
+                    }
+                }
+            });
+
+            <?php else: ?>
+                reload();
+            <?php endif; ?>
+        }
+
+        function reload() {
+            <?php if (!$block->isUsingIframe()): ?>
+            var url = '<?php /* @escapeNotVerified */ echo $block->getSwitchUrl() ?>' + scopeParams;
+            setLocation(url);
+            <?php else: ?>
+            jQuery('#preview_selected_attribute_set').val(attributeSetId);
+            jQuery('#preview_form').submit();
+
+            jQuery('.attribute-set-switcher .dropdown-menu li a').each(function() {
+                var $this = jQuery(this);
+
+                if ($this.data('role') === 'attribute-set-id' && $this.data('value') == attributeSetId) {
+                    jQuery('#attribute-set-change-button').html($this.text());
+                }
+            });
+
+            jQuery('#attribute-set-change-button').click();
+            <?php endif; ?>
+        }
+    }
+
+    window.scopeSwitcherHandler = scopeSwitcherHandler;
+    window.switchAttributeSet = switchAttributeSet;
+});
+</script>

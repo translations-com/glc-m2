@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="transperfect_globallink_item_delete_after">
+        <observer
+            name="transperfect_globallink_item_delete_after_observer"
+            instance="TransPerfect\GlobalLink\Model\Observer\Item\DeleteQueueIfEmpty"
+            disabled="false" />
+    </event>
+    <event name="transperfect_globallink_item_save_before">
+        <observer
+            name="transperfect_globallink_item_save_before_observer"
+            instance="TransPerfect\GlobalLink\Model\Observer\Item\StatusLog"
+            disabled="false" />
+    </event>
+</config>

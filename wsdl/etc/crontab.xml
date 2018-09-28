@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="transperfect_globallink_submittranslations" instance="TransPerfect\GlobalLink\Cron\SubmitTranslations" method="executeCron">
+            <schedule>*/10 * * * *</schedule>
+        </job>
+        <job name="transperfect_globallink_receivetranslations" instance="TransPerfect\GlobalLink\Cron\ReceiveTranslations" method="executeCron">
+            <schedule>*/10 * * * *</schedule>
+        </job>
+        <job name="transperfect_globallink_canceltranslations" instance="TransPerfect\GlobalLink\Cron\CancelTranslations" method="executeCron">
+            <schedule>*/10 * * * *</schedule>
+        </job>
+    </group>
+</config>

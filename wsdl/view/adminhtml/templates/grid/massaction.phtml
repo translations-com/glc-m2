@@ -1,0 +1,221 @@
+<?php
+/** @var $block \Magento\Backend\Block\Widget\Grid\Massaction\Extended */
+// @codingStandardsIgnoreFile
+    $collection = $tmpBlock->getCollection();
+    $ids = array();
+    $maxLengthIds = array();
+    $completedIds = array();
+    foreach($collection as $item){
+        if($item->getData('status_id') == 2){
+            $ids[] = $item->getData('id');
+        }
+        if($item->getData('status_id') == 10){
+            $maxLengthIds[] = $item->getData('id');
+        }
+        if($item->getData('status_id') == 4){
+            $completedIds[] = $item->getData('id');
+        }
+    }
+?>
+<div id="<?php echo $block->getHtmlId() ?>" class="admin__grid-massaction">
+
+    <?php if ($block->getHideFormElement() !== true):?>
+    <form action="" id="<?php echo $block->getHtmlId() ?>-form" method="post">
+        <?php endif ?>
+        <div class="admin__grid-massaction-form">
+            <?php echo $block->getBlockHtml('formkey')?>
+            <select
+                    id="<?php echo $block->getHtmlId() ?>-select"
+                    class="required-entry local-validation admin__control-select">
+                <option class="admin__control-select-placeholder" value="" selected><?php /* @escapeNotVerified */ echo __('Actions') ?></option>
+                <?php foreach ($block->getItems() as $_item): ?>
+                    <option value="<?php /* @escapeNotVerified */ echo $_item->getId() ?>"<?php echo($_item->getSelected() ? ' selected="selected"' : '')?>><?php /* @escapeNotVerified */ echo $_item->getLabel() ?></option>
+                <?php endforeach; ?>
+            </select>
+            <span class="outer-span" id="<?php echo $block->getHtmlId() ?>-form-hiddens"></span>
+            <span class="outer-span" id="<?php echo $block->getHtmlId() ?>-form-additional"></span>
+            <!--            --><?php //echo $block->getApplyButtonHtml() ?>
+        </div>
+        <?php if ($block->getHideFormElement() !== true):?>
+    </form>
+<?php endif ?>
+    <div class="no-display">
+        <?php foreach ($block->getItems() as $_item): ?>
+            <div id="<?php echo $block->getHtmlId() ?>-item-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-block">
+                <?php echo $_item->getAdditionalActionBlockHtml() ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <div class="mass-select-wrap">
+        <select
+                id="<?php echo $block->getHtmlId() ?>-mass-select"
+                class="action-select-multiselect"
+                data-menu="grid-mass-select">
+            <optgroup label="<?php /* @escapeNotVerified */ echo __('Mass Actions')?>">
+                <option disabled selected></option>
+                <?php if ($block->getUseSelectAll()):?>
+                    <!--<option value="selectAll">
+                        <?php /* @escapeNotVerified */ //echo __('Select All') ?>
+                    </option>
+                    <option value="unselectAll">
+                        <?php /* @escapeNotVerified */ //echo __('Unselect All') ?>
+                    </option> -->
+                <?php endif; ?>
+                <option value="selectVisible">
+                    <?php /* @escapeNotVerified */ echo __('Select Visible') ?>
+                </option>
+                <option value="unselectVisible">
+                    <?php /* @escapeNotVerified */ echo __('Unselect Visible') ?>
+                </option>
+            </optgroup>
+        </select>
+        <label for="<?php echo $block->getHtmlId() ?>-mass-select"></label>
+    </div>
+    <script>
+        require(['jquery', 'Magento_Ui/js/modal/confirm', 'Magento_Ui/js/modal/alert'], function($, confirm, alert){
+            'use strict';
+            $('#<?php echo $block->getHtmlId() ?>-mass-select').change(function () {
+                var massAction = $('option:selected', this).val();
+                switch (massAction) {
+                <?php if ($block->getUseSelectAll()):?>
+                    case 'selectAll':
+                        return <?php /* @escapeNotVerified */ echo $block->getJsObjectName() ?>.selectAll();
+                        break;
+                    case 'unselectAll':
+                        return <?php /* @escapeNotVerified */ echo $block->getJsObjectName() ?>.unselectAll();
+                        break;
+                <?php endif; ?>
+                    case 'selectVisible':
+                        return <?php /* @escapeNotVerified */ echo $block->getJsObjectName() ?>.selectVisible();
+                        break;
+                    case 'unselectVisible':
+                        return <?php /* @escapeNotVerified */ echo $block->getJsObjectName() ?>.unselectVisible();
+                        break;
+                }
+                this.blur();
+            });
+            var resetFlag = true;
+            $('#<?php echo $block->getHtmlId() ?>-select').on('change', function () {
+                var object = <?php echo $this->getJsObjectName() ?>;
+                var readyForImport = <?php echo json_encode($ids); ?>;
+                var maxLengthErrors = <?php echo json_encode($maxLengthIds); ?>;
+                var completedIds =  <?php echo json_encode($completedIds); ?>;
+                var items = object.items;
+                var value = $(this).val();
+                var isCompleted = false;
+                var alreadyImported = false;
+                var hasErrors = false;
+                var checkedItems = object.checkedString.split(',');
+                for(var i=0; i < maxLengthErrors.length; i++){
+                    if(checkedItems.includes(maxLengthErrors[i])){
+                        hasErrors = true;
+                    }
+                };
+                for(var i=0; i < completedIds.length; i++){
+                    if(checkedItems.includes(completedIds[i])){
+                        alreadyImported = true;
+                    }
+                };
+                for(var i=0; i < readyForImport.length; i++){
+                    if(checkedItems.includes(readyForImport[i])){
+                        isCompleted = true;
+                    }
+                };
+                if(alreadyImported == true){
+                    if (items[value]) {
+                        if (varienStringArray.count(object.checkedString) == 0) {
+                            object.apply();
+                            resetMassaction();
+                            return;
+                        }
+                        alert({
+                            content: "<?php /* @escapeNotVerified */ echo __('One or more selected items has already been imported. Please de-select') ?> ",
+                            actions: {
+                                confirm: function () {
+                                    resetFlag = false;
+                                    object.apply();
+                                },
+                                always: function () {
+                                    resetMassaction();
+                                }
+                            }
+                        });
+                    }
+                }
+                else if(value == 'apply_translations' && hasErrors == true){
+                    if (items[value]) {
+                        if (varienStringArray.count(object.checkedString) == 0) {
+                            object.apply();
+                            resetMassaction();
+                            return;
+                        }
+                        alert({
+                            content: "<?php /* @escapeNotVerified */ echo __('Cannot import. One or more selected items has max length errors.') ?> ",
+                            actions: {
+                                confirm: function () {
+                                    resetFlag = false;
+                                    object.apply();
+                                },
+                                always: function () {
+                                    resetMassaction();
+                                }
+                            }
+                        });
+                    }
+                }
+                else if(value == 'cancel_submission' && isCompleted == true){
+                    if (items[value]) {
+                        if (varienStringArray.count(object.checkedString) == 0) {
+                            object.apply();
+                            resetMassaction();
+                            return;
+                        }
+                        confirm({
+                            content: "<?php /* @escapeNotVerified */ echo __('Are you sure you want to cancel? One or more items are ready for import.') ?> ",
+                            actions: {
+                                confirm: function () {
+                                    resetFlag = false;
+                                    object.apply();
+                                },
+                                always: function () {
+                                    resetMassaction();
+                                }
+                            }
+                        });
+                    }
+                }
+                else {
+                    if (items[value]) {
+                        if (varienStringArray.count(object.checkedString) == 0) {
+                            object.apply();
+                            resetMassaction();
+                            return;
+                        }
+                        confirm({
+                            content: "<?php /* @escapeNotVerified */ echo __('Are you sure you want to') ?> " + items[value].label,
+                            actions: {
+                                confirm: function () {
+                                    resetFlag = false;
+                                    object.apply();
+                                },
+                                always: function () {
+                                    resetMassaction();
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            function resetMassaction () {
+                if (resetFlag) {
+                    var $el = $('#<?php echo $block->getHtmlId() ?>-select');
+                    $el.prop('selectedIndex',0);
+                }
+            }
+        });
+
+        <?php if (!$block->getParentBlock()->canDisplayContainer()): ?>
+        <?php /* @escapeNotVerified */ echo $block->getJsObjectName() ?>.setGridIds('<?php /* @escapeNotVerified */ echo $block->getGridIdsJson() ?>');
+        <?php endif; ?>
+    </script>
+</div>

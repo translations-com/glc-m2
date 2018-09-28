@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <globallink>
+            <general>
+                <max_target_count>9999</max_target_count>
+                <reindexing>0</reindexing>
+            </general>
+            <connection>
+                <username>undefined</username>
+                <password>undefined</password>
+                <url>undefined</url>
+            </connection>
+            <classifiers>
+                <classifier>XML</classifier>
+            </classifiers>
+        </globallink>
+    </default>
+</config>
+

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <!--<item name="globallink_project_list" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ProjectListCommand</item>-->
+                <item name="globallink_translations_submit" xsi:type="object">TransPerfect\GlobalLink\Console\Command\SubmitTranslationsCommand</item>
+                <item name="globallink_translations_receive" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ReceiveTranslationsCommand</item>
+                <item name="globallink_translations_cancel" xsi:type="object">TransPerfect\GlobalLink\Console\Command\CancelTranslationsCommand</item>
+                <item name="globallink_translations_unlock" xsi:type="object">TransPerfect\GlobalLink\Console\Command\UnlockTranslationsCommand</item>
+                <item name="globallink_test_glexchangeclient_connect" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientConnectCommand</item>
+                <item name="globallink_test_glexchangeclient_request" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientRequestCommand</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Model\SoapClient\ServiceSoapClient">
+        <arguments>
+            <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Model\SoapClient\ProjectSoapClient">
+        <arguments>
+            <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Model\TranslationService">
+        <arguments>
+            <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+            <argument name="serviceSoapClient" xsi:type="object">TransPerfect\GlobalLink\Model\SoapClient\ServiceSoapClient</argument>
+            <argument name="projectSoapClient" xsi:type="object">TransPerfect\GlobalLink\Model\SoapClient\ProjectSoapClient</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Store\Model\ResourceModel\Website\Collection">
+        <plugin name="add-locale-to-select" type="TransPerfect\GlobalLink\Model\Plugin\Website\CollectionPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Catalog\Ui\DataProvider\Product\ProductDataProvider">
+        <plugin
+            name="transperfect_globallink_product_grid_dataprovider"
+            type="TransPerfect\GlobalLink\Plugin\Ui\DataProvider\Product\ProductDataProvider"
+            sortOrder="10"/>
+    </type>
+    <preference for="Magento\Backend\Block\System\Store\Edit\Form\Store" type="TransPerfect\GlobalLink\Block\System\Store\Edit\Form\Store" />
+    <preference for="Magento\Catalog\Block\Adminhtml\Product\Attribute\Grid"
+        type="TransPerfect\GlobalLink\Block\Adminhtml\Product\Attribute\Grid" />
+    <preference for="Magento\CustomerCustomAttributes\Block\Adminhtml\Customer\Attribute\Grid"
+        type="TransPerfect\GlobalLink\Block\Adminhtml\Customer\Attribute\Grid" />
+    <type name="TransPerfect\GlobalLink\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Logger\BgTask\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">transperfect_globallink</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="transperfect" xsi:type="object">TransPerfect\GlobalLink\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+    <preference for="TransPerfect\GlobalLink\Api\LoggerInterface" type="TransPerfect\GlobalLink\Logger\Logger" />
+    <type name="TransPerfect\GlobalLink\Logger\BgTask\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">globallink_api_request</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">TransPerfect\GlobalLink\Logger\BgTask\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+    <preference for="Magento\Ui\Component\MassAction" type="TransPerfect\GlobalLink\Ui\Component\MassAction" />
+    <preference for="Magento\Catalog\Model\ResourceModel\Category\Collection" type="TransPerfect\GlobalLink\Model\ResourceModel\Category\Collection" />
+    <preference for="Magento\Framework\Mail\Template\TransportBuilder" type="TransPerfect\GlobalLink\Magento\Mail\Template\TransportBuilder" />
+</config>

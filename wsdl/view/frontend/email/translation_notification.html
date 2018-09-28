@@ -1,0 +1,32 @@
+<!--
+/**
+ * TransPerfect_GlobalLink
+ *
+ * @category   TransPerfect
+ * @package    TransPerfect_GlobalLink
+ * @author     Eugene Monakov <emonakov@robofirm.com>
+ */
+-->
+<!--@subject {{trans "Submission %submission_name is ready for import" submission_name=$queue.getName()}} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p>
+                {{trans "New translations are ready for import for %website_name ." website_name=$queue.getWebsiteNames() |raw}}</br>
+                {{trans "Submission name: %submission_name" submission_name=$queue.getName() |raw}}</br>
+                {{trans "Submission ticket: %submission_ticket" submission_ticket=$submission_ticket}}</br>
+                {{trans "Document ticket(s): %document_tickets" document_tickets=$document_tickets}}</br>
+                {{trans "PD Username: %username" username=$username}}</br>
+                {{trans "Source locale: %source_locale" source_locale=$source_locale |raw}} </br>
+                {{trans "Target locale(s): %target_locale" target_locale=$target_locale |raw}} </br>
+                {{trans "Request Date: %request_date" request_date=$request_date |raw}} </br>
+                {{trans "Receive Date: %receive_date" receive_date=$receive_date |raw}} </br>
+            </p>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

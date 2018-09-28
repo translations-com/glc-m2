@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="transperfect" translate="label" sortOrder="700">
+            <label>TransPerfect</label>
+        </tab>
+        <section id="globallink" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>GlobalLink</label>
+            <tab>transperfect</tab>
+            <resource>TransPerfect_GlobalLink::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="logging_level" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Logging Level</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Logging</source_model>
+                    <comment><![CDATA[Keep CTRL to unselect]]></comment>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="reindexing" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Re-index After Importing Translation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="email_errors" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Errors</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="email_address" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Addresses</label>
+                    <comment><![CDATA[Separate addresses with comma]]></comment> 
+                    <validate>validate-emails</validate>
+                    <depends>
+                        <field id="*/*/email_errors">1</field>
+                    </depends>
+                </field>
+                <field id="project_short_codes" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>GlobalLink Default Project</label>
+                    <validate>validate-classifier</validate>
+                </field>
+                <field id="files_per_submission" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Files per Submission</label>
+                    <validate>validate-greater-than-zero</validate>
+                </field>
+
+                <field id="max_target_count" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Target Count</label>
+                    <validate>validate-greater-than-zero</validate>
+                </field>
+            </group>
+            <group id="connection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Connection</label>
+                <field id="username" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Username</label>
+                    <comment><![CDATA[Required field]]></comment>
+                </field>
+                <field id="password" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Password</label>
+                    <comment><![CDATA[Required field]]></comment>
+                </field>
+                <field id="url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>GlobalLink Url</label>
+                    <comment><![CDATA[Required field]]></comment>
+                </field>
+                <field id="test_connection" translate="button_label" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label />
+                    <frontend_model>TransPerfect\GlobalLink\Block\System\Config\Button\TestConnection</frontend_model>
+                </field>
+            </group>
+            <group id="classifiers" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Classifiers</label>
+                <field id="cmspageclassifier" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for CMS Pages</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+                <field id="cmsblockclassifier" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for CMS Blocks</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+                <field id="catalogcategoryclassifier" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for Categories</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+                <field id="cartalogproductclassifier" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for Products</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+                <field id="productattributeclassifier" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for Product Attributes</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+                <field id="customerattributeclassifier" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Classifier for Customer Attributes</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

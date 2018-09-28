@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="adminhtml.system.store.grid.columnSet">
+            <block class="Magento\Backend\Block\Widget\Grid\Column" as="locale" after="store_title">
+                <arguments>
+                    <argument name="header" xsi:type="string" translate="true">GlobalLink Locale</argument>
+                    <argument name="align" xsi:type="string">left</argument>
+                    <argument name="index" xsi:type="string">locale</argument>
+                    <argument name="filter_index" xsi:type="string">store_table.locale</argument>
+                    <argument name="renderer" xsi:type="string">TransPerfect\GlobalLink\Block\System\Store\Grid\Render\Locale</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>
