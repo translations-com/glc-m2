@@ -154,6 +154,7 @@ class Form extends GenericForm
              * While saving a Queue save both locales and store ids.
              */
             $newLocales = [];
+            $tempLocales = [];
             foreach ($locales as $localeData) {
                 $tempLocales[$localeData['value']] = $localeData['label'];
             }

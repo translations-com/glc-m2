@@ -46,7 +46,7 @@ class Remove extends Submission
         }
         $items->addFieldToFilter(
             'status_id',
-            ['in' => [Item::STATUS_FOR_DELETE],[Item::STATUS_ERROR_DOWNLOAD],[Item::STATUS_ERROR_DOWNLOAD],[Item::STATUS_CANCEL_FAILED],[Item::STATUS_ERROR_UPLOAD],[Item::STATUS_MAXLENGTH], [Item::STATUS_ERROR_DOWNLOAD]]
+            ['in' => [[Item::STATUS_FOR_DELETE],[Item::STATUS_ERROR_DOWNLOAD],[Item::STATUS_CANCEL_FAILED]]]
         );
         $itemsTotal = $items->getSize();
 

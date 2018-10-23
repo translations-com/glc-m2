@@ -406,7 +406,7 @@ class Item extends AbstractModel
         try {
             switch ($this->getStatusId()) {
                 case self::STATUS_NEW:
-                    $this->setStatusId(self::STATUS_FOR_DELETE);
+                    $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
                     break;
                 case self::STATUS_ERROR_UPLOAD:
@@ -417,7 +417,7 @@ class Item extends AbstractModel
                     break;
 
                 case self::STATUS_FINISHED:
-                    $this->setStatusId(self::STATUS_FOR_DELETE);
+                    $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
                     break;
                 case self::STATUS_APPLIED:
@@ -425,7 +425,7 @@ class Item extends AbstractModel
                     break;
 
                 case self::STATUS_INPROGRESS:
-                    $this->setStatusId(self::STATUS_FOR_DELETE);
+                    $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
                     break;
                 case self::STATUS_CANCEL_FAILED:
