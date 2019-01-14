@@ -807,7 +807,16 @@ class Item extends AbstractModel
                 // Also it has a bug #5931
             }
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
-            $product->save();
+            $start = microtime(true);
+            foreach($translatedData['attributes'] as $attributeName => $attributeValue){
+                $product->getResource()->saveAttribute($product, $attributeName);
+            }
+            //$product->save();
+            $logData = [
+                'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
+            ];
+            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+
         }
 
         // if we're here all ok. Update item status, set success message, remove xml
