@@ -818,13 +818,24 @@ class Item extends AbstractModel
             $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
 
         }
-
+        $start = microtime(true);
         // if we're here all ok. Update item status, set success message, remove xml
         $this->setStatusId(self::STATUS_APPLIED);
         $this->save();
         $this->messageManager->addSuccess(__('Translation of Item %1 (%2) successfully applied to all target stores', $this->getId(), $this->getEntityName()));
+        $logData = [
+            'message' => "Update queue status duration: ".(microtime(true) - $start)." seconds",
+        ];
+        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+
+
+        $start = microtime(true);
         $this->updateEntitySubmissionStatus($targetStoreIds);
         $this->removeXml();
+                    $logData = [
+                        'message' => "Update submission status duration: ".(microtime(true) - $start)." seconds",
+                    ];
+            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
     }
 
     /**
