@@ -5,6 +5,7 @@ namespace TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
 use TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
 use TransPerfect\GlobalLink\Model\Queue\Item;
 
+
 /**
  * Apply translations of selected submissions to site content
  */
@@ -52,9 +53,16 @@ class Apply extends Submission
         } catch (\Exception $e) {
             $this->messageManager->addError($e->getMessage());
         }
+        $start = microtime(true);
         $this->helper->reIndexing();
         $this->_eventManager->dispatch('transperfect_globallink_apply_translation_after', ['queues' => $this->registry->registry('queues')]);
+
+        $logData = [
+            'message' => "Reindex and redirect duration: ".(microtime(true) - $start)." seconds",
+        ];
+        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
         return $this->resultRedirect->setPath('*/*/index');
+
     }
 
     /*
