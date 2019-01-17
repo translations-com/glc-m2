@@ -368,8 +368,13 @@ class Item extends AbstractModel
                 default:
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
             endswitch;
-
+            $start = microtime(true);
             $this->sendDownloadConfirmation();
+            $logData = [
+                'message' => "Send download confirmation duration: ".(microtime(true) - $start)." seconds",
+            ];
+            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+
         } catch (\Exception $e) {
             $this->messageManager->addError($e->getMessage());
             $this->_logError($e, $queue);
