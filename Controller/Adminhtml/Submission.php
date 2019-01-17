@@ -6,6 +6,7 @@ use Magento\Backend\App\Action as BackendAction;
 use Magento\Framework\Registry;
 use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 use TransPerfect\GlobalLink\Model\Queue\Item;
+use TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
 
 /**
  * Class Submission
@@ -37,6 +38,8 @@ class Submission extends BackendAction
      * @var \TransPerfect\GlobalLink\Helper\Data
      */
     protected $helper;
+
+    protected $bgLogger;
     /**
      * Submission constructor.
      *
@@ -48,13 +51,15 @@ class Submission extends BackendAction
         \Magento\Backend\App\Action\Context $context,
         ItemCollectionFactory $itemCollectionFactory,
         Registry $registry,
-        \TransPerfect\GlobalLink\Helper\Data $helper
+        \TransPerfect\GlobalLink\Helper\Data $helper,
+        BgLogger $bgLogger
     ) {
         $this->viewFactory = $context->getResultFactory();
         $this->resultRedirect = $context->getResultRedirectFactory()->create();
         $this->itemCollectionFactory = $itemCollectionFactory;
         $this->registry = $registry;
         $this->helper = $helper;
+        $this->bgLogger = $bgLogger;
         BackendAction::__construct($context);
         $user = $this->_auth->getUser();
         if (!empty($user)) {
