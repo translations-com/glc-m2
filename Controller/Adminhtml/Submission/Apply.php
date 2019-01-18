@@ -60,7 +60,7 @@ class Apply extends Submission
         $logData = [
             'message' => "Reindex and redirect duration: ".(microtime(true) - $start)." seconds",
         ];
-        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         return $this->resultRedirect->setPath('*/*/index');
 
     }
