@@ -373,7 +373,7 @@ class Item extends AbstractModel
             $logData = [
                 'message' => "Send download confirmation duration: ".(microtime(true) - $start)." seconds",
             ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
 
         } catch (\Exception $e) {
             $this->messageManager->addError($e->getMessage());
@@ -820,7 +820,7 @@ class Item extends AbstractModel
             $logData = [
                 'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
             ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
 
         }
         $start = microtime(true);
@@ -831,7 +831,7 @@ class Item extends AbstractModel
         $logData = [
             'message' => "Update queue status duration: ".(microtime(true) - $start)." seconds",
         ];
-        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
 
 
         $start = microtime(true);
@@ -840,7 +840,7 @@ class Item extends AbstractModel
                     $logData = [
                         'message' => "Update submission status duration: ".(microtime(true) - $start)." seconds",
                     ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
     }
 
     /**
