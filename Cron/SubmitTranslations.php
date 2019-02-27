@@ -886,13 +886,13 @@ class SubmitTranslations extends Translations
         }
 
         // custom options
-        /* M2 currently doesn't allow to save custom option titles for storeviews
+        //M2 currently doesn't allow to save custom option titles for storeviews
         $customOptions = $this->productOption->getProductOptionCollection($product);
         $optionsTotal = count($customOptions);
         if (!empty($customOptions) && $optionsTotal) {
             $optArr = $this->getProductDataCustomOptions($customOptions, $entityId);
         }
-        */
+
 
         // bundle product options
         if ($product->getTypeId() == BundleType::TYPE_CODE) {
@@ -955,11 +955,13 @@ class SubmitTranslations extends Translations
             $optionId = $option->getOptionId();
             if (!empty($optionId) && !empty($title)) {
                 $optArr['entity_'.$entityId][$optionId] = $title;
-                foreach ($option->getValues() as $value) {
-                    $valueTitle = $value->getTitle();
-                    $valueId = $value->getOptionTypeId();
-                    if (!empty($valueId) && !empty($valueTitle)) {
-                        $optArr['option_'.$optionId][$valueId] = $valueTitle;
+                if($option->getValues() != null) {
+                    foreach ($option->getValues() as $value) {
+                        $valueTitle = $value->getTitle();
+                        $valueId = $value->getOptionTypeId();
+                        if (!empty($valueId) && !empty($valueTitle)) {
+                            $optArr['option_' . $optionId][$valueId] = $valueTitle;
+                        }
                     }
                 }
             }

@@ -27,7 +27,7 @@
                 <field id="email_address" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Email Addresses</label>
                     <comment><![CDATA[Separate addresses with comma]]></comment> 
-                    <validate>validate-emails</validate>
+                    <validate>validate-email-list</validate>
                     <depends>
                         <field id="*/*/email_errors">1</field>
                     </depends>
@@ -85,11 +85,11 @@
                 </field>
                 <field id="productattributeclassifier" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Classifier for Product Attributes</label>
-                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\OpenSourceClassifiers</source_model>
                 </field>
                 <field id="customerattributeclassifier" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Classifier for Customer Attributes</label>
-                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\OpenSourceClassifiers</source_model>
                 </field>
             </group>
         </section>

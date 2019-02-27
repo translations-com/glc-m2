@@ -10,7 +10,11 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         $encoding = \Zend_Mime::ENCODING_BASE64,
         $filename = null
     ) {
-        $this->message->createAttachment($body, $mimeType, $disposition, $encoding, $filename);
-        return $this;
+        $attachment = new \Zend\Mime\Part($body);
+        $attachment->type = $mimeType;
+        $attachment->disposition = $disposition;
+        $attachment->encoding = $encoding;
+        $attachment->filename = $filename;
+        return $attachment;
     }
 }
