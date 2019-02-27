@@ -367,7 +367,7 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
                 return true;
             }
         }
-
+        $oldOptions = array();
         $options = $this->savingEntity->getOptions();
         if ($options != null) {
             foreach ($options as $option) {

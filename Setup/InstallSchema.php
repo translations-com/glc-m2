@@ -15,7 +15,18 @@ class InstallSchema implements InstallSchemaInterface
     public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {
         $setup->startSetup();
-
+        /**
+         * Inserts Magento version (commerce vs open source) into core_config_data
+         */
+        $objManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $magentoEdition = (($objManager->get('Magento\Framework\App\ProductMetadataInterface')->getEdition() == 'Enterprise') ? 1 : 0);
+        $data = [
+            'scope' => 'default',
+            'scope_id' => 0,
+            'path' => 'globallink/hidden/magento',
+            'value' => $magentoEdition,
+        ];
+        $setup->getConnection()->insertOnDuplicate($setup->getTable('core_config_data'), $data, ['value']);
         /**
          * Create table 'globallink_job_queue'
          */

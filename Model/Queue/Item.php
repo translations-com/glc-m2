@@ -804,19 +804,46 @@ class Item extends AbstractModel
                     }
                 }
                 // M2 currently has an issue #5931. It recreates (delete and add new) options instead of update them
-                // Disable save() untill that will be fixed
+                // Disable save() until that will be fixed
                 // $bundleOptions->save();
             } else {
-                $customOptions = $this->productOption->getProductOptionCollection($product);
-                // M2 currently doesn't allow to save custom option titles for storeviews
-                // Also it has a bug #5931
+                if($translatedData['options'] != null) {
+                    $customOptions = $this->productOption->getProductOptionCollection($product);
+                    $newCustomOptions = array();
+                    foreach ($customOptions as $option) {
+                        $optionId = $option->getData('option_id');
+                        $translatedOptions = $translatedData['options'];
+                        if($translatedOptions['entity_'.$entityId][$optionId] != null){
+                            $option->setTitle($translatedOptions['entity_'.$entityId][$optionId]);
+                            $option->setDefaultTitle($translatedOptions['entity_'.$entityId][$optionId]);
+                            $option->setStoreTitle($translatedOptions['entity_'.$entityId][$optionId]);
+                        }
+                        if(isset($translatedOptions['option_'.$optionId])) {
+                            foreach ($translatedOptions['option_' . $optionId] as $valueId => $translatedValue) {
+                                if ($option->getValueById($valueId) != null) {
+                                    $value = $option->getValueById($valueId);
+                                    $value->setTitle($translatedValue);
+                                    $option->addValue($value);
+                                }
+                            }
+                        }
+                        $option->setStoreId($product->getStoreId());
+                        $option->save();
+                        $newCustomOptions[] = $option;
+                        $hasOptions = true;
+
+                    }
+                    $product->setCustomOptions($newCustomOptions);
+                    // M2 currently doesn't allow to save custom option titles for storeviews
+                    // Also it has a bug #5931
+                }
             }
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
             foreach($translatedData['attributes'] as $attributeName => $attributeValue){
                 $product->getResource()->saveAttribute($product, $attributeName);
             }
-            //$product->save();
+
             $logData = [
                 'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
             ];

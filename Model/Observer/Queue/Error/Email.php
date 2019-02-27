@@ -28,36 +28,50 @@ class Email extends BaseEmail
      */
     public function execute(Observer $observer)
     {
-        $recipient = explode(',', $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH));
+        $recipient = array_map('trim', explode(',', $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH)));
         $username = $this->scopeConfig->getValue(self::PD_USERNAME);
         $enabled = (bool)$this->scopeConfig->getValue(self::ERROR_EMAIL_ENABLE_XPATH);
         $firstRecipient = $recipient[count($recipient)-1];
         if ($enabled && !empty($firstRecipient)) {
             /** @var \TransPerfect\GlobalLink\Model\Queue[] $queues */
             $queues = $observer->getQueues();
-            $itemCollection = $observer->getItems();
-            $targetLocales = [];
-            $submission_ticket = "Not available";
-            $document_tickets = "Not available";
-            $target_locale = "Not available";
-            if ($itemCollection != null) {
-                $document_tickets = [];
-                foreach ($itemCollection as $item) {
-                    $targetLocale = $item->getPdLocaleIsoCode();
-                    $submission_ticket = $item->getSubmissionTicket();
-                    $currentDocTicket = $item->getDocumentTicket();
-                    if (!in_array($targetLocale, $targetLocales)) {
-                        $targetLocales[] = $targetLocale;
-                    }
-                    if (!in_array($currentDocTicket, $document_tickets)) {
-                        $document_tickets[] = $currentDocTicket;
-                    }
-                }
-                $target_locale = implode(', ', $targetLocales);
-                $document_tickets = implode(', ', $document_tickets);
-            }
             foreach ($queues as $queue) {
                 if ($queue->hasQueueErrors()) {
+                    $itemIds = array();
+                    $itemCollection =null;
+                    foreach($queue->getItems() as $currentItem){
+                        $itemIds[] = $currentItem;
+                    }
+                    $itemCollection = $this->itemCollectionFactory->create();
+                    $itemCollection->addFieldToFilter(
+                        'id',
+                        ['in' => $itemIds]
+                    );
+                    $targetLocales = [];
+                    $submission_ticket = "Not available";
+                    $document_tickets = "Not available";
+                    $target_locale = "Not available";
+                    if ($itemCollection != null) {
+                        $document_tickets = [];
+                        $submission_tickets = [];
+                        foreach ($itemCollection as $item) {
+                            $targetLocale = $item->getPdLocaleIsoCode();
+                            $currentSubmissionTicket = $item->getSubmissionTicket();
+                            $currentDocTicket = $item->getDocumentTicket();
+                            if (!in_array($targetLocale, $targetLocales)) {
+                                $targetLocales[] = $targetLocale;
+                            }
+                            if (!in_array($currentDocTicket, $document_tickets)) {
+                                $document_tickets[] = $currentDocTicket;
+                            }
+                            if (!in_array($currentSubmissionTicket, $submission_tickets)) {
+                                $submission_tickets[] = $currentSubmissionTicket;
+                            }
+                        }
+                        $target_locale = implode(', ', $targetLocales);
+                        $document_tickets = implode(', ', $document_tickets);
+                        $submission_ticket = implode(', ', $submission_tickets);
+                    }
                     $messages = implode(PHP_EOL, $queue->getQueueErrors());
                     /*if (empty($messages)) {
                         continue;
@@ -80,6 +94,7 @@ class Email extends BaseEmail
                             'name'  => $this->scopeConfig->getValue(self::STORE_NAME_XPATH, $storeScope),
                             'email' => $this->scopeConfig->getValue(self::STORE_MAIL_XPATH, $storeScope),
                         ];
+                        $attachment = $this->transportBuilder->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log');
                         /** @var \Magento\Framework\Mail\Transport $transport */
                         $transport = $this->transportBuilder
                             ->setTemplateIdentifier('translations_email_error_translation')
@@ -89,8 +104,13 @@ class Email extends BaseEmail
                                 ])->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
                             ->setFrom($sender)
                             ->addTo($recipient)
-                            ->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log')
                             ->getTransport();
+                        $message = $transport->getMessage();
+                        $bodyMessage = new \Zend\Mime\Part($message->getRawMessage());
+                        $bodyMessage->type = 'text/html';
+                        $bodyPart = new \Zend\Mime\Message();
+                        $bodyPart->setParts(array($bodyMessage, $attachment));
+                        $transport->getMessage()->setBody($bodyPart);
                         $transport->sendMessage();
                     } catch (\Exception $e) {
                         $this->bgLogger->error($e->getMessage());

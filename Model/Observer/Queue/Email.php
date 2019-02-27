@@ -12,6 +12,7 @@ namespace TransPerfect\GlobalLink\Model\Observer\Queue;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use TransPerfect\GlobalLink\Logger\BgTask\Logger;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 
 /**
  * Class Email
@@ -51,6 +52,8 @@ class Email implements ObserverInterface
 
     
     protected $directoryList;
+
+    protected $itemCollectionFactory;
     /**
      * Email constructor.
      *
@@ -66,7 +69,8 @@ class Email implements ObserverInterface
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Escaper $escaper,
         Logger $bgLogger,
-        \Magento\Framework\App\Filesystem\DirectoryList $directory_list
+        \Magento\Framework\App\Filesystem\DirectoryList $directory_list,
+        ItemCollectionFactory $itemCollectionFactory
     ) {
         $this->transportBuilder = $transportBuilder;
         $this->scopeConfig = $scopeConfig;
@@ -74,6 +78,7 @@ class Email implements ObserverInterface
         $this->escaper = $escaper;
         $this->bgLogger = $bgLogger;
         $this->directoryList = $directory_list;
+        $this->itemCollectionFactory = $itemCollectionFactory;
     }
 
     /**
