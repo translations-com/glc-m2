@@ -65,7 +65,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
         $collection = $this->_attributesFactory->create();
         $collection->addSystemHiddenFilter()->addExcludeHiddenFrontendFilter();
 
-        $currentStore = $this->getRequest()->getParam('store', false);
+        /*$currentStore = $this->getRequest()->getParam('store', false);
         if (empty($currentStore)) {
             $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
         }
@@ -77,7 +77,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
             ' AND '.
             'gets.entity_id = main_table.attribute_id',
             ['translation_status']
-        );
+        );*/
 
         $this->setCollection($collection);
 
@@ -108,45 +108,10 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
             'sort_order',
             ['header' => __('Sort Order'), 'sortable' => true, 'index' => 'sort_order']
         );
-        $currentStore = $this->getRequest()->getParam('store', false);
-        if (empty($currentStore)) {
-            $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
-        }
-        if($currentStore == $this->_storeManager->getDefaultStoreView()->getId()) {
-            $this->addColumnAfter(
-                'sort_order',
-                [
-                    'header' => __('Translation Status'),
-                    'sortable' => true,
-                    'index' => 'translation_status',
-                    'type' => 'options',
-                    'options' => $this->translationStatus->optionsToArray()
-                ],
-                'is_searchable'
-            );
-        } else{
-            $this->addColumnAfter(
-                'sort_order',
-                [
-                    'header' => __('Translation Status'),
-                    'sortable' => true,
-                    'index' => 'translation_status',
-                    'type' => 'options',
-                    'options' => $this->translationStatus->productAttributeOptionsToArray()
-                ],
-                'is_searchable'
-            );
-        }
-
         return $this;
     }
     protected function _prepareLayout()
     {
-        $this->getToolbar()->addChild(
-            'store_switcher',
-            '\TransPerfect\GlobalLink\Block\Adminhtml\Store\Switcher'
-        );
-
         return parent::_prepareLayout();
     }
 }

@@ -109,6 +109,7 @@ class Form extends GenericForm
                 'title' => __('Due Date'),
                 'required' => true,
                 'date_format' => $dateFormat,
+                'readonly' => 'readonly',
             ]
         );
         if($this->differentStoresSelected) {

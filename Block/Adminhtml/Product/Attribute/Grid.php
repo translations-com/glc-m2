@@ -42,7 +42,7 @@ class Grid extends AttributeGrid
     {
         $collection = $this->_collectionFactory->create()->addVisibleFilter();
 
-        $currentStore = $this->getRequest()->getParam('store', false);
+        /*$currentStore = $this->getRequest()->getParam('store', false);
         if (empty($currentStore)) {
             $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
         }
@@ -54,7 +54,7 @@ class Grid extends AttributeGrid
             ' AND '.
             'gets.entity_id = main_table.attribute_id',
             ['translation_status']
-        );
+        );*/
         $this->setCollection($collection);
 
         return \Magento\Backend\Block\Widget\Grid\Extended::_prepareCollection();
@@ -68,46 +68,11 @@ class Grid extends AttributeGrid
     protected function _prepareColumns()
     {
         parent::_prepareColumns();
-        $currentStore = $this->getRequest()->getParam('store', false);
-        if (empty($currentStore)) {
-            $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
-        }
-        if ($currentStore == $this->_storeManager->getDefaultStoreView()->getId()) {
-            $this->addColumnAfter(
-                'sort_order',
-                [
-                    'header' => __('Translation Status'),
-                    'sortable' => true,
-                    'index' => 'translation_status',
-                    'type' => 'options',
-                    'options' => $this->translationStatus->optionsToArray()
-                ],
-                'is_searchable'
-            );
-        } else {
-            $this->addColumnAfter(
-                'sort_order',
-                [
-                    'header' => __('Translation Status'),
-                    'sortable' => true,
-                    'index' => 'translation_status',
-                    'type' => 'options',
-                    'options' => $this->translationStatus->productAttributeOptionsToArray()
-                ],
-                'is_searchable'
-            );
-        }
-
         return $this;
     }
 
     protected function _prepareLayout()
     {
-        $this->getToolbar()->addChild(
-            'store_switcher',
-            '\TransPerfect\GlobalLink\Block\Adminhtml\Store\Switcher'
-        );
-
         return parent::_prepareLayout();
     }
 
