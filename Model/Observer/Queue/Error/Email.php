@@ -86,7 +86,7 @@ class Email extends BaseEmail
 
                         $sub_name = $queue->getName();
                         $request_date = $queue->getData('request_date');
-                        $receive_date =  date('m/d/Y H:i:s', $_SERVER['REQUEST_TIME']);
+                        $receive_date = date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
                         $source_locale = $queue->getData('source_locale');
                         $userId = $queue->getData('magento_admin_user_requested_by');
                         $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
@@ -94,24 +94,18 @@ class Email extends BaseEmail
                             'name'  => $this->scopeConfig->getValue(self::STORE_NAME_XPATH, $storeScope),
                             'email' => $this->scopeConfig->getValue(self::STORE_MAIL_XPATH, $storeScope),
                         ];
-                        $attachment = $this->transportBuilder->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log');
-                        /** @var \Magento\Framework\Mail\Transport $transport */
-                        $transport = $this->transportBuilder
+                        $this->transportBuilder
                             ->setTemplateIdentifier('translations_email_error_translation')
                             ->setTemplateOptions([
-                                    'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
-                                    'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
-                                ])->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
+                                'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
+                                'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
+                            ])
+                            ->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
+                            ->addAttachment($exception_file, 'globallink_api_request.log')
                             ->setFrom($sender)
                             ->addTo($recipient)
-                            ->getTransport();
-                        $message = $transport->getMessage();
-                        $bodyMessage = new \Zend\Mime\Part($message->getRawMessage());
-                        $bodyMessage->type = 'text/html';
-                        $bodyPart = new \Zend\Mime\Message();
-                        $bodyPart->setParts(array($bodyMessage, $attachment));
-                        $transport->getMessage()->setBody($bodyPart);
-                        $transport->sendMessage();
+                            ->getTransport()
+                            ->sendMessage();
                     } catch (\Exception $e) {
                         $this->bgLogger->error($e->getMessage());
                         throw $e;

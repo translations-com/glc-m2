@@ -12,7 +12,7 @@ namespace TransPerfect\GlobalLink\Model\Observer\Queue;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use TransPerfect\GlobalLink\Logger\BgTask\Logger;
-use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
+use \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 
 /**
  * Class Email
@@ -96,54 +96,62 @@ class Email implements ObserverInterface
         });
         $username = $this->scopeConfig->getValue(self::PD_USERNAME);
         $itemCollection = $observer->getItems();
-        $targetLocales = [];
-        $submission_ticket = null;
-        $document_tickets = [];
-        if ($itemCollection != null) {
-            foreach ($itemCollection as $item) {
-                $targetLocale = $item->getPdLocaleIsoCode();
-                $submission_ticket = $item->getSubmissionTicket();
-                $currentDocTicket = $item->getDocumentTicket();
-                if (!in_array($targetLocale, $targetLocales)) {
-                    $targetLocales[] = $targetLocale;
-                }
-                if (!in_array($currentDocTicket, $document_tickets)) {
-                    $document_tickets[] = $currentDocTicket;
-                }
-            }
-            $target_locale = implode(', ', $targetLocales);
-            $document_tickets = implode(', ', $document_tickets);
-        }
         foreach ($queues as $queue) {
-            $request_date = $queue->getData('request_date');
-            $receive_date =  date('m/d/Y H:i:s', $_SERVER['REQUEST_TIME']);
-            $source_locale = $queue->getData('source_locale');
-            $recipient = explode(',', $queue->getConfirmationEmail());
+            if(!$queue->hasQueueErrors()) {
+                $targetLocales = [];
+                $submission_ticket = null;
+                $document_tickets = [];
+                $request_date = $queue->getData('request_date');
+                $receive_date = date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+                $source_locale = $queue->getData('source_locale');
+                $recipient = explode(',', $queue->getConfirmationEmail());
+                $queueItems = $queue->getItems();
+                $items = $this->itemCollectionFactory->create();
+                $items->addFieldToFilter(
+                    'id',
+                    ['in' => $queueItems]
+                );
+                if ($items != null) {
+                    foreach ($items as $item) {
+                        $targetLocale = $item->getPdLocaleIsoCode();
+                        $submission_ticket = $item->getSubmissionTicket();
+                        $currentDocTicket = $item->getDocumentTicket();
+                        if (!in_array($targetLocale, $targetLocales)) {
+                            $targetLocales[] = $targetLocale;
+                        }
+                        if (!in_array($currentDocTicket, $document_tickets)) {
+                            $document_tickets[] = $currentDocTicket;
+                        }
+                    }
+                    $target_locale = implode(', ', $targetLocales);
+                    $document_tickets = implode(', ', $document_tickets);
+                }
+                $firstRecipient = $recipient[count($recipient) - 1];
+                if (empty($firstRecipient)) {
+                    continue;
+                }
+                try {
+                    $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+                    $sender = [
+                        'name' => $this->scopeConfig->getValue(self::STORE_NAME_XPATH, $storeScope),
+                        'email' => $this->scopeConfig->getValue(self::STORE_MAIL_XPATH, $storeScope),
+                    ];
+                    /** @var \Magento\Framework\Mail\Transport $transport */
 
-            $firstRecipient = $recipient[count($recipient)-1];
-            if (empty($firstRecipient)) {
-                continue;
-            }
-            try {
-                $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-                $sender = [
-                    'name'  => $this->scopeConfig->getValue(self::STORE_NAME_XPATH, $storeScope),
-                    'email' => $this->scopeConfig->getValue(self::STORE_MAIL_XPATH, $storeScope),
-                ];
-                /** @var \Magento\Framework\Mail\Transport $transport */
-
-                $transport = $this->transportBuilder
-                    ->setTemplateIdentifier('translations_email_receive_translation')
-                    ->setTemplateOptions([
-                            'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
-                            'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
-                        ])->setTemplateVars(['queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
-                    ->setFrom($sender)
-                    ->addTo($recipient)
-                    ->getTransport();
-                $transport->sendMessage();
-            } catch (\Exception $e) {
-                $this->bgLogger->error($e->getMessage(), $e->getTrace());
+                    $transport = $this->transportBuilder
+                        ->setTemplateIdentifier('translations_email_receive_translation')
+                        ->setTemplateOptions([
+                            'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                            'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,])
+                        ->setTemplateVars(['queue' => $queue, 'submission_ticket' => $submission_ticket, 'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
+                        ->setFrom($sender)
+                        ->addTo($recipient)
+                        ->getTransport()
+                        ->sendMessage();
+                }
+                catch (\Exception $e) {
+                    $this->bgLogger->error($e->getMessage(), $e->getTrace());
+                }
             }
         }
     }

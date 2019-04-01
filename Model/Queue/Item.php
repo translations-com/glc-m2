@@ -703,6 +703,12 @@ class Item extends AbstractModel
             if ($needNewEntity) {
                 $newEntity = $this->pageFactory->create();
                 $newEntity->setData($translatedData['attributes']);
+                if(!array_key_exists('content', $translatedData['attributes'])){
+                    $newEntity->setContent($oldEntity->getContent());
+                }
+                if(!array_key_exists('title', $translatedData['attributes'])){
+                    $newEntity->setTitle($oldEntity->getTitle());
+                }
                 $newEntity->setIdentifier($oldEntity->getIdentifier());
                 $newEntity->setPageLayout($oldEntity->getPageLayout());
                 $newEntity->setIsActive($oldEntity->getIsActive());

@@ -107,17 +107,17 @@
                 var hasErrors = false;
                 var checkedItems = object.checkedString.split(',');
                 for(var i=0; i < maxLengthErrors.length; i++){
-                    if(checkedItems.includes(maxLengthErrors[i])){
+                    if(checkedItems.indexOf(maxLengthErrors[i]) >= 0){
                         hasErrors = true;
                     }
                 };
                 for(var i=0; i < completedIds.length; i++){
-                    if(checkedItems.includes(completedIds[i])){
+                    if(checkedItems.indexOf(completedIds[i]) >= 0){
                         alreadyImported = true;
                     }
                 };
                 for(var i=0; i < readyForImport.length; i++){
-                    if(checkedItems.includes(readyForImport[i])){
+                    if(checkedItems.indexOf(readyForImport[i]) >= 0){
                         isCompleted = true;
                     }
                 };
