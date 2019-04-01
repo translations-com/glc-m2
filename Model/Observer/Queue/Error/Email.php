@@ -101,7 +101,7 @@ class Email extends BaseEmail
                                 'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
                             ])
                             ->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
-                            ->addAttachment($exception_file, 'globallink_api_request.log')
+                            ->addAttachment($exception_file, \Zend_Mime::TYPE_OCTETSTREAM, \Zend_Mime::DISPOSITION_ATTACHMENT, \Zend_Mime::ENCODING_BASE64, 'globallink_api_request.log')
                             ->setFrom($sender)
                             ->addTo($recipient)
                             ->getTransport()
