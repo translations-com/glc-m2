@@ -34,6 +34,7 @@
                 </field>
                 <field id="project_short_codes" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>GlobalLink Default Project</label>
+                    <comment><![CDATA[Separate codes with comma]]></comment>
                     <validate>validate-classifier required-entry</validate>
                 </field>
                 <field id="files_per_submission" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">

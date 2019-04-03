@@ -427,10 +427,11 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
             $oldBundleOptions = $this->getBundleOptions();
 
             $newBundleOptions = [];
-            foreach ($newData['bundle_options_data'] as $optionData) {
-                $newBundleOptions[$optionData['option_id']] = $optionData['title'];
+            if(array_key_exists('bundle_options_data', $newData) && count($newData['bundle_options_data']) > 0) {
+                foreach ($newData['bundle_options_data'] as $optionData) {
+                    $newBundleOptions[$optionData['option_id']] = $optionData['title'];
+                }
             }
-
             if (!empty(array_diff($oldBundleOptions, $newBundleOptions))) {
                 return true;
             }
