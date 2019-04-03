@@ -378,10 +378,12 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
                 }
                 $oldOptions[$value] = $label;
             }
-
-            $newOptionsAll = $newData['option']['value'];
-            foreach ($newOptionsAll as $value => $labels) {
-                $newOptions[$value] = $labels[$this->storeId];
+            $newOptions = [];
+            if(array_key_exists('option', $newData) && array_key_exists('value', $newData['option'])) {
+                $newOptionsAll = $newData['option']['value'];
+                foreach ($newOptionsAll as $value => $labels) {
+                    $newOptions[$value] = $labels[$this->storeId];
+                }
             }
             if (!empty(array_diff($oldOptions, $newOptions))) {
                 return true;
