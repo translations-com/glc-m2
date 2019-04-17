@@ -27,7 +27,7 @@
                 <field id="email_address" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Email Addresses</label>
                     <comment><![CDATA[Separate addresses with comma]]></comment>
-                    <validate>validate-emails required-entry</validate>
+                    <validate>validate-email-list required-entry</validate>
                     <depends>
                         <field id="*/*/email_errors">1</field>
                     </depends>
