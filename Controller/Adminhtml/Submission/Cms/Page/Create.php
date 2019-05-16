@@ -91,12 +91,20 @@ class Create extends BackendAction
             $collection = $this->filter->getCollection($this->collectionFactory->create());
             $pagesToTranslate = $collection->getAllIds();
         }
-        if($this->helper->hasDifferentStores(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate)){
+        if(count($pagesToTranslate) > 1 && $this->helper->hasDifferentStores(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate)){
+            $differentStoresSelected = true;
+        }
+        else if(count($pagesToTranslate) > 1 && $this->helper->defaultStoreSelected()){
+            $pageStoreId = $this->helper->getCommonStoreId(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate);
+        } else{
+            $pageStoreId = $this->helper->getStoreId(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate[0]);
+        }
+        /*if($this->helper->hasDifferentStores(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate)){
             $differentStoresSelected = true;
         }
         else if($this->helper->defaultStoreSelected()){
             $pageStoreId = $this->helper->getStoreId(Data::CMS_PAGE_TYPE_ID, $pagesToTranslate[0]);
-        }
+        }*/
         $pageNames = $this->helper->getOtherEntityNames(
             $this->collectionFactory,
             $this->getRequest()->getParam('store'),

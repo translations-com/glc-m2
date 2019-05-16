@@ -93,10 +93,12 @@ class Create extends BackendAction
         }
         $originalSelectedCount = count($blocksToTranslate);
         $originalBlocksToTranslate = $blocksToTranslate;
-        if($this->helper->hasDifferentStores(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate)){
+        if(count($blocksToTranslate) > 1 && $this->helper->hasDifferentStores(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate)){
             $differentStoresSelected = true;
         }
-        else if($this->helper->defaultStoreSelected()){
+        else if(count($blocksToTranslate) > 1 && $this->helper->defaultStoreSelected()){
+            $blockStoreId = $this->helper->getCommonStoreId(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate);
+        } else{
             $blockStoreId = $this->helper->getStoreId(Data::CMS_BLOCK_TYPE_ID, $blocksToTranslate[0]);
         }
         $blockNames = $this->helper->getOtherEntityNames(
