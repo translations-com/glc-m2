@@ -621,13 +621,20 @@ class Item extends AbstractModel
                         // if the only store is target one - update this block
                         $foundBlock->addData($translatedData['attributes']);
                         $needNewEntity = false;
-                    } else {
+                    } elseif($stores[0] == '0'){
+                        $foundBlock = $this->resetStoreViews($foundBlock);
+                        $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
+                        $foundBlock->setStoreId($updateStores);
+                        $foundBlock->save();
+                    }
+                    else {
                         // remove target store from store list and create new block
                         $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
-                        $foundBlock->setStores($updateStores);
+                        $foundBlock->setStoreId($updateStores);
+                        $foundBlock->save();
                     }
                 }
-                $blocks->save();
+                //$blocks->save();
             }
 
             if ($needNewEntity) {
@@ -641,7 +648,7 @@ class Item extends AbstractModel
                 $newEntity->save();
             }
 
-            $oldEntity->save();
+            //$oldEntity->save();
         }
         // if we're here all ok. Update item status, set success message, remove xml
         $this->setStatusId(self::STATUS_APPLIED);
@@ -691,13 +698,19 @@ class Item extends AbstractModel
                             $this->addNewCmsRevision($foundPage, $translatedData['attributes']);
                         }
                         $needNewEntity = false;
+                    } elseif ($stores[0] == '0') {
+                        $foundPage = $this->resetStoreViews($foundPage);
+                        $updateStores = $this->removeStoreIdFromEntityStores($foundPage, $targetStoreId);
+                        $foundPage->setStoreId($updateStores);
+                        $foundPage->save();
                     } else {
                         // remove target store from store list and create new page
                         $updateStores = $this->removeStoreIdFromEntityStores($foundPage, $targetStoreId);
-                        $foundPage->setStores($updateStores);
+                        $foundPage->setStoreId($updateStores);
+                        $foundPage->save();
                     }
                 }
-                $pages->save();
+                //$pages->save();
             }
 
             if ($needNewEntity) {
@@ -730,7 +743,7 @@ class Item extends AbstractModel
                 $newEntity->save();
             }
 
-            $oldEntity->save();
+            //$oldEntity->save();
         }
         // if we're here all ok. Update item status, set success message, remove xml
         $this->setStatusId(self::STATUS_APPLIED);
@@ -1197,6 +1210,16 @@ class Item extends AbstractModel
         }
 
         return $stores;
+    }
+
+    protected function resetStoreViews($entity){
+        $stores = $this->storeManager->getStores();
+        $storeIds = [];
+        foreach($stores as $currentStore){
+            $storeIds[] = $currentStore->getId();
+        }
+        $entity->setStoreId($storeIds);
+        return $entity;
     }
 
     /**

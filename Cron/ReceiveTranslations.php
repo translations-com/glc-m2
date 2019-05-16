@@ -308,12 +308,14 @@ class ReceiveTranslations extends Translations
                 if(in_array($target->documentTicket, $documentTickets)){
                     $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered but completed in PD, resetting queue status to sent."];
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-                    $queue->setStatus(Queue::STATUS_SENT);
-                    $queue->save();
+                    if(!$queue->getStatus(Queue::STATUS_SENT)){
+                        $queue->setStatus(Queue::STATUS_SENT);
+                        $queue->save();
+                    }
+                    $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered but completed in PD, resetting queue status to sent.");
                     $item = $this->getItemByDocTicket($target->documentTicket);
                     $item->setStatusId(Item::STATUS_ERROR_DOWNLOAD);
                     $item->save();
-                    break;
                 }
             }
         }

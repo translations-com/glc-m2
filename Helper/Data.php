@@ -178,7 +178,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $isEnterprise = $this->isEnterprise();
         switch ($typeId) {
             case Data::CMS_PAGE_TYPE_ID:
-                $collection = $this->pageCollectionFactory->create();
+                $pages = $this->pageCollectionFactory->create();
+                $pages->addFieldToFilter('page_id', $id);
+                $pagesFound = count($pages);
+                if ($pagesFound) {
+                    foreach($pages as $page){
+                        $storeViews = $page->getStoreId();
+                        if(in_array($defaultStore, $storeViews)){
+                            return $defaultStore;
+                        }
+                        else{
+                            return $storeViews[0];
+                        }
+                    }
+                }
+                /*
                 if($isEnterprise) {
                     $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
                         "main_table.row_id = store_table.row_id",
@@ -195,8 +209,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     }
                 }
                 return $defaultStore;
+                */
             case Data::CMS_BLOCK_TYPE_ID:
-                $collection = $this->blockCollectionFactory->create();
+                $blocks = $this->blockCollectionFactory->create();
+                $blocks->addFieldToFilter('block_id', $id);
+                $blocksFound = count($blocks);
+                if ($blocksFound) {
+                    foreach($blocks as $block){
+                        $storeViews = $block->getStoreId();
+                        if(in_array($defaultStore, $storeViews)){
+                            return $defaultStore;
+                        }
+                        else{
+                            return $storeViews[0];
+                        }
+                    }
+                }
+                /*
                 if($isEnterprise) {
                     $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
                         "main_table.row_id = store_table.row_id",
@@ -207,12 +236,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                         "main_table.block_id = store_table.block_id",
                         []);
                 }
+                $collectionString = $collection->getSelect()->__toString();
                 foreach ($collection as $entity) {
                     if ($entity->getData('block_id') == $id) {
                         return $entity->getData('store_id')[0];
                     }
                 }
                 return $defaultStore;
+                */
         }
     }
     /**
@@ -225,7 +256,22 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             case Data::CMS_PAGE_TYPE_ID:
                 $storeViewArray = array();
                 $collection = $this->pageCollectionFactory->create();
-                if($isEnterprise) {
+                $collection->addFieldToFilter('page_id', array('in' => $ids));
+                foreach ($collection as $entity) {
+                    if(!in_array('0', $entity->getData('store_id'))){
+                        $storeViewArray[] = $entity->getData('store_id');
+                    }
+                }
+                if(count($storeViewArray) > 1){
+                    if(count(call_user_func_array('array_intersect', $storeViewArray)) < 1){
+                        return true;
+                    } else{
+                        return false;
+                    }
+                } else{
+                    return false;
+                }
+                /*if($isEnterprise) {
                     $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
                         "main_table.row_id = store_table.row_id",
                         []);
@@ -250,29 +296,27 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 else{
                     return false;
-                }
+                }*/
                 break;
             case Data::CMS_BLOCK_TYPE_ID:
                 $storeViewArray = array();
                 $collection = $this->blockCollectionFactory->create();
-                if($isEnterprise) {
-                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
-                        "main_table.row_id = store_table.row_id",
-                        []);
-                }
-                else{
-                    $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
-                        "main_table.block_id = store_table.block_id",
-                        []);
-                }
-                foreach($ids as $id) {
-                    foreach ($collection as $entity) {
-                        if ($entity->getData('block_id') == $id){
-                            $storeViewArray[] = $entity->getData('store_id')[0];
-                        }
+                $collection->addFieldToFilter('block_id', array('in' => $ids));
+                foreach ($collection as $entity) {
+                    if(!in_array('0', $entity->getData('store_id'))){
+                        $storeViewArray[] = $entity->getData('store_id');
                     }
                 }
-                if(count(array_unique($storeViewArray)) > 2){
+                if(count($storeViewArray) > 1){
+                    if(count(call_user_func_array('array_intersect', $storeViewArray)) < 1){
+                        return true;
+                    } else{
+                        return false;
+                    }
+                } else{
+                    return false;
+                }
+                /*if(count(array_intersect($storeViewArray)) > 2){
                     return true;
                 }
                 else if(count(array_unique($storeViewArray)) == 2 && !(in_array($defaultStore, $storeViewArray) && in_array('0', $storeViewArray))){
@@ -280,10 +324,69 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 else{
                     return false;
+                }*/
+                break;
+        }
+    }
+    public function getCommonStoreId($typeId, $ids){
+        $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
+        $isEnterprise = $this->isEnterprise();
+        switch($typeId) {
+            case Data::CMS_PAGE_TYPE_ID:
+                $storeViewArray = array();
+                $collection = $this->pageCollectionFactory->create();
+                $collection->addFieldToFilter('page_id', array('in' => $ids));
+                foreach ($collection as $entity) {
+                    if (!in_array('0', $entity->getData('store_id'))) {
+                        $storeViewArray[] = $entity->getData('store_id');
+                    }
+                }
+                if (count($storeViewArray) > 1) {
+                    $commonStores = call_user_func_array('array_intersect', $storeViewArray);
+                    if (in_array($defaultStore, $commonStores)) {
+                        return $defaultStore;
+                    } else {
+                        return array_values($commonStores)[0];;
+                    }
+                } elseif (count($storeViewArray) == 1) {
+                    if (in_array($defaultStore, $storeViewArray[0])) {
+                        return $defaultStore;
+                    } else {
+                        return $storeViewArray[0][0];
+                    }
+                } else {
+                    return $defaultStore;
+                }
+                break;
+            case Data::CMS_BLOCK_TYPE_ID:
+                $storeViewArray = array();
+                $collection = $this->blockCollectionFactory->create();
+                $collection->addFieldToFilter('block_id', array('in' => $ids));
+                foreach ($collection as $entity) {
+                    if (!in_array('0', $entity->getData('store_id'))) {
+                        $storeViewArray[] = $entity->getData('store_id');
+                    }
+                }
+                if (count($storeViewArray) > 1) {
+                    $commonStores = call_user_func_array('array_intersect', $storeViewArray);
+                    if (in_array($defaultStore, $commonStores)) {
+                        return $defaultStore;
+                    } else {
+                        return array_values($commonStores)[0];;
+                    }
+                } elseif (count($storeViewArray) == 1) {
+                    if (in_array($defaultStore, $storeViewArray[0])) {
+                        return $defaultStore;
+                    } else {
+                        return $storeViewArray[0][0];
+                    }
+                } else {
+                    return $defaultStore;
                 }
                 break;
         }
     }
+
     public function getDefaultStoreViewIds($typeId, $ids){
         $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
         switch($typeId){
