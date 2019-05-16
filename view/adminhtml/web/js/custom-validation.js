@@ -10,6 +10,9 @@ define([
                 if (value == null) {
                     return false;
                 }
+                if(/[a-z]/.test(value)){
+                    return false;
+                }
                 var pass = $.trim(value);
                 var multiple = pass.split(",");
                 for(var i=0; i < multiple.length; i++){
@@ -33,7 +36,7 @@ define([
                 }
                 return true;
             },
-            $.mage.__('Project code must contain only letters and numbers and be 8 characters or more. No duplicates are allowed either.')
+            $.mage.__('Project code must contain only capital letters and numbers and be 8 characters or more. No duplicates are allowed either.')
         );
         $.validator.addMethod(
             'validate-email-list',
