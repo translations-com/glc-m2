@@ -67,6 +67,9 @@ class TranslationService
      * @var \Magento\Framework\Filesystem\Io\File
      */
     protected $file;
+    const LOGGING_LEVEL_DEBUG = 0;
+    const LOGGING_LEVEL_INFO = 1;
+    const LOGGING_LEVEL_ERROR = 2;
 
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -85,6 +88,7 @@ class TranslationService
         $this->bgLogger = $bgLogger;
         $this->filesystem = $filesystem;
         $this->file = $file;
+        $this->enabledLevels = explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
     }
 
     /**
@@ -169,7 +173,9 @@ class TranslationService
                             'message' => "Can't get translation by ticket {$ticket}. "
                                 .$e->getMessage(),
                             ];
-                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                        if(in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+                            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                        }
                         $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     }
                 }
@@ -180,7 +186,9 @@ class TranslationService
         $this->moveItemsInError($problemTickets);
         $ticketCount = count($targets);
         $logData = ['message' => "Tickets were found. Count of tickets: {$ticketCount}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
         return $targets;
     }
     /**
@@ -272,14 +280,15 @@ class TranslationService
      */
     public function cancelTargetByDocumentId($documentTicket, $localeCode)
     {
-        $result = $this->requestGLExchange(
+        $result = $this->glExchangeClient->getConnect()->cancelTargetByDocumentTicket($documentTicket, $localeCode);
+        /*$result = $this->requestGLExchange(
             '/services/TargetService',
             'cancelTargetByDocumentId',
             [
                 'documentId' => $documentTicket,
                 'targetLocale' => $localeCode,
             ]
-        );
+        );*/
 
         return $result;
     }

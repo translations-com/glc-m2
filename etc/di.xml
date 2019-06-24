@@ -65,7 +65,7 @@
     <preference for="TransPerfect\GlobalLink\Api\LoggerInterface" type="TransPerfect\GlobalLink\Logger\Logger" />
     <type name="TransPerfect\GlobalLink\Logger\BgTask\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">globallink_api_request</argument>
+            <argument name="name" xsi:type="string">transperfect_globallink</argument>
             <argument name="handlers"  xsi:type="array">
                 <item name="system" xsi:type="object">TransPerfect\GlobalLink\Logger\BgTask\Handler</item>
             </argument>

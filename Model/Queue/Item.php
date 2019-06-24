@@ -179,7 +179,7 @@ class Item extends AbstractModel
      * @var \Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollectionFactory
      */
     protected $urlRewriteCollectionFactory;
-
+    protected $isAutomaticMode;
     /**
      * Init
      */
@@ -214,6 +214,7 @@ class Item extends AbstractModel
      * @param \TransPerfect\GlobalLink\Model\ResourceModel\Entity\TranslationStatus $translationStatusResource
      * @param \Magento\Store\Model\ResourceModel\Store\CollectionFactory $storeCollectionFactory
      * @param \Magento\UrlRewrite\Model\UrlRewriteCollectionFactory    $urlRewriteCollectionFactory
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface       $scopeConfig
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -238,7 +239,8 @@ class Item extends AbstractModel
         QueueFactory $queueFactory,
         TranslationStatusResource $translationStatusResource,
         StoreCollectionFactory $storeCollectionFactory,
-        UrlRewriteCollectionFactory $urlRewriteCollectionFactory
+        UrlRewriteCollectionFactory $urlRewriteCollectionFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         parent::__construct($context, $registry);
         $this->messageManager = $messageManager;
@@ -262,6 +264,11 @@ class Item extends AbstractModel
         $this->translationStatusResource = $translationStatusResource;
         $this->storeCollectionFactory = $storeCollectionFactory;
         $this->urlRewriteCollectionFactory = $urlRewriteCollectionFactory;
+        if($scopeConfig->getValue('globallink/general/automation') == 1){
+            $this->isAutomaticMode = true;
+        } else{
+            $this->isAutomaticMode = false;
+        }
     }
 
     /**
@@ -373,11 +380,15 @@ class Item extends AbstractModel
             $logData = [
                 'message' => "Send download confirmation duration: ".(microtime(true) - $start)." seconds",
             ];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
 
         } catch (\Exception $e) {
             $this->messageManager->addError($e->getMessage());
-            $this->_logError($e, $queue);
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->_logError($e, $queue);
+            }
         }
     }
 
@@ -393,7 +404,9 @@ class Item extends AbstractModel
         try {
             $this->getResource()->delete($this);
         } catch (\Exception $e) {
-            $this->_logError($e, $queue);
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->_logError($e, $queue);
+            }
             throw $e;
         }
         return $this;
@@ -413,6 +426,9 @@ class Item extends AbstractModel
                 case self::STATUS_NEW:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
+                    if($this->isAutomaticMode){
+                        $this->cancelTranslationCall();
+                    }
                     break;
                 case self::STATUS_ERROR_UPLOAD:
                     // remove item which haven't been sent yet
@@ -424,6 +440,9 @@ class Item extends AbstractModel
                 case self::STATUS_FINISHED:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
+                    if($this->isAutomaticMode){
+                        $this->cancelTranslationCall();
+                    }
                     break;
                 case self::STATUS_APPLIED:
                     // can't cancel finished item
@@ -432,6 +451,9 @@ class Item extends AbstractModel
                 case self::STATUS_INPROGRESS:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
+                    if($this->isAutomaticMode){
+                        $this->cancelTranslationCall();
+                    }
                     break;
                 case self::STATUS_CANCEL_FAILED:
                 case self::STATUS_ERROR_DOWNLOAD:
@@ -443,7 +465,9 @@ class Item extends AbstractModel
                     break;
             }
         } catch (\Exception $e) {
-            $this->_logError($e, $queue);
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->_logError($e, $queue);
+            }
             throw $e;
         }
 
@@ -476,11 +500,11 @@ class Item extends AbstractModel
             return false;
         }
 
-        $isCanceled = $this->translationService->cancelTargetByDocumentId(
+        $isCancelled = $this->translationService->cancelTargetByDocumentId(
             $this->getDocumentTicket(),
             $this->getPdLocaleIsoCode()
         );
-        if ($isCanceled) {
+        if ($isCancelled) {
             $this->setStatusId(self::STATUS_FOR_DELETE);
             $this->getResource()->save($this);
             return true;
@@ -866,7 +890,9 @@ class Item extends AbstractModel
             $logData = [
                 'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
             ];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
 
         }
         $start = microtime(true);
@@ -877,16 +903,20 @@ class Item extends AbstractModel
         $logData = [
             'message' => "Update queue status duration: ".(microtime(true) - $start)." seconds",
         ];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
 
 
         $start = microtime(true);
         $this->updateEntitySubmissionStatus($targetStoreIds);
         $this->removeXml();
-                    $logData = [
-                        'message' => "Update submission status duration: ".(microtime(true) - $start)." seconds",
-                    ];
+        $logData = [
+            'message' => "Update submission status duration: ".(microtime(true) - $start)." seconds",
+        ];
+        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
     }
 
     /**
@@ -1099,7 +1129,9 @@ class Item extends AbstractModel
                 'line' => $e->getLine(),
                 'message' => 'Exception in parsing target XML. '.$e->getMessage(),
             ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
             throw new \Exception($this->bgLogger->bgLogMessage($logData), $e->getCode(), $e);
         }
     }
@@ -1293,7 +1325,9 @@ class Item extends AbstractModel
                 'line' => $e->getLine(),
                 'message' => $errorMessage,
                 ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
             $queue = $this->_getQueue();
             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
         }

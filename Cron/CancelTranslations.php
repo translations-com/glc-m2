@@ -38,7 +38,14 @@ class CancelTranslations extends Translations
         $this->mode = 'cli';
         $this->execute();
     }
-
+    /**
+     * Console command execute method
+     */
+    public function executeAutomatic()
+    {
+        $this->mode = 'automatic';
+        $this->execute();
+    }
     /**
      * Execute method
      */
@@ -46,8 +53,9 @@ class CancelTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start cancel translations task (mode:{$this->mode})"];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             if (!$this->lockJob()) {
                 return;
             }
@@ -71,7 +79,9 @@ class CancelTranslations extends Translations
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were no any unfinished items found. Finish."];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             }
 
             $processedQueues = [];
@@ -119,7 +129,9 @@ class CancelTranslations extends Translations
                 $logData = [
                     'message' => $message,
                 ];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             }
         }
         $items->save();
@@ -147,7 +159,9 @@ class CancelTranslations extends Translations
                 $logData = [
                     'message' => $message,
                 ];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             } else {
                 $message = "Can't cancel translation (item id ".$item->getId().")";
                 $this->cliMessage($message, 'error');
@@ -156,7 +170,9 @@ class CancelTranslations extends Translations
                     'line' => __LINE__,
                     'message' => $message,
                 ];
-                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                }
                 $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
             }
         }

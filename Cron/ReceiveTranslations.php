@@ -30,6 +30,8 @@ class ReceiveTranslations extends Translations
      */
     const LOCK_FILE_NAME = 'receive.lock';
 
+    protected $automaticItemIds = null;
+
     /**
      * Cron job execute method
      */
@@ -47,7 +49,13 @@ class ReceiveTranslations extends Translations
         $this->mode = 'cli';
         $this->execute();
     }
-
+    /**
+     * Automatic command execute method
+     */
+    public function executeAutomatic(){
+        $this->mode = 'automatic';
+        $this->execute();
+    }
     /**
      * Execute method
      */
@@ -55,8 +63,9 @@ class ReceiveTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start receive translations task (mode:{$this->mode})"];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             if (!$this->lockJob()) {
                 return;
             }
@@ -66,7 +75,9 @@ class ReceiveTranslations extends Translations
                 $this->appState->setAreaCode('adminhtml');
             }
             $logData = ['message' => "Checking for redelivery targets to finalize queue data."];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             $this->redeliveryQueueReset();
             // get all queues that have been fully or partly sent, but haven't been finished yet
             $queues = $this->queueCollectionFactory->create();
@@ -80,7 +91,9 @@ class ReceiveTranslations extends Translations
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were no any unfinished items found. Finishing."];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             }
 
             $processedQueues = [];
@@ -142,7 +155,9 @@ class ReceiveTranslations extends Translations
         $targetStoreIds = [];
         foreach ($items as $item) {
             $logData = ['message' => "Beginning download of items."];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             if (!$item->getSubmissionTicket()) {
                 // execution can't enter here in prod, but can in dev
                 continue;
@@ -179,13 +194,17 @@ class ReceiveTranslations extends Translations
                     'line' => $e->getLine(),
                     'message' => $errorMessage,
                     ];
-                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                }
                 $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
             }
             $targetArray = implode(array_keys($submissionsAndItems));
             if (empty($targets)) {
                 $logData = ['message' => "No targets found in PD. Finishing. Submission Item Array: {$targetArray}"];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
                 $logData = null;
                 return $this;
             }
@@ -206,7 +225,9 @@ class ReceiveTranslations extends Translations
                     $logData = [
                         'message' => $logMessage
                     ];
-                    $this->bgLogger->addInfo($logMessage);
+                    if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                        $this->bgLogger->addInfo($logMessage);
+                    }
                     $dom = simplexml_load_string($translatedText);
                     foreach ($dom->children() as $child) {
                         $nodeValue = (string) $child;
@@ -222,7 +243,9 @@ class ReceiveTranslations extends Translations
                                 'line' => __LINE__,
                                 'message' => $errorMessage,
                             ];
-                            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                            }
                             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                         }
                         elseif($item->getStatusId() == Item::STATUS_MAXLENGTH && $maxLengthError != true)
@@ -236,7 +259,9 @@ class ReceiveTranslations extends Translations
                                 'line' => __LINE__,
                                 'message' => $message,
                             ];
-                            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                            }
                         }
                     }
                 } catch (\Exception $e) {
@@ -247,7 +272,9 @@ class ReceiveTranslations extends Translations
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
                         ];
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
@@ -263,12 +290,16 @@ class ReceiveTranslations extends Translations
                         'line' => __LINE__,
                         'message' => $errorMessage,
                         ];
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
                 $this->moveItemsInDownloaded([$downloadingItemId=>$targetTicket]);
-
+                if($this->mode == 'automatic'){
+                    $this->automaticItemIds[] = $downloadingItemId;
+                }
                 $this->cliMessage($fileName.' downloaded for item '.$downloadingItemId.' from queue '.$queue->getId());
                 $queue->setProcessed(true);
             }
@@ -288,7 +319,9 @@ class ReceiveTranslations extends Translations
                 'line' => $e->getLine(),
                 'message' => $errorMessage,
             ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
         }
         if (empty($targets)) {
             return $this;
@@ -307,7 +340,9 @@ class ReceiveTranslations extends Translations
             foreach($targets as $target){
                 if(in_array($target->documentTicket, $documentTickets)){
                     $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered but completed in PD, resetting queue status to sent."];
-                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                    if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                    }
                     if(!$queue->getStatus(Queue::STATUS_SENT)){
                         $queue->setStatus(Queue::STATUS_SENT);
                         $queue->save();
@@ -354,5 +389,9 @@ class ReceiveTranslations extends Translations
             $item = $items->getFirstItem();
         }
         return $item;
+    }
+
+    public function getAutomaticItemIds(){
+        return $this->automaticItemIds;
     }
 }

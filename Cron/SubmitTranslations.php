@@ -43,6 +43,8 @@ class SubmitTranslations extends Translations
      */
     const LOCK_FILE_NAME = 'submit.lock';
 
+    protected $automaticQueue;
+
     /**
      * Cron job execute method
      */
@@ -60,6 +62,14 @@ class SubmitTranslations extends Translations
         $this->mode = 'cli';
         $this->execute();
     }
+    /**
+     * Automatic setting execute method
+     */
+    public function executeAutomatic($queue){
+        $this->mode = 'automatic';
+        $this->automaticQueue = $queue;
+        $this->execute();
+    }
 
     /**
      * Execute method
@@ -68,7 +78,9 @@ class SubmitTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start submit translation task (mode:{$this->mode})"];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
 
             if (!$this->lockJob()) {
                 return;
@@ -87,19 +99,31 @@ class SubmitTranslations extends Translations
                 $this->limitUploads = self::DEFAULT_LIMIT_UPLOADS;
             }
 
-            // get all queues that have not been fully submitted
-            $queues = $this->queueCollectionFactory->create();
-            $queues->addFieldToFilter(
-                'status',
-                ['in' => [
-                    Queue::STATUS_NEW,
-                    Queue::STATUS_INPROGRESS,
-                ]]
-            );
+            if($this->mode == 'automatic'){
+                $queues = $this->queueCollectionFactory->create();
+                $queues->addFieldToFilter(
+                    'id',
+                    ['in' => [
+                        $this->automaticQueue->getId(),
+                    ]]
+                );
+            } else {
+                // get all queues that have not been fully submitted
+                $queues = $this->queueCollectionFactory->create();
+                $queues->addFieldToFilter(
+                    'status',
+                    ['in' => [
+                        Queue::STATUS_NEW,
+                        Queue::STATUS_INPROGRESS,
+                    ]]
+                );
+            }
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were no any unsent items found. Finish."];
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             }
 
             $processedQueues = [];
@@ -160,6 +184,7 @@ class SubmitTranslations extends Translations
         $originStoreId = $queue->getOriginStoreId();
 
         // get items of current queue which haven't been sent yet
+        $itemIds = $queue->getItems();
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
             'id',
@@ -200,8 +225,10 @@ class SubmitTranslations extends Translations
 
         $limitUploads = $this->limitUploads;
         foreach ($items as $item) {
+            $this->cancelExistingDuplicates($item);
             $itemEntityTypeId = $item->getEntityTypeId();
             $itemEntityId = $item->getEntityId();
+
             $this->itemName =  preg_replace('/[^A-Za-z0-9\-]/', '', $item->getEntityName());
             $filePath = $xmlFolder.'/'.$this->getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $this->itemName);
 
@@ -218,17 +245,19 @@ class SubmitTranslations extends Translations
                 } catch (\Exception $e) {
                     $queue->setStatus(Queue::STATUS_INPROGRESS);
                     $errorMessage = 'Exception in creating XML.'
-                        .' '.$e->getMessage()
-                        ." (site={$originStoreId}, "
-                        .$this->helper->getEntityTypeOptionArray()[$itemEntityTypeId].' '
-                        ."(id={$itemEntityId}))";
+                        . ' ' . $e->getMessage()
+                        . " (site={$originStoreId}, "
+                        . $this->helper->getEntityTypeOptionArray()[$itemEntityTypeId] . ' '
+                        . "(id={$itemEntityId}))";
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
-                        ];
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    ];
+                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
@@ -260,8 +289,10 @@ class SubmitTranslations extends Translations
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'message' => $errorMessage,
-                ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            ];
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
         }
 
@@ -273,6 +304,32 @@ class SubmitTranslations extends Translations
         $queue->save();
 
         //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Finish queue']));
+    }
+
+    protected function cancelExistingDuplicates($item){
+        $items = $this->itemCollectionFactory->create();
+        $items->addFieldToFilter(
+            'status_id',
+            ['in' => [
+                Item::STATUS_INPROGRESS,
+                Item::STATUS_FINISHED,
+                Item::STATUS_NEW,
+            ]]
+        );
+        $items->addFieldToFilter('entity_id', array('eq' => $item->getEntityId()));
+        $items->addFieldToFilter('entity_type_id', array('eq' => $item->getEntityTypeId()));
+        $items->addFieldToFilter('pd_locale_iso_code', array('eq' => $item->getPdLocaleIsoCode()));
+        foreach($items as $duplicateItem){
+            if($duplicateItem->getId() != $item->getId()) {
+                $duplicateItem->cancelItem();
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $logData = [
+                        'message' => "Cancelling duplicate submission for " . $item->getEntityName() . " for locale " . $item->getPdLocaleIsoCode() . ".",
+                    ];
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
+            }
+        }
     }
 
     /**
@@ -317,8 +374,10 @@ class SubmitTranslations extends Translations
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
-                        ];
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    ];
+                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     $dataToSend[$entityTypeId][$entityId]['upload_failed'] = 1;
                     continue;
@@ -336,8 +395,10 @@ class SubmitTranslations extends Translations
                         'file' => __FILE__,
                         'line' => __LINE__,
                         'message' => $errorMessage,
-                        ];
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    ];
+                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     $dataToSend[$entityTypeId][$entityId]['upload_failed'] = 1;
                 } else {
@@ -651,7 +712,9 @@ class SubmitTranslations extends Translations
         $fieldNames = array_intersect_key($fieldNames, array_unique(array_map('serialize', $fieldNames)));  // multidim. array unique
         if (empty($fieldNames)) {
             $logData = ['message' => "No field configuration was set up for one of the entities submitted for translation. Check your field configuration pages."];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
         }
         return $fieldNames;
     }
@@ -921,19 +984,6 @@ class SubmitTranslations extends Translations
         $data['attributes'] = $attrArr;
         $data['options'] = $optArr;
         $data['max_length'] = $lengthArr;
-        /*$logData = ['message' => "Default store view base URL: {$defaultStoreViewBaseUrl}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        $logData = ['message' => "Seo suffix URL: {$productStoreViewSeoUrlWithSuffix}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        $logData = ['message' => "Product URL Path: {$this->productUrlPathGenerator->getUrlPath($product)}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        $logData = ['message' => "Product model URL path: {$product->getUrlModel()->getUrl($product)}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        $logData = ['message' => "URL By Key: {$urlWithKey}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        $logData = ['message' => "Canonical Path: {$this->productUrlPathGenerator->getCanonicalUrlPath($product)}"];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));*/
-        
         return $data;
     }
 

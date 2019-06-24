@@ -31,6 +31,9 @@ class GLExchangeClient
      * default value for max cancelled targets
      */
     const DEFAULT_MAX_CANCELLED = 9999;
+    const LOGGING_LEVEL_DEBUG = 0;
+    const LOGGING_LEVEL_INFO = 1;
+    const LOGGING_LEVEL_ERROR = 2;
 
     /**
      * @var GLExchange
@@ -115,7 +118,9 @@ class GLExchangeClient
         $connection = $this->glExchangeLocalFactory->create($data);
 
         $logData = ['message' => 'Connected to GLPD'];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
 
         return $connection;
     }
@@ -303,7 +308,9 @@ class GLExchangeClient
                 'line' => $e->getLine(),
                 'message' => $e->getMessage(),
                 ];
-            $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
             throw $e;
         }
         return $request;
@@ -550,8 +557,10 @@ class GLExchangeClient
 
 
         $logData = ['message' => $message];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        if(in_array(0, $this->enabledLevels)) {
+        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
+        if(in_array($this::LOGGING_LEVEL_DEBUG, $this->enabledLevels)) {
             $logData = ['message' => $debugMessage];
             $this->bgLogger->debug($this->bgLogger->bgLogMessage($logData));
             if (!empty($data['logInfo'])) {
@@ -575,7 +584,9 @@ class GLExchangeClient
 
         $message = "Submission created. Submission ticket: {$submissionTicket}.";
         $logData = ['message' => $message];
-        $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
 
         return $submissionTicket;
     }

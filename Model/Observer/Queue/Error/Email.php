@@ -77,7 +77,7 @@ class Email extends BaseEmail
                         continue;
                     }*/
                     try {
-                        $exception_file_path = $this->directoryList->getPath('log') . '/globallink_api_request.log';
+                        $exception_file_path = $this->directoryList->getPath('log') . '/transperfect_globallink.log';
                         if (file_exists($exception_file_path)) {
                             $exception_file = file_get_contents($exception_file_path);
                         } else {
@@ -101,7 +101,7 @@ class Email extends BaseEmail
                                 'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
                             ])
                             ->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
-                            ->addAttachment($exception_file, 'globallink_api_request.log')
+                            ->addAttachment($exception_file, 'transperfect_globallink.log')
                             ->setFrom($sender)
                             ->addTo($recipient)
                             ->getTransport()

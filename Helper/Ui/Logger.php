@@ -185,4 +185,13 @@ class Logger extends AbstractHelper
             return false;
         }
     }
+    public function isInfoEnabled(){
+        $levels = explode(',', $this->enabledLevels);
+        if (in_array(Data::LOGGING_LEVEL_INFO, $levels)) {
+            return true;
+        } else{
+            return false;
+        }
+    }
+
 }

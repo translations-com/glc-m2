@@ -16,7 +16,7 @@ class Handler extends \Magento\Framework\Logger\Handler\Base
     /**
      * Log file name
      */
-    const LOG_FILE_NAME = 'globallink_api_request.log';
+    const LOG_FILE_NAME = 'transperfect_globallink.log';
 
     /**
      * constructor

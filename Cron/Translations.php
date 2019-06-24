@@ -180,6 +180,8 @@ abstract class Translations
      */
     protected $productUrlPathGenerator;
 
+    protected $loggingLevels;
+
 
     /**
      * Translations constructor.
@@ -268,6 +270,7 @@ abstract class Translations
         $this->out = $out;
         $this->eventManager = $eventManager;
         $this->productUrlPathGenerator = $productUrlPathGenerator;
+        $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
 
     /**
@@ -338,7 +341,9 @@ abstract class Translations
         if ($this->file->fileExists($filePath, true)) {
             $message = 'Lock file found. Previous run is not finished yet. Exit.';
             $logData = ['message' => $message];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             $this->cliMessage($message);
             return false;
         }
@@ -346,7 +351,9 @@ abstract class Translations
         if (!$this->file->write($filePath, 'lock')) {
             $message ="Can't create lock file ".$filePath;
             $logData = ['message' => $message];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             $this->cliMessage($message);
             return false;
         }
@@ -365,7 +372,9 @@ abstract class Translations
         if (!$this->file->rm($filePath)) {
             $message ="Can't remove lock file ".$filePath;
             $logData = ['message' => $message];
-            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             $this->cliMessage($message);
         }
     }

@@ -11,6 +11,7 @@ use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
 use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
+use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
 
 /**
  * Class Product
@@ -56,6 +57,7 @@ class Product extends Data
      * @var \Magento\Cms\Model\ResourceModel\Block\CollectionFactory
      */
     protected $blockCollectionFactory;
+    protected $storeCollectionFactory;
     /**
      * Product constructor.
      *
@@ -91,7 +93,8 @@ class Product extends Data
         \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel,
         \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
         PageCollectionFactory $pageCollectionFactory,
-        BlockCollectionFactory $blockCollectionFactory
+        BlockCollectionFactory $blockCollectionFactory,
+        StoreCollectionFactory $storeCollectionFactory
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -102,6 +105,7 @@ class Product extends Data
         $this->entityAttribute = $entityAttribute;
         $this->pageCollectionFactory = $pageCollectionFactory;
         $this->blockCollectionFactory = $blockCollectionFactory;
+        $this->storeCollectionFactory = $storeCollectionFactory;
         parent::__construct(
             $context,
             $eavAttribute,
@@ -120,7 +124,8 @@ class Product extends Data
             $productFieldModel,
             $entityAttribute,
             $pageCollectionFactory,
-            $blockCollectionFactory
+            $blockCollectionFactory,
+            $storeCollectionFactory
         );
     }
 

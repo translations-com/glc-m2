@@ -17,6 +17,7 @@ use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
 use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
+use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
 /**
  * Class Data
  *
@@ -106,10 +107,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @var \Magento\Cms\Model\ResourceModel\Block\CollectionFactory
      */
     protected $blockCollectionFactory;
+    /**
+     * @var \Magento\Store\Model\ResourceModel\Store\CollectionFactory
+     */
+    protected $storeCollectionFactory;
 
     const LOGGING_LEVEL_DEBUG = 0;
     const LOGGING_LEVEL_INFO = 1;
     const LOGGING_LEVEL_ERROR = 2;
+
+    public $loggingLevels;
 
     /**
      * Object types
@@ -139,7 +146,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel,
         \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
         PageCollectionFactory $pageCollectionFactory,
-        BlockCollectionFactory $blockCollectionFactory
+        BlockCollectionFactory $blockCollectionFactory,
+        StoreCollectionFactory $storeCollectionFactory
     ) {
         $this->eavConfig = $eavConfig;
         $this->resource = $resource;
@@ -159,9 +167,24 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->entityAttribute = $entityAttribute;
         $this->pageCollectionFactory = $pageCollectionFactory;
         $this->blockCollectionFactory = $blockCollectionFactory;
+        $this->storeCollectionFactory = $storeCollectionFactory;
         parent::__construct($context);
+        $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
-	
+
+    /**
+     * @return pd locale iso code array from store id array
+     */
+	public function getPdLocaleIsoCodeByStoreId($storeIds){
+        $stores = $this->storeCollectionFactory->create();
+        $stores->addFieldToFilter(
+            'store_id', ['in' => $storeIds]);
+        $localeCodes = array();
+        foreach($stores as $store){
+            $localeCodes[] = $store->getLocale();
+        }
+        return $localeCodes;
+    }
 	/*
      * @return project short codes
      */
@@ -978,5 +1001,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $result;
+    }
+
+    public function checkForCompletedSubmissionByTicket($submissionTicket){
+        $completedTargets = $this->translationService->getCompletedTargetsBySubmission($submissionTicket);
+        if(($completedTargets != null)){
+            return true;
+        }
+        else{
+            return false;
+        }
+
     }
 }
