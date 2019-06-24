@@ -47,8 +47,9 @@ class Create extends Category
         ];
         $this->registry->register('itemsToTranslate', $itemsToTranslate);
 
-
-        $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::FORM_ACTION_TYPE, $this->getRequest()->getParams());
+        if($this->logger->isInfoEnabled()) {
+            $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::FORM_ACTION_TYPE, $this->getRequest()->getParams(), Logger::NOTICE);
+        }
         return parent::execute();
     }
 }

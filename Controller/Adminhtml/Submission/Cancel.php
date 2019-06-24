@@ -55,8 +55,15 @@ class Cancel extends Submission
                 $this->messageManager->addErrorMessage($completedItemsString);
             }
             else{
-                $items->walk('cancelItem');
-                $this->messageManager->addSuccessMessage(__('Submissions have been moved to cancellation queue'));
+                if($this->isAutomaticMode) {
+                    $items->walk('cancelItem');
+                    //$this->cancelTranslations->executeAutomatic();
+                    $this->messageManager->addSuccessMessage(__('Submissions have been cancelled'));
+                }
+                else{
+                    $items->walk('cancelItem');
+                    $this->messageManager->addSuccessMessage(__('Submissions have been moved to cancellation queue'));
+                }
             }
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());

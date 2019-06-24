@@ -127,10 +127,14 @@ class Update extends BackendAction
 
         try {
             $productAttributeCollection->save();
-            $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams());
+            if($this->logger->isDebugEnabled()) {
+                $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams());
+            }
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
-            $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+            if($this->logger->isErrorEnabled()) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+            }
             return $resultRedirect->setPath('*/*/index');
         }
 

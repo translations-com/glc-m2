@@ -18,13 +18,19 @@ class Save extends Action
                 if (!empty($attributeIds)) {
                     $this->helper->updateAttributesTranslation($attributeIds, Category::ENTITY);
                     $this->messageManager->addSuccessMessage(__('Category configuration has been saved'));
-                    $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data);
+                    if($this->logger->isDebugEnabled()) {
+                        $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data);
+                    }
                 } else {
-                    $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data, Logger::ALERT, __('Empty attributes'));
+                    if($this->logger->isErrorEnabled()) {
+                        $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data, Logger::ALERT, __('Empty attributes'));
+                    }
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
-                $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data, Logger::CRITICAL, $e->getMessage());
+                if($this->logger->isErrorEnabled()) {
+                    $this->messageManager->addErrorMessage($e->getMessage());
+                    $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $data, Logger::CRITICAL, $e->getMessage());
+                }
             }
         } else {
             $this->messageManager->addErrorMessage(__('Something went wrong'));

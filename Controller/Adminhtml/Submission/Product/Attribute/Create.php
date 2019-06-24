@@ -39,7 +39,9 @@ class Create extends BackendAction
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));
         $resultPage->addBreadcrumb(__('Submission'), __('Submission'));
-        $this->logger->logAction(Data::PRODUCT_ATTRIBUTE_TYPE_ID, Logger::FORM_ACTION_TYPE, $this->getRequest()->getParams());
+        if($this->logger->isInfoEnabled()) {
+            $this->logger->logAction(Data::PRODUCT_ATTRIBUTE_TYPE_ID, Logger::FORM_ACTION_TYPE, $this->getRequest()->getParams(), Logger::NOTICE);
+        }
         return $resultPage;
     }
 

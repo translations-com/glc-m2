@@ -60,10 +60,14 @@ class Save extends Action
                 $field->setData($this->getRequest()->getParams());
                 $field->getResource()->save($field);
                 $this->messageManager->addSuccessMessage(__('Configurations saved successfully.'));
-                $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ADD_ACTION_TYPE, $this->getRequest()->getParams());
+                if($this->logger->isDebugEnabled()) {
+                    $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ADD_ACTION_TYPE, $this->getRequest()->getParams());
+                }
             } catch (\Exception $e) {
-                $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ADD_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
-                $this->messageManager->addErrorMessage($e->getMessage());
+                if($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ADD_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+                    $this->messageManager->addErrorMessage($e->getMessage());
+                }
             }
         }
         $resultRedirect = $this->resultRedirectFactory->create();

@@ -1,16 +1,25 @@
 <?php
+/**
+ * TransPerfect_GlobalLink
+ *
+ * @category   TransPerfect
+ * @package    TransPerfect_GlobalLink
+ * @author     Justin Griffin <jgriffin@translations.com>
+ */
 
 namespace TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
 
 use TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
-use TransPerfect\GlobalLink\Model\Queue\Item;
-
 
 /**
- * Apply translations of selected submissions to site content
+ * Class Autoimport
+ *
+ * @package TransPerfect\GlobalLink\Controller\Adminhtml\Submission
  */
-class Apply extends Submission
+class Autoimport extends Submission
 {
+
+    const STATUS_FINISHED = 2;
     /**
      * controller main method
      *
@@ -18,31 +27,25 @@ class Apply extends Submission
      */
     public function execute()
     {
-        // @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect
+        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
-
-        $postData = $this->getRequest()->getPostValue();
-
-        if (empty($postData['ids'])) {
-            $this->messageManager->addError(__('Nothing selected'));
-            return $this->resultRedirect->setPath('*/*/index');
-        }
-
-        $itemIds = $postData['ids'];
-
+        //Runs receive translations command to import
+        $this->receiveTranslations->executeAutomatic();
+        $automaticItemIds = $this->receiveTranslations->getAutomaticItemIds();
+        //Then imports any translations that are ready to go
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
             'id',
-            ['in' => $itemIds]
+            ['in' => $automaticItemIds]
         );
         $items->addFieldToFilter(
             'status_id',
-            ['in' => [Item::STATUS_FINISHED]]
+            ['in' => [$this::STATUS_FINISHED]]
         );
         $itemsTotal = count($items);
 
         if (!$itemsTotal) {
-            $this->messageManager->addError(__('No one of selected items is ready to be applied'));
+            $this->messageManager->addError(__('No submissions were ready to be applied.'));
             return $this->resultRedirect->setPath('*/*/index');
         }
         $this->registry->register('queues', []);
@@ -62,15 +65,7 @@ class Apply extends Submission
             ];
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
-        return $this->resultRedirect->setPath('*/*/index');
-
-    }
-
-    /*
-     * Check permission via ACL resource
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('TransPerfect_GlobalLink::management');
+        $this->messageManager->addSuccessMessage(__('Submissions were successfully received and applied to target stores.'));
+        return $resultRedirect->setPath('*/*/index');
     }
 }

@@ -35,6 +35,11 @@ class Send extends BaseSubmission
 
             $formData = $this->getRequest()->getParam('submission');
             foreach ($data['submission']['items'] as $itemId => $itemName) {
+                $completedSubmissionExists = $this->checkForCompletedSubmission($itemId, $data['submission']['localize'], Data::CATALOG_PRODUCT_TYPE_ID);
+                if($completedSubmissionExists){
+                    $this->messageManager->addErrorMessage(__('Cannot create submission, a complete submission for this entity with a duplicate locale exists in PD. Please import that submission first.'));
+                    return $resultRedirect->setPath('catalog/product');
+                }
                 $formData['id_'.$itemId] = $itemName;
             }
             /** @var \TransPerfect\GlobalLink\Model\Queue $queue */
@@ -58,14 +63,20 @@ class Send extends BaseSubmission
 
             try {
                 $queue->getResource()->save($queue);
-                $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                if($this->logger->isDebugEnabled()) {
+                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                }
             } catch (\Exception $e) {
                 $this->_getSession()->setFormData($formData);
                 $this->messageManager->addErrorMessage($e->getMessage());
-                $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                if($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                }
                 return $resultRedirect->setPath('*/*/create');
             }
-
+            if($this->isAutomaticMode){
+                $this->submitTranslations->executeAutomatic($queue);
+            }
             if ($associatedAndParentCategories) {
                 $this->messageManager->addSuccessMessage(__('Products and All associated Categories have been saved to translate queue'));
             } else {

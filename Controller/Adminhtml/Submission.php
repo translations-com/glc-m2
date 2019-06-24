@@ -39,20 +39,37 @@ class Submission extends BackendAction
      */
     protected $helper;
 
+    /**
+     * @var \TransPerfect\GlobalLink\Cron\ReceiveTranslations
+     */
+    protected $receiveTranslations;
+    /**
+     * @var \TransPerfect\GlobalLink\Cron\CancelTranslations
+     */
+    protected $cancelTranslations;
     protected $bgLogger;
+    protected $isAutomaticMode;
     /**
      * Submission constructor.
      *
      * @param \Magento\Backend\App\Action\Context                                       $context
      * @param \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory $itemCollectionFactory
      * @param \Magento\Framework\Registry                                               $registry
+     * @param \TransPerfect\GlobalLink\Helper\Data                                      $helper
+     * @param \TransPerfect\GlobalLink\Logger\BgTask\Logger                             $bgLogger
+     * @param \TransPerfect\GlobalLink\Cron\ReceiveTranslations                         $receiveTranslations
+     * @param \TransPerfect\GlobalLink\Cron\CancelTranslations                          $cancelTranslations
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface                        $scopeConfig
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         ItemCollectionFactory $itemCollectionFactory,
         Registry $registry,
         \TransPerfect\GlobalLink\Helper\Data $helper,
-        BgLogger $bgLogger
+        BgLogger $bgLogger,
+        \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations,
+        \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->viewFactory = $context->getResultFactory();
         $this->resultRedirect = $context->getResultRedirectFactory()->create();
@@ -60,6 +77,13 @@ class Submission extends BackendAction
         $this->registry = $registry;
         $this->helper = $helper;
         $this->bgLogger = $bgLogger;
+        $this->receiveTranslations = $receiveTranslations;
+        $this->cancelTranslations = $cancelTranslations;
+        if($scopeConfig->getValue('globallink/general/automation') == 1){
+            $this->isAutomaticMode = true;
+        } else{
+            $this->isAutomaticMode = false;
+        }
         BackendAction::__construct($context);
         $user = $this->_auth->getUser();
         if (!empty($user)) {

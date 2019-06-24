@@ -61,11 +61,15 @@ class Delete extends Action
                 $field->delete();
                 $this->messageManager->addSuccessMessage(__('Field "' . $field->getFieldName() . '" deleted successfully'));
 
-                //UI action log
-                $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_DELETE_ACTION_TYPE, $this->getRequest()->getParams());
+                if($this->logger->isDebugEnabled()) {
+                    //UI action log
+                    $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_DELETE_ACTION_TYPE, $this->getRequest()->getParams());
+                }
             } catch (\Exception $e) {
-                $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_DELETE_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
-                $this->messageManager->addErrorMessage($e->getMessage());
+                if($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_DELETE_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+                    $this->messageManager->addErrorMessage($e->getMessage());
+                }
             }
         }
 

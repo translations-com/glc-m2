@@ -12,6 +12,7 @@ use \Magento\Backend\App\Action as BackendAction;
 use TransPerfect\GlobalLink\Helper\Ui\Logger;
 use Magento\Framework\App\ResponseInterface;
 use TransPerfect\GlobalLink\Model\Queue\Item;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 
 /**
  * Class Send
@@ -68,17 +69,37 @@ class Send extends BackendAction
     protected $productHelper;
 
     /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
+     * @var \TransPerfect\GlobalLink\Cron\SubmitTranslations
+     */
+    protected $submitTranslations;
+    /**
+     * @var bool
+     */
+    protected $isAutomaticMode;
+    /**
+     * @var \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory
+     */
+    protected $itemCollectionFactory;
+    /**
      * Send constructor.
      *
-     * @param \Magento\Backend\App\Action\Context              $context
-     * @param \Magento\Framework\View\Result\PageFactory       $resultPageFactory
-     * @param \TransPerfect\GlobalLink\Model\QueueFactory      $queueFactory
-     * @param \Magento\Eav\Model\Config                        $config
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime      $dateTime
-     * @param \Magento\Catalog\Api\CategoryRepositoryInterface $categoryRepository
-     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory
-     * @param \TransPerfect\GlobalLink\Helper\Ui\Logger        $logger
-     * @param \TransPerfect\GlobalLink\Helper\Product          $productHelper
+     * @param \Magento\Backend\App\Action\Context                               $context
+     * @param \Magento\Framework\View\Result\PageFactory                        $resultPageFactory
+     * @param \TransPerfect\GlobalLink\Model\QueueFactory                       $queueFactory
+     * @param \Magento\Eav\Model\Config                                         $config
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime                       $dateTime
+     * @param \Magento\Catalog\Api\CategoryRepositoryInterface                  $categoryRepository
+     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory   $categoryCollectionFactory
+     * @param \TransPerfect\GlobalLink\Helper\Ui\Logger                         $logger
+     * @param \TransPerfect\GlobalLink\Helper\Product                           $productHelper
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface                $scopeConfig
+     * @param \TransPerfect\GlobalLink\Cron\SubmitTranslations                  $submitTranslations
+     * @param \TransPerfect\GlobalLink\Helper\Data                              $helper
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
@@ -89,7 +110,12 @@ class Send extends BackendAction
         \Magento\Catalog\Api\CategoryRepositoryInterface $categoryRepository,
         \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory,
         Logger $logger,
-        \TransPerfect\GlobalLink\Helper\Product $productHelper
+        \TransPerfect\GlobalLink\Helper\Product $productHelper,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \TransPerfect\GlobalLink\Cron\SubmitTranslations $submitTranslations,
+        ItemCollectionFactory $itemCollectionFactory,
+        \TransPerfect\GlobalLink\Helper\Data $helper
+
     ) {
         parent::__construct($context);
         $this->_dateTime = $dateTime;
@@ -100,9 +126,18 @@ class Send extends BackendAction
         $this->categoryCollectionFactory = $categoryCollectionFactory;
         $this->logger = $logger;
         $this->productHelper = $productHelper;
+        $this->scopeConfig = $scopeConfig;
+        $this->submitTranslations = $submitTranslations;
         $user = $this->_auth->getUser();
+        $this->itemCollectionFactory = $itemCollectionFactory;
+        $this->helper = $helper;
         if (!empty($user)) {
             Item::setActor('user: '.$user->getUsername().'('.$user->getId().')');
+        }
+        if($this->scopeConfig->getValue('globallink/general/automation') == 1){
+            $this->isAutomaticMode = true;
+        } else{
+            $this->isAutomaticMode = false;
         }
     }
 
@@ -141,5 +176,26 @@ class Send extends BackendAction
     protected function _isAllowed()
     {
         return $this->_authorization->isAllowed('TransPerfect_GlobalLink::management');
+    }
+
+    protected function checkForCompletedSubmission($itemId, $locales, $entityType){
+        /** @todo
+         *  Create function to check for existing complete submissions in PD.
+         */
+        $items = $this->itemCollectionFactory->create();
+        $items->addFieldToFilter('entity_id', array('eq' => $itemId));
+        $items->addFieldToFilter('entity_type_id', array('eq' => $entityType));
+        $items->addFieldToFilter(
+            'pd_locale_iso_code',
+            ['in' => [$this->helper->getPdLocaleIsoCodeByStoreId($locales)]]
+        );
+        if(count($items) >= 1){
+            foreach($items as $item){
+                if($item->getSubmissionTicket() != null && $this->helper->checkForCompletedSubmissionByTicket($item->getSubmissionTicket())){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

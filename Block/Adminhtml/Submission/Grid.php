@@ -103,7 +103,8 @@ class Grid extends Extended
                 'header' => __('Status'),
                 'index' => 'status_id',
                 'type' => 'options',
-                'options' => Item::getStatusesOptionArray()
+                'options' => Item::getStatusesOptionArray(),
+                'renderer' => 'TransPerfect\GlobalLink\Block\Widget\Grid\CustomRenderer'
             ]
         );
         $this->addColumn(

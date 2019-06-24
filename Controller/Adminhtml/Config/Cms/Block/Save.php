@@ -59,10 +59,14 @@ class Save extends Action
                     }
                     $collection->save();
                     $this->messageManager->addSuccessMessage(__('Configuration has been saved'));
-                    $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams());
+                    if($this->logger->isDebugEnabled()) {
+                        $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams());
+                    }
                 } catch (\Exception $e) {
-                    $this->messageManager->addErrorMessage($e->getMessage());
-                    $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+                    if($this->logger->isErrorEnabled()) {
+                        $this->messageManager->addErrorMessage($e->getMessage());
+                        $this->logger->logAction(Data::CMS_BLOCK_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
+                    }
                 }
             }
         }

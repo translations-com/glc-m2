@@ -60,14 +60,20 @@ class Send extends BaseSubmission
 
             try {
                 $queue->getResource()->save($queue);
-                $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                if($this->logger->isDebugEnabled()) {
+                    $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                }
             } catch (\Exception $e) {
                 $this->_session->setFormData($formData);
                 $this->messageManager->addErrorMessage($e->getMessage());
-                $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                if($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction(Data::CATALOG_CATEGORY_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                }
                 return $resultRedirect->setPath('*/*/create');
             }
-
+            if($this->isAutomaticMode){
+                $this->submitTranslations->executeAutomatic($queue);
+            }
             $this->messageManager->addSuccessMessage(__('Categories have been saved to translation queue'));
         }
 
