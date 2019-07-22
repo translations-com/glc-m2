@@ -24,13 +24,14 @@ define([
                 }
                 /*strip leading and trailing spaces*/
                 for(var i=0; i < multiple.length; i++) {
+                    pass = $.trim(multiple[i]);
                     if (0 === pass.length) {
                         return true;
                     }
                     if (!(/[a-z]/i.test(value)) || !(/[0-9]/.test(value))) {
                         return false;
                     }
-                    if (pass.length < 7) {
+                    if (pass.length < 9) {
                         return false;
                     }
                 }

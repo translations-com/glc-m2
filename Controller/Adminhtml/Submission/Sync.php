@@ -27,6 +27,7 @@ class Sync extends Submission
     {
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
+        $this->cancelTranslations->executeAutomatic();
         $this->receiveTranslations->executeAutomatic();
         $this->messageManager->addSuccessMessage(__('Updated status of submissions successfully.'));
         return $resultRedirect->setPath('*/*/index');
