@@ -46,18 +46,16 @@ class ResetAdaptorCommand extends Command
     {
         $output->writeln('');
         $helper = $this->getHelper('question');
-        $question = $this->objectManager->create('\Symfony\Component\Console\Question\ConfirmationQuestion', ['question'=>'Are you sure you want to reset adaptor? Only store locales will not be cleared. (y/n) ', 'default' => FALSE]);
+        $question = $this->objectManager->create('\Symfony\Component\Console\Question\ConfirmationQuestion', ['question'=>'Are you sure you want to reset adaptor? Only store locales and field configuration will not be cleared. (y/n) ', 'default' => FALSE]);
         echo $ans = $helper->ask($input, $output, $question);
         if($ans == 'y') {
             try {
                 $this->setup->getConnection()->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
                 $this->setup->getConnection()->query("DELETE FROM globallink_entity_translation_status WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_field WHERE 1");
                 $this->setup->getConnection()->query("DELETE FROM globallink_job_items WHERE 1");
                 $this->setup->getConnection()->query("DELETE FROM globallink_job_item_status WHERE 1");
                 $this->setup->getConnection()->query("DELETE FROM globallink_job_item_status_history WHERE 1");
                 $this->setup->getConnection()->query("DELETE FROM globallink_job_queue WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_field_product_category WHERE 1");
             } catch (\Exception $e) {
                 $output->writeln('<error>' . $e->getMessage() . '</error>');
             }
