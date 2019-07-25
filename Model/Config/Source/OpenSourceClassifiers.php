@@ -14,16 +14,19 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
     protected $translationService;
     protected $scopeConfig;
     protected $testService;
+    protected $helper;
 
     public function __construct(
         \TransPerfect\GlobalLink\Model\TranslationService $translationService,
         \TransPerfect\Globallink\Model\SoapClient\GLExchangeClient $testService,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \TransPerfect\GlobalLink\Helper\Data $helper
     ) {
 
         $this->translationService = $translationService;
         $this->testService = $testService;
         $this->scopeConfig = $scopeConfig;
+        $this->helper = $helper;
     }
     /**
      * Option getter
@@ -39,8 +42,7 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
             $connectionUrl = $this->scopeConfig->getValue('globallink/connection/url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $username = $this->scopeConfig->getValue('globallink/connection/username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $password = $this->scopeConfig->getValue('globallink/connection/password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            $isEnterprise = $this->scopeConfig->getValue('globallink/hidden/magento', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            if(!$isEnterprise){
+            if(!$this->helper->isEnterprise()){
                 $fileFormats[0] = ['value' => 0, 'label' => 'This feature is not available outside of Commerce Edition'];
                 return $fileFormats;
             }

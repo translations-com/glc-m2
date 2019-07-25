@@ -5,7 +5,7 @@
 
         <add id="TransPerfect_GlobalLink::configuration" title="Configuration" module="TransPerfect_GlobalLink" sortOrder="10" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::globallink"/>
         <add id="TransPerfect_GlobalLink::general" title="General" module="TransPerfect_GlobalLink" sortOrder="10" action="adminhtml/system_config/edit/section/globallink" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::configuration"/>
-        <add id="TransPerfect_GlobalLink::classifiers" title="Classifiers" module="TransPerfect_GlobalLink" sortOrder="20" action="adminhtml/system_config/edit/section/classifiers" resource="TransPerfect_GlobalLink::classifiers" parent="TransPerfect_GlobalLink::configuration"/>
+        <add id="TransPerfect_GlobalLink::classifiers" title="Classifiers" module="TransPerfect_GlobalLink" sortOrder="20" action="adminhtml/system_config/edit/section/globallink_classifiers" resource="TransPerfect_GlobalLink::classifiers" parent="TransPerfect_GlobalLink::configuration"/>
         <add id="TransPerfect_GlobalLink::languages_mapping" title="Languages Mapping" module="TransPerfect_GlobalLink" sortOrder="30" action="adminhtml/system_store/index" resource="TransPerfect_GlobalLink::config" parent="TransPerfect_GlobalLink::configuration"/>
 
         <add id="TransPerfect_GlobalLink::management" title="Management" module="TransPerfect_GlobalLink" sortOrder="20" resource="TransPerfect_GlobalLink::management" parent="TransPerfect_GlobalLink::globallink"/>

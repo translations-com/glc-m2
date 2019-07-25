@@ -437,42 +437,42 @@ class SubmitTranslations extends Translations
         switch ($entityTypeId) {
             case HelperData::CATALOG_PRODUCT_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/cartalogproductclassifier',
+                    'globallink_classifiers/classifiers/cartalogproductclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
                 break;
             case HelperData::CATALOG_CATEGORY_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/catalogcategoryclassifier',
+                    'globallink_classifiers/classifiers/catalogcategoryclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
                 break;
             case HelperData::CMS_BLOCK_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/cmsblockclassifier',
+                    'globallink_classifiers/classifiers/cmsblockclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
                 break;
             case HelperData::CMS_PAGE_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/cmspageclassifier',
+                    'globallink_classifiers/classifiers/cmspageclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
                 break;
             case HelperData::CUSTOMER_ATTRIBUTE_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/customerattributeclassifier',
+                    'globallink_classifiers/classifiers/customerattributeclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
                 break;
             case HelperData::PRODUCT_ATTRIBUTE_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink/classifiers/productattributeclassifier',
+                    'globallink_classifiers/classifiers/productattributeclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );

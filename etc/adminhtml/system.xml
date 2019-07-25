@@ -81,7 +81,7 @@
                 </field>
             </group>
         </section>
-        <section id="classifiers" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+        <section id="globallink_classifiers" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>GlobalLink Classifier Settings</label>
             <tab>transperfect</tab>
             <resource>TransPerfect_GlobalLink::classifiers</resource>
