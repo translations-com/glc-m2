@@ -16,15 +16,19 @@
                     <comment><![CDATA[Keep CTRL to unselect]]></comment>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="reindexing" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="download_logs" translate="button_label" type="button" sortOrder="11" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label />
+                    <frontend_model>TransPerfect\GlobalLink\Block\System\Config\Button\DownloadLog</frontend_model>
+                </field>
+                <field id="reindexing" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Re-index After Importing Translation</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="automation" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="automation" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatic Submission and Retrieval of Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="auto_import" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="auto_import" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatically Import After Checking for Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>

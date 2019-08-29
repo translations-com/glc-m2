@@ -10,6 +10,7 @@ use TransPerfect\GlobalLink\Helper\Ui\Logger;
  */
 class Send extends BaseSubmission
 {
+    private $submitError = false;
     /**
      * {@inheritdoc}
      */
@@ -66,10 +67,20 @@ class Send extends BaseSubmission
                 $this->logger->logAction(Data::CUSTOMER_ATTRIBUTE_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
                 return $resultRedirect->setPath('adminhtml/customer_attribute');
             }
-            if($this->isAutomaticMode){
+            if($this->submitTranslations->isJobLocked() && $this->isAutomaticMode){
+                $this->submitError = true;
+                $message = "Items saved to translate queue, but could not send to PD. Please run the unlock command and then submit through the CLI.";
+                $this->messageManager->addErrorMessage($message);
+                if($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $message);
+                }
+            }
+            else if($this->isAutomaticMode){
                 $this->submitTranslations->executeAutomatic($queue);
             }
-            $this->messageManager->addSuccessMessage(__('Customer attributes have been saved to translation queue'));
+            if(!$this->submitError) {
+                $this->messageManager->addSuccessMessage(__('Customer attributes have been saved to translation queue'));
+            }
         }
 
         return $resultRedirect->setPath('adminhtml/customer_attribute');

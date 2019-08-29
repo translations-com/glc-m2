@@ -424,11 +424,11 @@ class Item extends AbstractModel
         try {
             switch ($this->getStatusId()) {
                 case self::STATUS_NEW:
-                    $this->setStatusId(self::STATUS_FOR_CANCEL);
+                    $this->setStatusId(self::STATUS_FOR_DELETE);
                     $this->getResource()->save($this);
-                    if($this->isAutomaticMode){
+                    /*if($this->isAutomaticMode){
                         $this->cancelTranslationCall();
-                    }
+                    }*/
                     break;
                 case self::STATUS_ERROR_UPLOAD:
                     // remove item which haven't been sent yet

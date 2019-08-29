@@ -21,6 +21,12 @@ class Grid extends Extended
 
     protected $itemCollectionFactory;
 
+    protected $receiveTranslations;
+
+    protected $cancelTranslations;
+
+    protected $isAutomaticMode;
+
     /**
      * Grid constructor.
      *
@@ -35,10 +41,20 @@ class Grid extends Extended
         \Magento\Backend\Helper\Data $backendHelper,
         CollectionFactory $collectionFactory,
         Data $helper,
+        \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations,
+        \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         array $data = []
     ) {
         $this->helper = $helper;
         $this->itemCollectionFactory = $collectionFactory;
+        $this->receiveTranslations = $receiveTranslations;
+        $this->cancelTranslations = $cancelTranslations;
+        if($scopeConfig->getValue('globallink/general/automation') == 1){
+            $this->isAutomaticMode = true;
+        } else{
+            $this->isAutomaticMode = false;
+        }
         parent::__construct($context, $backendHelper, $data);
     }
 
@@ -47,6 +63,10 @@ class Grid extends Extended
      */
     protected function _construct()
     {
+        if($this->isAutomaticMode){
+            $this->cancelTranslations->executeAutomatic();
+            $this->receiveTranslations->executeAutomatic();
+        }
         parent::_construct();
         $this->setId('translation_submission');
         $this->setDefaultSort('request_date');

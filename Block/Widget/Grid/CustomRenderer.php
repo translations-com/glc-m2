@@ -69,6 +69,8 @@ class CustomRenderer extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
                 return '<span class="admin__grid-control-value" style="background-color: #FF0000; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Uploading Failed</span>';
             case $this::STATUS_FOR_CANCEL:
                 return '<span class="admin__grid-control-value" style="background-color: #A9A9A9; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Waiting to be Cancelled</span>';
+            case $this::STATUS_CANCELLED:
+                return '<span class="admin__grid-control-value" style="background-color: #A9A9A9; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Cancelled</span>';
             case $this::STATUS_FOR_DELETE:
                 return '<span class="admin__grid-control-value" style="background-color: #A9A9A9; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Cancelled</span>';
             case $this::STATUS_INPROGRESS:

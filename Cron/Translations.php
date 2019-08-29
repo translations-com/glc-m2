@@ -325,7 +325,18 @@ abstract class Translations
     {
         return static::LOCK_FILE_NAME;
     }
+    /**
+     * get whether the submit queue is locked
+     */
+    public function isJobLocked(){
+        $lockFolder = $this->translationService->getLockFolder();
+        $filePath = $lockFolder.'/'.$this->getLockFileName();
 
+        if ($this->file->fileExists($filePath, true)) {
+            return true;
+        }
+        return false;
+    }
     /**
      * Check lock file for existance
      * Create one if it doesn't exist
