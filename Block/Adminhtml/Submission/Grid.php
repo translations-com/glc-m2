@@ -33,6 +33,8 @@ class Grid extends Extended
 
     protected $bgLogger;
 
+    protected $messageManager;
+
     const STATUS_FINISHED = 2;
 
     /**
@@ -54,6 +56,7 @@ class Grid extends Extended
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Registry $registry,
         \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
         array $data = []
     ) {
         $this->helper = $helper;
@@ -62,6 +65,7 @@ class Grid extends Extended
         $this->cancelTranslations = $cancelTranslations;
         $this->registry = $registry;
         $this->bgLogger = $bgLogger;
+        $this->messageManager = $messageManager;
         if($scopeConfig->getValue('globallink/general/automation') == 1){
             $this->isAutomaticMode = true;
         } else{
