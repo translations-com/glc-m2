@@ -27,6 +27,14 @@ class Grid extends Extended
 
     protected $isAutomaticMode;
 
+    protected $autoImport;
+
+    protected $registry;
+
+    protected $bgLogger;
+
+    const STATUS_FINISHED = 2;
+
     /**
      * Grid constructor.
      *
@@ -44,16 +52,25 @@ class Grid extends Extended
         \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations,
         \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Registry $registry,
+        \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
         array $data = []
     ) {
         $this->helper = $helper;
         $this->itemCollectionFactory = $collectionFactory;
         $this->receiveTranslations = $receiveTranslations;
         $this->cancelTranslations = $cancelTranslations;
+        $this->registry = $registry;
+        $this->bgLogger = $bgLogger;
         if($scopeConfig->getValue('globallink/general/automation') == 1){
             $this->isAutomaticMode = true;
         } else{
             $this->isAutomaticMode = false;
+        }
+        if($scopeConfig->getValue('globallink/general/auto_import') == 1){
+            $this->autoImport = true;
+        } else{
+            $this->autoImport = false;
         }
         parent::__construct($context, $backendHelper, $data);
     }
@@ -63,9 +80,46 @@ class Grid extends Extended
      */
     protected function _construct()
     {
-        if($this->isAutomaticMode){
+        if($this->isAutomaticMode && !$this->autoImport){
             $this->cancelTranslations->executeAutomatic();
             $this->receiveTranslations->executeAutomatic();
+        }
+        else if($this->autoImport){
+            $this->cancelTranslations->executeAutomatic();
+            $this->receiveTranslations->executeAutomatic();
+            $automaticItemIds = $this->receiveTranslations->getAutomaticItemIds();
+            //Then imports any translations that are ready to go
+            $items = $this->itemCollectionFactory->create();
+            $items->addFieldToFilter(
+                'id',
+                ['in' => $automaticItemIds]
+            );
+            $items->addFieldToFilter(
+                'status_id',
+                ['in' => [$this::STATUS_FINISHED]]
+            );
+            $itemsTotal = count($items);
+
+            if ($itemsTotal) {
+                $this->registry->register('queues', []);
+                try {
+                    $items->walk('applyTranslation');
+                } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                    $this->messageManager->addError($e->getMessage());
+                } catch (\Exception $e) {
+                    $this->messageManager->addError($e->getMessage());
+                }
+                $start = microtime(true);
+                $this->helper->reIndexing();
+                $this->_eventManager->dispatch('transperfect_globallink_apply_translation_after', ['queues' => $this->registry->registry('queues')]);
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $logData = [
+                        'message' => "Reindex and redirect duration: " . (microtime(true) - $start) . " seconds",
+                    ];
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
+                $this->messageManager->addSuccessMessage(__('Submissions were successfully received and applied to target stores.'));
+            }
         }
         parent::_construct();
         $this->setId('translation_submission');
