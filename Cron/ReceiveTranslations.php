@@ -252,7 +252,7 @@ class ReceiveTranslations extends Translations
                         {
                             $item->setStatusId(Item::STATUS_INPROGRESS);
                             $item->save();
-                            $message = "Max length for document ticket " . $target->documentTicket . " has been corrected, reverting status to in progress.";
+                            $message = "Attempting to download document ticket " . $target->documentTicket . " again, reverting status to in progress. Previously there was a max_length error.";
                             $this->cliMessage($message, 'info');
                             $logData = [
                                 'file' => __FILE__,

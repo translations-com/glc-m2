@@ -7,6 +7,7 @@
                 <item name="globallink_translations_submit" xsi:type="object">TransPerfect\GlobalLink\Console\Command\SubmitTranslationsCommand</item>
                 <item name="globallink_translations_receive" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ReceiveTranslationsCommand</item>
                 <item name="globallink_translations_cancel" xsi:type="object">TransPerfect\GlobalLink\Console\Command\CancelTranslationsCommand</item>
+                <item name="globallink_translations_import" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ImportTranslationsCommand</item>
                 <item name="globallink_translations_unlock" xsi:type="object">TransPerfect\GlobalLink\Console\Command\UnlockTranslationsCommand</item>
                 <item name="globallink_translations_reset" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ResetAdaptorCommand</item>
                 <item name="globallink_test_glexchangeclient_connect" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientConnectCommand</item>

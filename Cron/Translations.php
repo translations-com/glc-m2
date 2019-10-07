@@ -31,6 +31,7 @@ use \Symfony\Component\Console\Output\ConsoleOutput;
 use \TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator as ProductUrlPathGenerator;
+use Magento\Framework\Registry;
 
 /**
  * Class Translations
@@ -180,6 +181,11 @@ abstract class Translations
      */
     protected $productUrlPathGenerator;
 
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $registry;
+
     protected $loggingLevels;
 
 
@@ -213,6 +219,7 @@ abstract class Translations
      * @param \Symfony\Component\Console\Output\ConsoleOutput                                         $out
      * @param \Magento\Framework\Event\ManagerInterface                                               $eventManager
      * @param \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator                                $productUrlPathGenerator
+     * @param \Magento\Framework\Registry                                                             $registry
      */
     public function __construct(
         QueueCollectionFactory $queueCollectionFactory,
@@ -241,7 +248,8 @@ abstract class Translations
         File $file,
         ConsoleOutput $out,
         EventManagerInterface $eventManager,
-        ProductUrlPathGenerator $productUrlPathGenerator
+        ProductUrlPathGenerator $productUrlPathGenerator,
+        \Magento\Framework\Registry $registry
     ) {
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->itemCollectionFactory = $itemCollectionFactory;
@@ -271,6 +279,7 @@ abstract class Translations
         $this->eventManager = $eventManager;
         $this->productUrlPathGenerator = $productUrlPathGenerator;
         $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
+        $this->registry = $registry;
     }
 
     /**

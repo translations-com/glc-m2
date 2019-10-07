@@ -31,9 +31,6 @@
                 <field id="auto_import" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatically Import After Checking for Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="*/*/automation">1</field>
-                    </depends>
                 </field>
                 <field id="email_errors" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Email Errors</label>
@@ -109,7 +106,7 @@
                 </field>
                 <field id="productattributeclassifier" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Classifier for Product Attributes</label>
-                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\OpenSourceClassifiers</source_model>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
                 </field>
                 <field id="customerattributeclassifier" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Classifier for Customer Attributes</label>
