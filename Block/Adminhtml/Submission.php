@@ -29,8 +29,8 @@ class Submission extends Container
             $this->addButton(
                 'sync_with_pd',
                 [
-                    'label' => __('Check for Updates'),
-                    'onclick' => 'confirmSetLocation("' . __('Are you sure you want to check for updates?') . '", \'' . $this->getUrl('*/*/sync') . '\')',
+                    'label' => __('Refresh Dashboard'),
+                    'onclick' => 'confirmSetLocation("' . __('Are you sure you want to refresh the dashboard?') . '", \'' . $this->getUrl('*/*/sync') . '\')',
                     'class' => 'add primary',
                 ]
             );
@@ -39,8 +39,8 @@ class Submission extends Container
             $this->addButton(
                 'sync_and_import',
                 [
-                    'label' => __('Check for Updates & Import Automatically'),
-                    'onclick' => 'confirmSetLocation("' . __('Are you sure you want to check for updates and import any received content?') . '", \'' . $this->getUrl('*/*/autoimport') . '\')',
+                    'label' => __('Refresh Dashboard'),
+                    'onclick' => 'confirmSetLocation("' . __('Are you sure you want to refresh the dashboard? Any received content will be imported automatically.') . '", \'' . $this->getUrl('*/*/autoimport') . '\')',
                     'class' => 'add primary',
                 ]
             );

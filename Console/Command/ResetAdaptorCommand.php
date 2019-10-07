@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Magento\Eav\Setup\EavSetupFactory;
-use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\ObjectManagerInterface;
 
 class ResetAdaptorCommand extends Command
@@ -17,19 +16,20 @@ class ResetAdaptorCommand extends Command
      */
     protected $objectManager;
     /**
-     * @var \Magento\Framework\Setup\SchemaSetupInterface
+     * @var \Magento\Framework\App\ResourceConnection
      */
-    protected $setup;
+    protected $resource;
+    protected $connection;
 
     /**
      * ResetAdaptorCommand constructor.
      * @param ObjectManagerInterface $objectManager
-     * @param \Magento\Framework\Setup\SchemaSetupInterface   $setup
      */
 
-    public function __construct(ObjectManagerInterface $objectManager, \Magento\Framework\Setup\SchemaSetupInterface $setup) {
+    public function __construct(ObjectManagerInterface $objectManager) {
         $this->objectManager = $objectManager;
-        $this->setup = $setup;
+        $this->resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
+        $this->connection = $this->resource->getConnection();
         parent::__construct();
     }
 
@@ -50,12 +50,12 @@ class ResetAdaptorCommand extends Command
         echo $ans = $helper->ask($input, $output, $question);
         if($ans == 'y') {
             try {
-                $this->setup->getConnection()->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
-                $this->setup->getConnection()->query("DELETE FROM globallink_entity_translation_status WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_job_items WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_job_item_status WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_job_item_status_history WHERE 1");
-                $this->setup->getConnection()->query("DELETE FROM globallink_job_queue WHERE 1");
+                $this->connection->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
+                $this->connection->query("DELETE FROM globallink_entity_translation_status WHERE 1");
+                $this->connection->query("DELETE FROM globallink_job_items WHERE 1");
+                $this->connection->query("DELETE FROM globallink_job_item_status WHERE 1");
+                $this->connection->query("DELETE FROM globallink_job_item_status_history WHERE 1");
+                $this->connection->query("DELETE FROM globallink_job_queue WHERE 1");
             } catch (\Exception $e) {
                 $output->writeln('<error>' . $e->getMessage() . '</error>');
             }
