@@ -181,6 +181,14 @@ class Item extends AbstractModel
     protected $urlRewriteCollectionFactory;
     protected $isAutomaticMode;
     /**
+     * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
+     */
+    protected $reviewCollectionFactory;
+    /**
+     * @var \Magento\Review\Model\ReviewFactory $reviewFactory
+     */
+    protected $reviewFactory;
+    /**
      * Init
      */
     protected function _construct()
@@ -191,30 +199,32 @@ class Item extends AbstractModel
     /**
      * Item constructor.
      *
-     * @param \Magento\Framework\Model\Context                         $context
-     * @param \Magento\Framework\Registry                              $registry
-     * @param \Magento\Framework\Message\Manager                       $messageManager
-     * @param \Magento\Cms\Model\BlockFactory                          $blockFactory
-     * @param \Magento\Cms\Model\PageFactory                           $pageFactory
-     * @param \Magento\Catalog\Api\CategoryRepositoryInterface         $categoryRepository
-     * @param \TransPerfect\GlobalLink\Model\TranslationService        $translationService
-     * @param \Magento\Framework\DomDocument\DomDocumentFactory        $domDocumentFactory
-     * @param \Magento\Framework\Filesystem\Io\File                    $file
-     * @param \TransPerfect\GlobalLink\Helper\Data                     $helper
-     * @param \Magento\Store\Model\StoreManagerInterface               $storeManager
-     * @param \Magento\Cms\Model\ResourceModel\Block\CollectionFactory $blockCollectionFactory
-     * @param \Magento\Cms\Model\ResourceModel\Page\CollectionFactory  $pageCollectionFactory
-     * @param \Magento\Eav\Api\AttributeRepositoryInterface            $attributeRepository
-     * @param \Magento\Eav\Api\AttributeOptionManagementInterface      $attributeOptionManagement
-     * @param \TransPerfect\GlobalLink\Logger\BgTask\Logger            $bgLogger
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface          $productRepository
-     * @param \Magento\Catalog\Model\Product\Option                    $productOption
-     * @param \Magento\Bundle\Model\Option                             $bundleOption
-     * @param \TransPerfect\GlobalLink\Model\Queue\QueueFactory        $queueFactory
+     * @param \Magento\Framework\Model\Context                                      $context
+     * @param \Magento\Framework\Registry                                           $registry
+     * @param \Magento\Framework\Message\Manager                                    $messageManager
+     * @param \Magento\Cms\Model\BlockFactory                                       $blockFactory
+     * @param \Magento\Cms\Model\PageFactory                                        $pageFactory
+     * @param \Magento\Catalog\Api\CategoryRepositoryInterface                      $categoryRepository
+     * @param \TransPerfect\GlobalLink\Model\TranslationService                     $translationService
+     * @param \Magento\Framework\DomDocument\DomDocumentFactory                     $domDocumentFactory
+     * @param \Magento\Framework\Filesystem\Io\File                                 $file
+     * @param \TransPerfect\GlobalLink\Helper\Data                                  $helper
+     * @param \Magento\Store\Model\StoreManagerInterface                            $storeManager
+     * @param \Magento\Cms\Model\ResourceModel\Block\CollectionFactory              $blockCollectionFactory
+     * @param \Magento\Cms\Model\ResourceModel\Page\CollectionFactory               $pageCollectionFactory
+     * @param \Magento\Eav\Api\AttributeRepositoryInterface                         $attributeRepository
+     * @param \Magento\Eav\Api\AttributeOptionManagementInterface                   $attributeOptionManagement
+     * @param \TransPerfect\GlobalLink\Logger\BgTask\Logger                         $bgLogger
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface                       $productRepository
+     * @param \Magento\Catalog\Model\Product\Option                                 $productOption
+     * @param \Magento\Bundle\Model\Option                                          $bundleOption
+     * @param \TransPerfect\GlobalLink\Model\Queue\QueueFactory                     $queueFactory
      * @param \TransPerfect\GlobalLink\Model\ResourceModel\Entity\TranslationStatus $translationStatusResource
-     * @param \Magento\Store\Model\ResourceModel\Store\CollectionFactory $storeCollectionFactory
-     * @param \Magento\UrlRewrite\Model\UrlRewriteCollectionFactory    $urlRewriteCollectionFactory
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface       $scopeConfig
+     * @param \Magento\Store\Model\ResourceModel\Store\CollectionFactory            $storeCollectionFactory
+     * @param \Magento\UrlRewrite\Model\UrlRewriteCollectionFactory                 $urlRewriteCollectionFactory
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface                    $scopeConfig
+     * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory  $reviewCollectionFactory
+     * @param \Magento\Review\Model\ReviewFactory                                   $reviewFactory
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -240,7 +250,9 @@ class Item extends AbstractModel
         TranslationStatusResource $translationStatusResource,
         StoreCollectionFactory $storeCollectionFactory,
         UrlRewriteCollectionFactory $urlRewriteCollectionFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory,
+        \Magento\Review\Model\ReviewFactory $reviewFactory
     ) {
         parent::__construct($context, $registry);
         $this->messageManager = $messageManager;
@@ -264,6 +276,8 @@ class Item extends AbstractModel
         $this->translationStatusResource = $translationStatusResource;
         $this->storeCollectionFactory = $storeCollectionFactory;
         $this->urlRewriteCollectionFactory = $urlRewriteCollectionFactory;
+        $this->reviewCollectionFactory = $reviewCollectionFactory;
+        $this->reviewFactory = $reviewFactory;
         if($scopeConfig->getValue('globallink/general/automation') == 1){
             $this->isAutomaticMode = true;
         } else{
@@ -351,27 +365,24 @@ class Item extends AbstractModel
                 case Helper::CATALOG_CATEGORY_TYPE_ID:
                     $this->applyTranslationCatalogCategory();
                     break;
-
                 case Helper::CMS_BLOCK_TYPE_ID:
                     $this->applyTranslationCmsBlock();
                     break;
-
                 case Helper::CMS_PAGE_TYPE_ID:
                     $this->applyTranslationCmsPage();
                     break;
-
                 case Helper::CATALOG_PRODUCT_TYPE_ID:
                     $this->applyTranslationCatalogProduct();
                     break;
-
                 case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationProductAttribute();
                     break;
-
                 case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationCustomerAttribute();
                     break;
-
+                case Helper::PRODUCT_REVIEW_ID:
+                    $this->applyTranslationReview();
+                    break;
                 default:
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
             endswitch;
@@ -575,7 +586,53 @@ class Item extends AbstractModel
 
         return $targetStoreIds;
     }
+    /**
+     *
+     * Apply translation to product review
+     *
+     * On successful translation apply, method MUST write success message in $this->messageManager->addSuccess('...')
+     * On unsuccessful translation apply, method MUST throw an exception with error message which will be shown to user
+     *   execution will continue with other items
+     *
+     * @return void
+     *
+     * @throws \Exception
+     */
+    protected function applyTranslationReview()
+    {
+        $entityId = $this->getEntityId();
+        $targetStoreIds = $this->getTargetStoreIds();
+        $sourceStoreId = $this->getSourceStoreId();
+        $translatedData = $this->getTranslatedData();
 
+        foreach ($targetStoreIds as $targetStoreId) {
+            $reviewId = null;
+            $oldEntity = $this->reviewCollectionFactory->create()->addStoreFilter($sourceStoreId)->getItemById($entityId);
+
+            $needNewEntity = true;
+
+            if ($needNewEntity) {
+                $newEntity = $this->reviewFactory->create();
+                $newEntity->unsetData('review_id');
+                $newEntity->setEntityId($newEntity->getEntityIdByCode(\Magento\Review\Model\Review::ENTITY_PRODUCT_CODE));
+                $newEntity->setEntityPkValue($oldEntity->getEntityPkValue());
+                $newEntity->setStatusId(\Magento\Review\Model\Review::STATUS_PENDING);
+                $newEntity->setData('title', $oldEntity->getTitle());
+                $newEntity->setNickname($oldEntity->getNickname());
+                $newEntity->addData($translatedData['attributes']);
+                $newEntity->setStoreId($targetStoreId);
+                $newEntity->setStores($targetStoreId);
+                $newEntity->save();
+                $this->setData('new_entity_id', $newEntity->getReviewId());
+            }
+        }
+        // if we're here all ok. Update item status, set success message
+        $this->setStatusId(self::STATUS_APPLIED);
+        $this->save();
+        $this->messageManager->addSuccess(__('Translation of Item %1 (%2) successfully applied to all target stores', $this->getId(), $this->getEntityName()));
+        $this->updateEntitySubmissionStatus($targetStoreIds);
+        $this->removeXml();
+    }
     /**
      *
      * Apply translation to catalog category
@@ -650,12 +707,14 @@ class Item extends AbstractModel
                         $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
                         $foundBlock->setStoreId($updateStores);
                         $foundBlock->save();
+                        $this->setData('new_entity_id', $foundBlock->getBlockId());
                     }
                     else {
                         // remove target store from store list and create new block
                         $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
                         $foundBlock->setStoreId($updateStores);
                         $foundBlock->save();
+                        $this->setData('new_entity_id', $foundBlock->getBlockId());
                     }
                 }
                 //$blocks->save();
@@ -668,8 +727,8 @@ class Item extends AbstractModel
                 $newEntity->setStoreId($targetStoreId);
                 $newEntity->setIdentifier($oldEntity->getIdentifier());
                 $newEntity->setIsActive($oldEntity->getIsActive());
-
                 $newEntity->save();
+                $this->setData('new_entity_id', $newEntity->getBlockId());
             }
 
             //$oldEntity->save();
@@ -722,16 +781,19 @@ class Item extends AbstractModel
                             $this->addNewCmsRevision($foundPage, $translatedData['attributes']);
                         }
                         $needNewEntity = false;
+                        $this->setData('new_entity_id', $foundPage->getPageId());
                     } elseif ($stores[0] == '0') {
                         $foundPage = $this->resetStoreViews($foundPage);
                         $updateStores = $this->removeStoreIdFromEntityStores($foundPage, $targetStoreId);
                         $foundPage->setStoreId($updateStores);
                         $foundPage->save();
+                        $this->setData('new_entity_id', $foundPage->getPageId());
                     } else {
                         // remove target store from store list and create new page
                         $updateStores = $this->removeStoreIdFromEntityStores($foundPage, $targetStoreId);
                         $foundPage->setStoreId($updateStores);
                         $foundPage->save();
+                        $this->setData('new_entity_id', $foundPage->getPageId());
                     }
                 }
                 //$pages->save();
@@ -765,6 +827,7 @@ class Item extends AbstractModel
                 $this->removeUrlRewrite('cms-page', $entityId, $targetStoreId);
 
                 $newEntity->save();
+                $this->setData('new_entity_id', $newEntity->getPageId());
             }
 
             //$oldEntity->save();
@@ -815,13 +878,13 @@ class Item extends AbstractModel
         $targetStoreIds = $this->getTargetStoreIds();
         $sourceStoreId = $this->getSourceStoreId();
         $translatedData = $this->getTranslatedData();
-
+        $imageFields = ['image_label', 'thumbnail_label', 'small_image_label'];
         foreach ($targetStoreIds as $targetStoreId) {
             $product = $this->productRepository->getById($entityId, false, $targetStoreId);
 
             $store = $this->storeManager->getStore($targetStoreId);
             $this->storeManager->setCurrentStore($store->getCode());
-
+            $mediaGallery = $product->getMediaGalleryEntries();
             $product->addData($translatedData['attributes']);
 
             if ($product->getTypeId() == BundleType::TYPE_CODE) {
@@ -886,7 +949,19 @@ class Item extends AbstractModel
             foreach($translatedData['attributes'] as $attributeName => $attributeValue){
                 $product->getResource()->saveAttribute($product, $attributeName);
             }
-
+            $existingImageFields = array_intersect($imageFields, array_keys($translatedData['attributes']));
+            if(count($existingImageFields) > 0) {
+                foreach ($mediaGallery as $image) {
+                    foreach ($existingImageFields as $currentField) {
+                        $matchingField = str_replace("_label", "", $currentField);
+                        if (in_array($matchingField, $image->getTypes())) {
+                            $image->setLabel($translatedData['attributes'][$currentField]);
+                        }
+                    }
+                }
+                $product->setMediaGalleryEntries($mediaGallery);
+                $product->save();
+            }
             $logData = [
                 'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
             ];

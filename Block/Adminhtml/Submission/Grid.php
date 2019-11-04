@@ -191,7 +191,7 @@ class Grid extends Extended
                 'header' => __('Source Language'),
                 'index' => 'source_locale',
                 'type' => 'options',
-                'options' => $this->helper->getLocaleOptionsArray(),
+                'renderer' => '\TransPerfect\GlobalLink\Block\Adminhtml\Submission\Grid\Renderer\EntityLinker'
             ]
         );
         $this->addColumn(
@@ -200,14 +200,14 @@ class Grid extends Extended
                 'header' => __('Target Language'),
                 'index' => 'pd_locale_iso_code',
                 'type' => 'options',
-                'options' => $this->helper->getLocaleOptionsArray(),
+                'renderer' => '\TransPerfect\GlobalLink\Block\Adminhtml\Submission\Grid\Renderer\EntityLinker'
             ]
         );
         $this->addColumn(
             'entity_name',
             [
                 'header' => __('Entity Name'),
-                'index' => 'entity_name',
+                'index' => 'entity_name'
             ]
         );
         $this->addColumn(

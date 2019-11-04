@@ -32,12 +32,18 @@ use \TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator as ProductUrlPathGenerator;
 use Magento\Framework\Registry;
+use \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory as ReviewCollectionFactory;
 
 /**
  * Class Translations
  */
 abstract class Translations
 {
+    /**
+     * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
+     */
+    protected $reviewCollectionFactory;
+
     /**
      * Queue collection factory
      *
@@ -220,6 +226,7 @@ abstract class Translations
      * @param \Magento\Framework\Event\ManagerInterface                                               $eventManager
      * @param \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator                                $productUrlPathGenerator
      * @param \Magento\Framework\Registry                                                             $registry
+     * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory                    $reviewCollectionFactory
      */
     public function __construct(
         QueueCollectionFactory $queueCollectionFactory,
@@ -249,7 +256,9 @@ abstract class Translations
         ConsoleOutput $out,
         EventManagerInterface $eventManager,
         ProductUrlPathGenerator $productUrlPathGenerator,
-        \Magento\Framework\Registry $registry
+        \Magento\Framework\Registry $registry,
+        ReviewCollectionFactory $reviewCollectionFactory
+
     ) {
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->itemCollectionFactory = $itemCollectionFactory;
@@ -278,6 +287,7 @@ abstract class Translations
         $this->out = $out;
         $this->eventManager = $eventManager;
         $this->productUrlPathGenerator = $productUrlPathGenerator;
+        $this->reviewCollectionFactory = $reviewCollectionFactory;
         $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
         $this->registry = $registry;
     }

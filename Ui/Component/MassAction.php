@@ -58,7 +58,7 @@ class MassAction extends BaseMassAction
         parent::prepare();
 
         $controller = $this->getRequest()->getControllerName();
-        $allowedControllers = ['cms_page', 'block', 'product', 'page'];
+        $allowedControllers = ['cms_page', 'block', 'product', 'page', 'review'];
         if (in_array($controller, $allowedControllers)) {
             $itemResource = $this->itemResourceFactory->create();
             switch ($controller) {
@@ -74,6 +74,10 @@ class MassAction extends BaseMassAction
                 case 'product':
                     $storeId = $itemResource->getUiGridStoreId('product_listing');
                     $url = $this->getContext()->getUrl('translations/submission_product/create', ['store' => $storeId]);
+                    break;
+                case 'review':
+                    $storeId = $itemResource->getUiGridStoreId('review_listing');
+                    $url = $this->getContext()->getUrl('translations/submission_review/create', ['store' => $storeId]);
                     break;
                 default:
                     $url = false;

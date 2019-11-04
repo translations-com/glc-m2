@@ -470,6 +470,13 @@ class SubmitTranslations extends Translations
                     $sourceStore->getId()
                 );
                 break;
+            case HelperData::PRODUCT_REVIEW_ID:
+                $fileFormatType = $this->scopeConfig->getValue(
+                    'globallink_classifiers/classifiers/reviewclassifier',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $sourceStore->getId()
+                );
+                break;
             case HelperData::PRODUCT_ATTRIBUTE_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
                     'globallink_classifiers/classifiers/productattributeclassifier',
@@ -612,7 +619,7 @@ class SubmitTranslations extends Translations
         $fieldNames = [];
         if (in_array(
             $entityTypeId,
-            [HelperData::CMS_BLOCK_TYPE_ID, HelperData::CMS_PAGE_TYPE_ID]
+            [HelperData::CMS_BLOCK_TYPE_ID, HelperData::CMS_PAGE_TYPE_ID, HelperData::PRODUCT_REVIEW_ID]
         )) {
             $fields = $this->fieldCollectionFactory->create();
             $fields->addFieldToFilter('object_type', $entityTypeId);
@@ -620,6 +627,11 @@ class SubmitTranslations extends Translations
             foreach ($fields as $field) {
                 switch ($field->getFieldName()) {
                     case 'title':
+                        $maxLength = 255;
+                        break;
+                    case 'detail':
+                        $maxLength = 65535;
+                        break;
                     case 'content_heading':
                     case 'meta_title':
                         $maxLength = 255;
@@ -1062,7 +1074,47 @@ class SubmitTranslations extends Translations
 
         return $data;
     }
+    /**
+     * Get data of product review
+     *
+     * @param int $entityId
+     * @param int $storeId
+     *
+     * @return array
+     */
+    protected function getReviewData($entityId, $storeId)
+    {
+        $data = [];
 
+        $fieldNames = $this->getFieldsToTranslate(HelperData::PRODUCT_REVIEW_ID);
+
+        $review = $this->reviewCollectionFactory->create()->getItemById($entityId);
+
+        $attrArr = [];
+        $optArr = [];
+        foreach ($fieldNames as $fieldNameData) {
+            $fieldName = $fieldNameData['name'];
+            $maxLength = $fieldNameData['max_length'];
+            $fieldValue = $review->getData($fieldName);
+            if (!empty($fieldValue) && !is_array($fieldValue)) {
+                $attrArr[$fieldName] = $fieldValue;
+                $lengthArr[$fieldName] = $maxLength;
+            }
+        }
+
+        if (empty($attrArr)) {
+            return [];
+        }
+
+        $data['object_id'] = $entityId;
+        $data['object_type_id'] = HelperData::PRODUCT_REVIEW_ID;
+
+        $data['attributes'] = $attrArr;
+        $data['options'] = $optArr;
+        $data['max_length'] = $lengthArr;
+
+        return $data;
+    }
     /**
      * Create xml file with data for translation
      *
@@ -1087,6 +1139,8 @@ class SubmitTranslations extends Translations
             $data = $this->getCmsBlockData($itemEntityId, $originStoreId);
         } elseif ($itemEntityTypeId == HelperData::CUSTOMER_ATTRIBUTE_TYPE_ID) {
             $data = $this->getCustomerAttributeData($itemEntityId, $originStoreId);
+        } elseif ($itemEntityTypeId == HelperData::PRODUCT_REVIEW_ID) {
+            $data = $this->getReviewData($itemEntityId, $originStoreId);
         }
 
         if (empty($data)) {

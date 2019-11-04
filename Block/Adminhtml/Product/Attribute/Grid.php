@@ -41,20 +41,6 @@ class Grid extends AttributeGrid
     protected function _prepareCollection()
     {
         $collection = $this->_collectionFactory->create()->addVisibleFilter();
-
-        /*$currentStore = $this->getRequest()->getParam('store', false);
-        if (empty($currentStore)) {
-            $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
-        }
-        $collection->getSelect()->joinLeft(
-            ['gets' => $collection->getTable('globallink_entity_translation_status')],
-            'gets.entity_type_id = '.\TransPerfect\GlobalLink\Helper\Data::PRODUCT_ATTRIBUTE_TYPE_ID.
-            ' AND '.
-            'gets.store_view_id = '.$currentStore.
-            ' AND '.
-            'gets.entity_id = main_table.attribute_id',
-            ['translation_status']
-        );*/
         $this->setCollection($collection);
 
         return \Magento\Backend\Block\Widget\Grid\Extended::_prepareCollection();

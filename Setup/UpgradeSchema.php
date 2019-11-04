@@ -182,6 +182,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $this->upgradeToVersion('0.9.1');
         $this->upgradeToVersion('0.9.5');
         $this->upgradeToVersion('0.9.7');
+        $this->upgradeToVersion('1.8.0');
         $this->installer->endSetup();
     }
 
@@ -547,5 +548,22 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $connection = $this->installer->getConnection();
         //$connection->dropColumn($this->attributeTable, 'include_in_translation');
         $connection->dropColumn($this->installer->getTable('eav_entity_attribute'), 'include_in_translation');
+    }
+
+    /**
+     * Adds a column new_entity_id to the globallink_job_items table to keep track of new entities that were created for some entity types.
+     */
+    protected function upgradeTo_180()
+    {
+        $connection = $this->installer->getConnection();
+        $connection->addColumn(
+            $this->tableItems,
+            'new_entity_id',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                'unsigned' => true,
+                'comment' => 'New Entity Object ID'
+            ]
+        );
     }
 }

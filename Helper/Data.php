@@ -127,6 +127,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const CMS_PAGE_TYPE_ID = 12;
     const CMS_BLOCK_TYPE_ID = 13;
     const CUSTOMER_ATTRIBUTE_TYPE_ID = 14;
+    const PRODUCT_REVIEW_ID = 15;
+
 
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -184,6 +186,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $localeCodes[] = $store->getLocale();
         }
         return $localeCodes;
+    }
+    /**
+     * @return store id's if you have the PD ISO Code
+     */
+    public function getStoreIdFromLocale($locales){
+        $stores = $this->storeCollectionFactory->create();
+        $stores->addFieldToFilter(
+            'locale', ['in' => $locales]);
+        $localeCodes = array();
+        foreach($stores as $store){
+            $storeIds[] = $store->getData('store_id');
+        }
+        return $storeIds;
     }
 	/*
      * @return project short codes
@@ -535,6 +550,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     'config_action' => __('Field Configuration - Customer Attributes'),
                 ]
             ],
+            self::PRODUCT_REVIEW_ID => [
+                'class' => \Magento\Review\Model\Review::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Product Reviews'),
+                    'send_action' => __('Send for Translation - Product Reviews'),
+                    'config_action' => __('Field Configuration - Product Reviews'),
+                ]
+            ],
         ];
     }
 
@@ -558,6 +581,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             self::PRODUCT_ATTRIBUTE_TYPE_ID => __('Product Attribute'),
             self::CMS_PAGE_TYPE_ID => __('CMS Page'),
             self::CMS_BLOCK_TYPE_ID => __('CMS Block'),
+            self::PRODUCT_REVIEW_ID => __('Product Review'),
         ];
         if ($this->isEnterprise()) {
             $options[self::CUSTOMER_ATTRIBUTE_TYPE_ID] = __('Customer Attribute');

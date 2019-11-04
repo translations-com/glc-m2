@@ -98,6 +98,7 @@ class UpgradeData implements UpgradeDataInterface
 
         $this->upgradeToVersion('0.6.1');
         $this->upgradeToVersion('0.7.0');
+        $this->upgradeToVersion('1.8.0');
 
         $setup->endSetup();
     }
@@ -144,6 +145,34 @@ class UpgradeData implements UpgradeDataInterface
                 $catalogSetup->getEntityTypeId(Category::ENTITY),
             ] as $entityTypeId) {
                 $catalogSetup->removeAttribute($entityTypeId, 'active_submission');
+        }
+    }
+    /**
+     * - adds product review data to field configuration
+     */
+    protected function upgradeTo_180()
+    {
+        $fieldCollection = $this->fieldCollectionFactory->create();
+        $fieldCollection->addFieldToFilter('field_name', 'title');
+        $fieldCollection->addFieldToFilter('object_type', \TransPerfect\GlobalLink\Helper\Data::PRODUCT_REVIEW_ID);
+        $fieldsTotal = count($fieldCollection);
+        if (!$fieldsTotal) {
+            $fieldAddition = [
+                'title' => 'Title',
+                'detail' => 'Detail Description'
+            ];
+            foreach ($fieldAddition as $fieldName => $fieldLabel) {
+                $fieldData = [
+                    'field_name' => $fieldName,
+                    'field_label' => $fieldLabel,
+                    'object_type' =>  \TransPerfect\GlobalLink\Helper\Data::PRODUCT_REVIEW_ID,
+                    'include_in_translation' => 1,
+                ];
+                $field = $this->fieldFactory->create();
+                $field->setData($fieldData);
+                $fieldCollection->addItem($field);
+            }
+            $fieldCollection->save();
         }
     }
 }

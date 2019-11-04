@@ -112,6 +112,10 @@
                     <label>Classifier for Customer Attributes</label>
                     <source_model>TransPerfect\GlobalLink\Model\Config\Source\OpenSourceClassifiers</source_model>
                 </field>
+                <field id="reviewclassifier" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Classifier for Product Reviews</label>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
+                </field>
             </group>
         </section>
     </system>

@@ -602,7 +602,7 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
 
-        for($i=0; $i < 100; $i++){
+        for($i=0; $i < 30; $i++){
             $targetTickets = $client->getCompletedTargetsBySubmission($tickets, $this->maxTargetCount);
             if($targetTickets != null){
                 return $targetTickets;
