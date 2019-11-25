@@ -808,8 +808,7 @@ class SubmitTranslations extends Translations
         $data['object_type_id'] = HelperData::CMS_PAGE_TYPE_ID;
 
         //get default store's base url and this cms page's url for the preview
-        $data['preview_url'] = $this->storeManager->getDefaultStoreView()->getUrl($page->getIdentifier());
-
+        $data['preview_url'] = $this->storeManager->getStore()->getBaseUrl() . $page->getIdentifier();
         $data['attributes'] = $attrArr;
         $data['max_length'] = $lengthArr;
 
@@ -988,11 +987,8 @@ class SubmitTranslations extends Translations
         $data['object_id'] = $entityId;
         $data['object_type_id'] = HelperData::CATALOG_PRODUCT_TYPE_ID;
 
-        //get default store's base url and this product's url for the preview
-        $defaultStoreViewBaseUrl = $this->storeManager->getDefaultStoreView()->getUrl();
-        $productStoreViewSeoUrlWithSuffix = $this->productUrlPathGenerator->getUrlPathWithSuffix($product, $this->storeManager->getDefaultStoreView()->getId());
-        $data['preview_url'] = $defaultStoreViewBaseUrl . $productStoreViewSeoUrlWithSuffix;
-        $urlWithKey = $defaultStoreViewBaseUrl.$product->getUrlKey();
+        $data['preview_url'] = $product->getProductUrl();
+
         $data['attributes'] = $attrArr;
         $data['options'] = $optArr;
         $data['max_length'] = $lengthArr;

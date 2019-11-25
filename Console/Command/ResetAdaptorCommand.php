@@ -46,7 +46,7 @@ class ResetAdaptorCommand extends Command
     {
         $output->writeln('');
         $helper = $this->getHelper('question');
-        $question = $this->objectManager->create('\Symfony\Component\Console\Question\ConfirmationQuestion', ['question'=>'Are you sure you want to reset adaptor? Only store locales and field configuration will not be cleared. (y/n) ', 'default' => FALSE]);
+        $question = $this->objectManager->create('\Symfony\Component\Console\Question\ConfirmationQuestion', ['question'=>'Are you sure you want to reset adaptor? Only field configuration will not be cleared. (y/n) ', 'default' => FALSE]);
         echo $ans = $helper->ask($input, $output, $question);
         if($ans == 'y') {
             try {
@@ -56,6 +56,7 @@ class ResetAdaptorCommand extends Command
                 $this->connection->query("DELETE FROM globallink_job_item_status WHERE 1");
                 $this->connection->query("DELETE FROM globallink_job_item_status_history WHERE 1");
                 $this->connection->query("DELETE FROM globallink_job_queue WHERE 1");
+                $this->connection->query("UPDATE store SET locale=NULL WHERE 1");
             } catch (\Exception $e) {
                 $output->writeln('<error>' . $e->getMessage() . '</error>');
             }
