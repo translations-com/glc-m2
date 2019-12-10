@@ -42,7 +42,7 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         $newEntityId = $row['new_entity_id'];
         $originalEntityId = $row['entity_id'];
         //$storeId = str_replace(",", "", $row['target_stores']);
-        $outputValue = $this->helper->getLocaleLabel($value);
+        $outputValue = $this->helper->getLocaleColumnLabel($value, false, true);
         $storeIdArray = $this->helper->getStoreIdFromLocale($value);
         $storeId = $storeIdArray[0];
         if($submissionStatus != Item::STATUS_APPLIED && $columnName == 'pd_locale_iso_code'){
