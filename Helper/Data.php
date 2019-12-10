@@ -766,7 +766,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         return '';
     }
+    /**
+     * Get locale label
+     *
+     * @param $id
+     *
+     * @return string
+     */
+    public function getLocaleColumnLabel($id, $limitByStores = false, $includeSource = false)
+    {
+        $locales = $this->getLocales($limitByStores, $includeSource);
 
+        if (isset($locales[$id])) {
+            return $locales[$id];
+        }
+
+        return '';
+    }
     /**
      * @param \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory $collectionFactory
      *
