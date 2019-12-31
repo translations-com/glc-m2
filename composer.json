@@ -2,7 +2,7 @@
     "name": "transperfect/module-globallink",
     "type": "magento2-module",
     "description": "TransPerfect GlobalLink",
-    "version": "1.8.1",
+    "version": "1.8.1_RC3",
     "homepage": "http://www.translations.com/products/globallink-magento-adaptor",
     "authors": [
         {
