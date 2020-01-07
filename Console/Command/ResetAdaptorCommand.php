@@ -47,7 +47,7 @@ class ResetAdaptorCommand extends Command
         $output->writeln('');
         $helper = $this->getHelper('question');
         $question = $this->objectManager->create('\Symfony\Component\Console\Question\ConfirmationQuestion', ['question'=>'Are you sure you want to reset adaptor? Only field configuration will not be cleared. (y/n) ', 'default' => FALSE]);
-        echo $ans = $helper->ask($input, $output, $question);
+        $ans = $helper->ask($input, $output, $question);
         if($ans == 'y') {
             try {
                 $this->connection->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
