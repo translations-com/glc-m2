@@ -43,7 +43,7 @@ class DownloadLog extends Action
             if (file_exists($path)) {
                 $file = $this->fileFactory->create(
                     $fileName,
-                    @file_get_contents($path));
+                    file_get_contents($path));
             } else {
                 $file = null;
             }
