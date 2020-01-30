@@ -15,7 +15,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     public function prepareMessage()
     {
         parent::prepareMessage();
-        $this->message->setPartsToBody();
+        //$this->message->setPartsToBody();
         return $this;
     }
 }
