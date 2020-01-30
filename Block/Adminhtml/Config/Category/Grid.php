@@ -111,7 +111,7 @@ class Grid extends Extended
      */
     protected function _prepareMassaction()
     {
-        $this->setMassactionIdField('entity_attribute_id');
+        $this->setMassactionIdField('attribute_id');
         $this->getMassactionBlock()->setTemplate('TransPerfect_GlobalLink::grid/massaction.phtml');
         $this->getMassactionBlock()->setFormFieldName('attribute_ids');
 
