@@ -878,7 +878,7 @@ class Item extends AbstractModel
         $targetStoreIds = $this->getTargetStoreIds();
         $sourceStoreId = $this->getSourceStoreId();
         $translatedData = $this->getTranslatedData();
-        $imageFields = ['image_label', 'thumbnail_label', 'small_image_label'];
+        $imageFields = ['image_label', 'thumbnail_label', 'small_image_label', 'swatch_image'];
         foreach ($targetStoreIds as $targetStoreId) {
             $product = $this->productRepository->getById($entityId, false, $targetStoreId);
 
