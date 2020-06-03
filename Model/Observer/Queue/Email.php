@@ -54,6 +54,7 @@ class Email implements ObserverInterface
     protected $directoryList;
 
     protected $itemCollectionFactory;
+    protected $messageManager;
     /**
      * Email constructor.
      *
@@ -70,7 +71,8 @@ class Email implements ObserverInterface
         \Magento\Framework\Escaper $escaper,
         Logger $bgLogger,
         \Magento\Framework\App\Filesystem\DirectoryList $directory_list,
-        ItemCollectionFactory $itemCollectionFactory
+        ItemCollectionFactory $itemCollectionFactory,
+        \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
         $this->transportBuilder = $transportBuilder;
         $this->scopeConfig = $scopeConfig;
@@ -79,6 +81,7 @@ class Email implements ObserverInterface
         $this->bgLogger = $bgLogger;
         $this->directoryList = $directory_list;
         $this->itemCollectionFactory = $itemCollectionFactory;
+        $this->messageManager = $messageManager;
     }
 
     /**

@@ -40,7 +40,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
      */
     protected function _prepareMassaction()
     {
-        $this->setMassactionIdField('attribute_id');
+        /*$this->setMassactionIdField('attribute_id');
         $this->getMassactionBlock()->setTemplate('TransPerfect_GlobalLink::grid/massaction.phtml');
         $this->getMassactionBlock()->setFormFieldName('selected');
         $this->getMassactionBlock()->addItem(
@@ -49,7 +49,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
                 'label' => __('Send for Translation'),
                 'url' => $this->getUrl('translations/submission_customer_attribute/create')
             ]
-        );
+        );*/
 
         return $this;
     }
@@ -64,21 +64,6 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
         /** @var $collection \Magento\Customer\Model\ResourceModel\Attribute\Collection */
         $collection = $this->_attributesFactory->create();
         $collection->addSystemHiddenFilter()->addExcludeHiddenFrontendFilter();
-
-        /*$currentStore = $this->getRequest()->getParam('store', false);
-        if (empty($currentStore)) {
-            $currentStore = $this->_storeManager->getDefaultStoreView()->getId();
-        }
-        $collection->getSelect()->joinLeft(
-            ['gets' => $collection->getTable('globallink_entity_translation_status')],
-            'gets.entity_type_id = '.\TransPerfect\GlobalLink\Helper\Data::CUSTOMER_ATTRIBUTE_TYPE_ID.
-            ' AND '.
-            'gets.store_view_id = '.$currentStore.
-            ' AND '.
-            'gets.entity_id = main_table.attribute_id',
-            ['translation_status']
-        );*/
-
         $this->setCollection($collection);
 
         return parent::_prepareCollection();
@@ -93,7 +78,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
     {
         parent::_prepareColumns();
 
-        $this->addColumn(
+        /*$this->addColumn(
             'is_visible',
             [
                 'header' => __('Visible to Customer'),
@@ -107,7 +92,7 @@ class Grid extends \Magento\Eav\Block\Adminhtml\Attribute\Grid\AbstractGrid
         $this->addColumn(
             'sort_order',
             ['header' => __('Sort Order'), 'sortable' => true, 'index' => 'sort_order']
-        );
+        );*/
         return $this;
     }
     protected function _prepareLayout()
