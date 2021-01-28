@@ -519,15 +519,26 @@ class GLExchangeClient
      */
     public function initSubmission(array $data)
     {
+        $textAttributeFilled = false;
+        $comboAttributeFilled = false;
         $pdproject = $this->getConnect()->getProject($data['projectShortCode']);
-
+        $customAttributes = $pdproject->customAttributes;
         $submission = $this->getLibraryClass('PDSubmission');
         $submission->name = $data['submissionName'];
         $submission->project = $pdproject;
         $submission->isUrgent = (bool) $data['submissionPriority'];
         $submission->instructions = $data['submissionNotes'];
         $submission->dueDate = strtotime($data['submissionDueDate'])*1000;
-
+        foreach($customAttributes as $attribute){
+            if($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
+                $submission->customAttributes[$attribute->name] = $data['attribute_text'];
+                $textAttributeFilled = true;
+            }
+            if($data['attribute_combo'] != null && $attribute->type == 'COMBO' && $comboAttributeFilled == false) {
+                $submission->customAttributes[$attribute->name] = $data['attribute_combo'];
+                $comboAttributeFilled = true;
+            }
+        }
         $client = $this->getConnect();
         $client->initSubmission($submission);
     }

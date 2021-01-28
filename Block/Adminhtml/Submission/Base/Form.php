@@ -150,6 +150,14 @@ class Form extends GenericForm
         );
 
         foreach ($serviceProjectsData['targetlocales'] as $projectShortcode => $locales) {
+            $customAttributes = null;
+            foreach($serviceProjectsData['projects'] as $currentProject){
+                if($projectShortcode == $currentProject['value']){
+                    if(isset($currentProject['custom_attributes'])) {
+                        $customAttributes = $currentProject['custom_attributes'];
+                    }
+                }
+            }
             /**
              * TRAN-53: Instead of sending locales, send target store ids.
              * While saving a Queue save both locales and store ids.
@@ -200,6 +208,65 @@ class Form extends GenericForm
                         'after_element_html' => $this->getNotesAfterHtml($fieldId),
                     ]
                 );
+            }
+            if($customAttributes != null) {
+                foreach ($customAttributes as $attribute) {
+                    if ($attribute->type == 'TEXT') {
+                        $attributeFieldId = 'attribute_' . $projectShortcode . '_text';
+                        if($attribute->mandatory == true) {
+                            $fieldset->addField(
+                                $attributeFieldId,
+                                'text',
+                                [
+                                    'name' => 'submission[attribute_text]',
+                                    'label' => __($attribute->name).' (Required)',
+                                    'title' => __($attribute->name),
+                                    'required' => false,
+                                    'display' => 'none',
+                                    'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                                ]
+                            );
+                        } else{
+                            $fieldset->addField(
+                                $attributeFieldId,
+                                'text',
+                                [
+                                    'name' => 'submission[attribute_text]',
+                                    'label' => __($attribute->name),
+                                    'title' => __($attribute->name),
+                                    'required' => false,
+                                    'display' => 'none',
+                                    'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                                ]
+                            );
+                        }
+                    }
+                    elseif($attribute->type == 'COMBO'){
+                        $newValues = [];
+                        $attributeFieldId = 'attribute_' . $projectShortcode . '_combo';
+                        $values = explode(',', $attribute->values);
+                        if($attribute->mandatory == false){
+                            $newValues[] = ['value' => '', 'label' => ''];
+                        }
+                        foreach($values as $value){
+                            $newValues[] = ['value' => $value, 'label' => $value];
+                        }
+                        $values = $newValues;
+                        $fieldset->addField(
+                            $attributeFieldId,
+                            'select',
+                            [
+                                'name' => 'submission[attribute_combo]',
+                                'label' => __($attribute->name),
+                                'title' => __($attribute->name),
+                                'values' => $values,
+                                'required' => false,
+                                'display' => 'none',
+                                'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                            ]
+                        );
+                    }
+                }
             }
         }
 
@@ -319,11 +386,17 @@ class Form extends GenericForm
             jQuery('.checkboxes-error-message').hide();
 
             var selectedShortcode = jQuery(el).val();
+            
             var fieldId = 'localize_'+selectedShortcode;
-
+            var attributeFieldIdText = 'attribute_'+selectedShortcode+'_text';
+            var attributeFieldIdCombo = 'attribute_'+selectedShortcode+'_combo';
             //hide all but selected
             jQuery(\"div[class^='field-localize_'],div[class*=' field-localize_']\").hide();
+            jQuery(\"div[class^='field-attribute_'],div[class*=' field-attribute_']\").hide();
             jQuery(\".field-\"+fieldId).show();
+            jQuery(\".field-\"+attributeFieldIdText).show();
+            jQuery(\".field-\"+attributeFieldIdCombo).show();
+            //jQuery(\"div[class^='field-\"+attributeFieldId+\"'],div[class*=' field-\"+attributeFieldId+\"']\").show();
 
             validatecheckboxes(fieldId);
         }
@@ -343,7 +416,15 @@ class Form extends GenericForm
         </script>
         ";
     }
-
+    /**
+     * Returns additional html for attributes
+     *
+     * @param string $fieldId
+     */
+    protected function getAttributesAfterHtml($fieldId){
+        $html = "<style type='text/css'>.field-".$fieldId."{display:none;}</style>";
+        return $html;
+    }
     /**
      * Returns additional html for Checkboxes
      *
@@ -420,6 +501,7 @@ class Form extends GenericForm
                     $projectsArray[] = [
                         'label' => $project->projectInfo->name,
                         'value' => $project->projectInfo->shortCode,
+                        'custom_attributes' => $project->projectCustomFieldConfiguration
                     ];
                 }
 

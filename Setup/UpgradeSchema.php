@@ -183,6 +183,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $this->upgradeToVersion('0.9.5');
         $this->upgradeToVersion('0.9.7');
         $this->upgradeToVersion('1.8.0');
+        $this->upgradeToVersion('1.8.4');
         $this->installer->endSetup();
     }
 
@@ -563,6 +564,35 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'type' => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
                 'unsigned' => true,
                 'comment' => 'New Entity Object ID'
+            ]
+        );
+    }
+    /**
+     * Adds columns attribute_text and attribute_combo to the globallink_job_queue table to keep track of custom attribute values for jobs.
+     */
+    protected function upgradeTo_184()
+    {
+        $connection = $this->installer->getConnection();
+        $connection->addColumn(
+            $this->tableQueue,
+            'attribute_text',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length' => 24,
+                'after' => 'submission_instructions',
+                'comment' => 'Custom Text Attribute',
+                'default' => null
+            ]
+        );
+        $connection->addColumn(
+            $this->tableQueue,
+            'attribute_combo',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                'length' => 24,
+                'after' => 'attribute_text',
+                'comment' => 'Custom Combo Attribute',
+                'default' => null
             ]
         );
     }

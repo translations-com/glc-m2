@@ -35,4 +35,10 @@
             instance="TransPerfect\GlobalLink\Model\Observer\CancelEntityTranslationRequest"
             disabled="false" />
     </event>
+    <event name="adminhtml_store_edit_form_prepare_form">
+        <observer
+                name="transperfect_globallink_adminhtml_store_edit_form_prepare_form"
+                instance="TransPerfect\GlobalLink\Model\Observer\AddLocaleField"
+                disabled="false" />
+    </event>
 </config>

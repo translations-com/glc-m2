@@ -206,6 +206,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getProjectShortCodes(){
         return explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ));
     }
+    /*
+     * @return custom attributes
+     */
+    public function getCustomAttributes($shortCode){
+        return $this->translationService->getCustomAttributes($shortCode);
+    }
 
     /**
      * @return int
@@ -671,9 +677,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $targetLocales = [];
             $sourceLocales = [];
             foreach ($response as $project) {
-                foreach ($project->projectLanguageDirections as $direction) {
-                    $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
-                    $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
+                if(isset($project->projectLanguageDirections->sourceLanguage)){
+                    $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
+                    $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
+                }
+                else {
+                    foreach ($project->projectLanguageDirections as $direction) {
+                        $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
+                        $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
+                    }
                 }
             }
         } catch (\Exception $e) {

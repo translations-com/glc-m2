@@ -84,22 +84,22 @@ class Grid extends Extended
     protected function _prepareCollection()
     {
         $collection = $this->_getAttributeCollection();
-        $collection->addFieldToFilter(
-            'frontend_input',
+        /*$collection->addFieldToFilter(
+            'ea.frontend_input',
             ['in' => ['text', 'textarea']]
         );
         $collection->addFieldToFilter(
-            'backend_type',
+            'ea.backend_type',
             ['in' => ['text', 'varchar']]
         );
         $collection->addFieldToFilter(
-            'attribute_code',
+            'ea.attribute_code',
             ['nin' => [
                     'custom_layout_update',
                     'url_key',
                     'url_path',
             ]]
-        );
+        );*/
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
@@ -235,7 +235,10 @@ class Grid extends Extended
             $collection->addFieldToFilter('main_table.entity_type_id', ['eq' => $this->productEntityTypeId])
                 ->addFieldToFilter('main_table.attribute_set_id', ['eq' => $this->_getCurrentAttributeSetId()])
                 ->joinFields(['ea' => $collection->getTable('eav_attribute')], ' AND ', ['ea.attribute_id = main_table.attribute_id'], ['attribute_code', 'frontend_label'])
-                ->joinFields(['eas' => $collection->getTable('eav_attribute_set')], ' AND ', ['eas.attribute_set_id = main_table.attribute_set_id'], ['attribute_set_name']);
+                ->joinFields(['eas' => $collection->getTable('eav_attribute_set')], ' AND ', ['eas.attribute_set_id = main_table.attribute_set_id'], ['attribute_set_name'])
+                ->addFieldToFilter('ea.backend_type', ['in' => ['text', 'varchar']])
+                ->addFieldToFilter('ea.frontend_input', ['in' => ['text', 'textarea']])
+                ->addFieldToFilter('ea.attribute_code', ['nin' => ['custom_layout_update','url_key','url_path']]);
             $this->productAttributeCollection = $collection;
         }
 

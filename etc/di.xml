@@ -15,6 +15,13 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="globallink/connection/password" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
     <type name="TransPerfect\GlobalLink\Model\SoapClient\ServiceSoapClient">
         <arguments>
             <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
@@ -41,7 +48,7 @@
             type="TransPerfect\GlobalLink\Plugin\Ui\DataProvider\Product\ProductDataProvider"
             sortOrder="10"/>
     </type>
-    <preference for="Magento\Backend\Block\System\Store\Edit\Form\Store" type="TransPerfect\GlobalLink\Block\System\Store\Edit\Form\Store" />
+    <!--<preference for="Magento\Backend\Block\System\Store\Edit\Form\Store" type="TransPerfect\GlobalLink\Block\System\Store\Edit\Form\Store" />-->
     <preference for="Magento\Catalog\Block\Adminhtml\Product\Attribute\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Product\Attribute\Grid" />
     <preference for="Magento\Review\Block\Adminhtml\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Review\Grid" />
     <preference for="Magento\CustomerCustomAttributes\Block\Adminhtml\Customer\Attribute\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Customer\Attribute\Grid" />

@@ -120,6 +120,18 @@ class TranslationService
     }
 
     /**
+     * Get custom attributes
+     *
+     * @param string $shortCode
+     */
+    public function getCustomAttributes($shortCode){
+        $pdproject = $this->glExchangeClient->getConnect()->getProject($shortCode);
+        $customAttributes = $pdproject->customAttributes;
+        return $customAttributes;
+    }
+
+
+    /**
      * Submit translation
      *
      * @param array $data

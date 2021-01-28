@@ -9,7 +9,7 @@
             <tab>transperfect</tab>
             <resource>TransPerfect_GlobalLink::config</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>GlobalLink 1.8.3 General Properties</label>
+                <label>GlobalLink 1.8.4 General Properties</label>
                 <field id="logging_level" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Logging Level</label>
                     <source_model>TransPerfect\GlobalLink\Model\Config\Source\Logging</source_model>
@@ -66,9 +66,10 @@
                     <validate>required-entry</validate>
                     <comment><![CDATA[Required field]]></comment>
                 </field>
-                <field id="password" translate="label" type="password" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="password" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Password</label>
                     <validate>required-entry</validate>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment><![CDATA[Required field]]></comment>
                 </field>
                 <field id="url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">

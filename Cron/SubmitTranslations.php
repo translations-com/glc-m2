@@ -349,7 +349,8 @@ class SubmitTranslations extends Translations
         $data['submissionNotes'] = $queue->getSubmissionInstructions();
         $data['submissionDueDate'] = $queue->getDueDate();
         $data['submissionPriority'] = $queue->getPriority();
-
+        $data['attribute_text'] = $queue->getAttributeText();
+        $data['attribute_combo'] = $queue->getAttributeCombo();
         $this->translationService->initSubmission($data);
 
         $haveUploadedDocuments = false;

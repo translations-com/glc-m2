@@ -50,7 +50,7 @@ class Email implements ObserverInterface
      */
     protected $bgLogger;
 
-    
+
     protected $directoryList;
 
     protected $itemCollectionFactory;
@@ -147,9 +147,12 @@ class Email implements ObserverInterface
                             'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
                             'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,])
                         ->setTemplateVars(['queue' => $queue, 'submission_ticket' => $submission_ticket, 'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
-                        ->setFrom($sender)
-                        ->addTo($recipient)
-                        ->getTransport()
+                        ->setFrom($sender);
+                    foreach($recipient as $receiver){
+                        $transport->addTo($receiver);
+                    }
+
+                    $transport->getTransport()
                         ->sendMessage();
                 }
                 catch (\Exception $e) {

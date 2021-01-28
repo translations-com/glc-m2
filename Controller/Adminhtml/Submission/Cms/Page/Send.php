@@ -39,7 +39,21 @@ class Send extends BaseSubmission
                 }
                 $formData['id_'.$itemId] = $itemName;
             }
-
+            $customAttributes = $this->helper->getCustomAttributes($formData['project']);
+            foreach($customAttributes as $attribute){
+                if($attribute->type == 'TEXT'){
+                    if($attribute->mandatory && $formData['attribute_text'] == ""){
+                        $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
+                        return $resultRedirect->setPath('catalog/product');
+                    }
+                }
+                if($attribute->type == 'COMBO'){
+                    if($attribute->mandatory && !isset($formData['attribute_combo'])){
+                        $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
+                        return $resultRedirect->setPath('catalog/product');
+                    }
+                }
+            }
             $queue = $this->_queueFactory->create();
             $queueData = [
                 'name' => $data['submission']['name'],
@@ -56,6 +70,12 @@ class Send extends BaseSubmission
                 'localizations' => $data['submission']['localize'],
                 'confirmation_email' => $data['submission']['confirmation_email'],
             ];
+            if(isset($data['submission']['attribute_text'])){
+                $queueData['attribute_text'] = $data['submission']['attribute_text'];
+            }
+            if(isset($data['submission']['attribute_combo'])){
+                $queueData['attribute_combo'] = $data['submission']['attribute_combo'];
+            }
             $queue->setData($queueData);
 
             try {

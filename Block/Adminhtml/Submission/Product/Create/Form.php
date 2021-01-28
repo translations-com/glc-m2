@@ -71,10 +71,10 @@ class Form extends BaseForm
                 'label' => __('Translate associated and parent categories'),
                 'name' => 'submission[include_associated_and_parent_categories]',
                 'values' => [
-                    ['label' => 'Yes', 'value' => '1'],
                     ['label' => 'No', 'value' => '0'],
+                    ['label' => 'Yes', 'value' => '1'],
                 ],
-                'default' => '1'
+                'default' => '0'
             ]
         );
 

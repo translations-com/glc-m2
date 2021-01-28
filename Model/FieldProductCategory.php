@@ -31,7 +31,7 @@ class FieldProductCategory extends AbstractModel
     public function getRecord($id)
     {
         $collection = $this->getCollection();
-        $collection->addFieldToFilter('entity_attribute_id', $id);
+        $collection->addFieldToFilter('attribute_id', $id);
 
         return $collection->getFirstItem();
     }
