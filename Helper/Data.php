@@ -198,7 +198,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         foreach($stores as $store){
             $storeIds[] = $store->getData('store_id');
         }
-        return $storeIds;
+        if(isset($storeIds)) {
+            return $storeIds;
+        }
+        return null;
     }
 	/*
      * @return project short codes
@@ -905,7 +908,44 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         return false;
     }
-
+    /**
+     * Updates attribute option labels
+     * @param int $optionId
+     * @param int $targetStoreId
+     * @param string $value
+     * @return true/false
+     * @throws \Exception
+     */
+     public function saveOptionLabel($optionId, $targetStoreId, $value){
+         $connection = $this->resource->getConnection();
+         $bind = ['option_id' => $optionId, 'store_id' => $targetStoreId];
+         $select = $connection->select()->from(
+             ['c' => 'eav_attribute_option_value'],
+             ['*'])
+         ->where(
+             "c.option_id = :option_id"
+         )->where(
+             "c.store_id = :store_id"
+         );
+         $result = $connection->fetchRow($select, $bind);
+         if($result != false){
+             try {
+                 $connection->update('eav_attribute_option_value', ["value" => $value], ['option_id = ?' => (int)$optionId, 'store_id = ?' => (int)$targetStoreId]);
+             } catch (\Exception $e){
+                 if($this->logger->isErrorEnabled()){
+                     $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
+                 }
+             }
+         } else{
+            try{
+                $connection->insert('eav_attribute_option_value', ["value" => $value, "option_id" => $optionId, "store_id" => $targetStoreId]);
+            } catch (\Exception $e) {
+                if ($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
+                }
+            }
+         }
+     }
     /**
      * Updates translation configuration for eav attributes
      *
@@ -936,15 +976,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         /** @var \Magento\Framework\DB\Adapter\Pdo\Mysql $connection */
         foreach ($attributeIds as $attribute) {
-            $existingFieldRow = $this->productFieldModel->getRecord($attribute);
-            $existingEntity = $this->entityAttribute->getRecord($attribute);
-            $existingFieldRow->setData('include_in_translation', 1);
-            $existingFieldRow->setData('entity_attribute_id', $existingEntity->getEntityAttributeId());
-            $existingFieldRow->setData('entity_type_id', $existingEntity->getData('entity_type_id'));
-            $existingFieldRow->setData('attribute_set_id', $existingEntity->getData('attribute_set_id'));
-            $existingFieldRow->setData('attribute_group_id', $existingEntity->getData('attribute_group_id'));
-            $existingFieldRow->setData('attribute_id', $existingEntity->getData('attribute_id'));
-            $existingFieldRow->save();
+            $existingFieldRow = $this->productFieldModel->getRecordByAttributeId($attribute);
+            $existingEntity = $this->entityAttribute->getRecordByAttributeId($attribute);
+            if($existingFieldRow->getData('entity_attribute_id') != null) {
+                $existingFieldRow->setData('include_in_translation', 1);
+                $existingFieldRow->setData('entity_attribute_id', $existingEntity->getEntityAttributeId());
+                $existingFieldRow->setData('entity_type_id', $existingEntity->getData('entity_type_id'));
+                $existingFieldRow->setData('attribute_set_id', $existingEntity->getData('attribute_set_id'));
+                $existingFieldRow->setData('attribute_group_id', $existingEntity->getData('attribute_group_id'));
+                $existingFieldRow->setData('attribute_id', $existingEntity->getData('attribute_id'));
+                $existingFieldRow->save();
+            } else{
+                $this->productFieldModel->setData('include_in_translation', 1);
+                $this->productFieldModel->setData('entity_attribute_id', $existingEntity->getEntityAttributeId());
+                $this->productFieldModel->setData('entity_type_id', $existingEntity->getData('entity_type_id'));
+                $this->productFieldModel->setData('attribute_set_id', $existingEntity->getData('attribute_set_id'));
+                $this->productFieldModel->setData('attribute_group_id', $existingEntity->getData('attribute_group_id'));
+                $this->productFieldModel->setData('attribute_id', $existingEntity->getData('attribute_id'));
+                $this->productFieldModel->save();
+            }
         }
         return $this;
     }

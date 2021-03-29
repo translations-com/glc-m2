@@ -221,6 +221,14 @@ class Grid extends Extended
                 'options' => $this->helper->getEntityTypeOptionArray()
             ]
         );
+        $this->addColumn(
+            'username',
+            [
+                'header' => __('Created By'),
+                'index' => 'username',
+                'type' => 'text'
+            ]
+        );
         return parent::_prepareColumns();
     }
 

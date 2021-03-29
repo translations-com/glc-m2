@@ -35,17 +35,19 @@ class AddLocaleField implements \Magento\Framework\Event\ObserverInterface
         $form       = $block->getForm();
         $fieldset   = $form->getElement('store_fieldset');
         $storeModel = $this->registry->registry('store_data');
-        $fieldset->addField(
-            'locale',
-            'select',
-            [
-                'name' => 'store[locale]',
-                'label' => __('GlobalLink Locale'),
-                'value' => $storeModel->getLocale(),
-                'required' => false,
-                'default' => 0,
-                'values' => $this->_helperGlobalLink->getLocaleOptions()
-            ]
-        );
+        if($fieldset != null) {
+            $fieldset->addField(
+                'locale',
+                'select',
+                [
+                    'name' => 'store[locale]',
+                    'label' => __('GlobalLink Locale'),
+                    'value' => $storeModel->getLocale(),
+                    'required' => false,
+                    'default' => 0,
+                    'values' => $this->_helperGlobalLink->getLocaleOptions()
+                ]
+            );
+        }
     }
 }

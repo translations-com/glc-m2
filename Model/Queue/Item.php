@@ -165,6 +165,14 @@ class Item extends AbstractModel
     protected $translationStatusResource;
 
     /**
+     * @var \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory
+     */
+    protected $frontendLabelFactory;
+    /**
+     * @var \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory
+     */
+    protected $optionLabelFactory;
+    /**
      * @var array
      */
     static protected $goodStores = [];
@@ -225,6 +233,8 @@ class Item extends AbstractModel
      * @param \Magento\Framework\App\Config\ScopeConfigInterface                    $scopeConfig
      * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory  $reviewCollectionFactory
      * @param \Magento\Review\Model\ReviewFactory                                   $reviewFactory
+     * @param \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory          $frontendLabelFactory
+     * @param \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory            $optionLabelFactory
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -252,7 +262,9 @@ class Item extends AbstractModel
         UrlRewriteCollectionFactory $urlRewriteCollectionFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory,
-        \Magento\Review\Model\ReviewFactory $reviewFactory
+        \Magento\Review\Model\ReviewFactory $reviewFactory,
+        \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory $frontendLabelFactory,
+        \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory $optionLabelFactory
     ) {
         parent::__construct($context, $registry);
         $this->messageManager = $messageManager;
@@ -278,6 +290,8 @@ class Item extends AbstractModel
         $this->urlRewriteCollectionFactory = $urlRewriteCollectionFactory;
         $this->reviewCollectionFactory = $reviewCollectionFactory;
         $this->reviewFactory = $reviewFactory;
+        $this->frontendLabelFactory = $frontendLabelFactory;
+        $this->optionLabelFactory = $optionLabelFactory;
         if($scopeConfig->getValue('globallink/general/automation') == 1){
             $this->isAutomaticMode = true;
         } else{
@@ -701,6 +715,8 @@ class Item extends AbstractModel
                     if ($stores[0] == $targetStoreId && empty($stores[1])) {
                         // if the only store is target one - update this block
                         $foundBlock->addData($translatedData['attributes']);
+                        $foundBlock->save();
+                        $this->setData('new_entity_id', $foundBlock->getBlockId());
                         $needNewEntity = false;
                     } elseif($stores[0] == '0'){
                         $foundBlock = $this->resetStoreViews($foundBlock);
@@ -807,6 +823,15 @@ class Item extends AbstractModel
                 }
                 if(!array_key_exists('title', $translatedData['attributes'])){
                     $newEntity->setTitle($oldEntity->getTitle());
+                }
+                if(!array_key_exists('content_heading', $translatedData['attributes'])){
+                    $newEntity->setContentHeading($oldEntity->getContentHeading());
+                }
+                if(!array_key_exists('meta_keywords', $translatedData['attributes'])){
+                    $newEntity->setMetaKeywords($oldEntity->getMetaKeywords());
+                }
+                if(!array_key_exists('meta_description', $translatedData['attributes'])){
+                    $newEntity->setMetaDescription($oldEntity->getMetaDescription());
                 }
                 $newEntity->setIdentifier($oldEntity->getIdentifier());
                 $newEntity->setPageLayout($oldEntity->getPageLayout());
@@ -1012,44 +1037,41 @@ class Item extends AbstractModel
         $translatedData = $this->getTranslatedData();
 
         foreach ($targetStoreIds as $targetStoreId) {
-            $optionsArray = [];
-
-            $stores = [0];
-            $stores = array_merge($stores, $this->helper->getAllStoresIds());
-            foreach ($stores as $storeId) {
-                $attribute = $this->attributeRepository->get(
-                    ProductAttributeInterface::ENTITY_TYPE_CODE,
-                    $entityId
-                );
-                $attribute->setStoreId($storeId);
-
-                $options = $this->attributeOptionManagement->getItems(
-                    ProductAttributeInterface::ENTITY_TYPE_CODE,
-                    $entityId
-                );
-
-                foreach ($options as $option) {
-                    $optionId = $option->getValue();
-                    if (empty($optionId)) {
-                        continue;
-                    }
-                    $optionsArray['order'][$optionId] = (int)$option->getSortOrder();
-                    if ($storeId == $targetStoreId && !empty($translatedData['options']['entity_'.$entityId][$optionId])) {
-                        $optionsArray['value'][$optionId][$storeId] = $translatedData['options']['entity_'.$entityId][$optionId];
-                    } else {
-                        $optionsArray['value'][$optionId][$storeId] = $option->getLabel();
-                    }
+            $optionsAttribute = $this->attributeRepository->get(
+                ProductAttributeInterface::ENTITY_TYPE_CODE,
+                $entityId
+            );
+            $options = $optionsAttribute->getOptions();
+            foreach ($options as $option) {
+                $optionId = $option->getValue();
+                if (empty($optionId)) {
+                    continue;
                 }
-            }
+                if (!empty($translatedData['options']['entity_'.$entityId][$optionId])) {
+                    /* Added 03/24/2021 Justin Griffin, due to inability to save data using Magento constructs */
+                    $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_'.$entityId][$optionId]));
+                }
 
+            }
+            //$optionsAttribute->setOptions($options);
+            //$this->attributeRepository->save($optionsAttribute);
+            //$optionsAttribute->save();
             $attribute = $this->attributeRepository->get(
                 ProductAttributeInterface::ENTITY_TYPE_CODE,
                 $entityId
             );
-            $storeLabels = $attribute->getStoreLabels();
-            $storeLabels[$targetStoreId] = $translatedData['attributes']['frontend_label'];
-            $attribute->setStoreLabels($storeLabels);
-            $attribute->setOption($optionsArray);
+            $storeLabels = $attribute->getFrontendLabels();
+            $labelAlreadyExists = false;
+            foreach($storeLabels as $label){
+                if($label->getStoreId() == $targetStoreId){
+                    $label->setLabel($translatedData['attributes']['frontend_label']);
+                    $labelAlreadyExists = true;
+                }
+            }
+            if(!$labelAlreadyExists){
+                $storeLabels[] = $this->frontendLabelFactory->create()->setStoreId($targetStoreId)->setLabel($translatedData['attributes']['frontend_label']);
+            }
+            $attribute->setFrontendLabels($storeLabels);
             $this->attributeRepository->save($attribute);
         }
 
@@ -1114,8 +1136,9 @@ class Item extends AbstractModel
                 $entityId
             );
             $storeLabels = $attribute->getStoreLabels();
+            $extraLabels = $attribute->getFrontendLabels();
             $storeLabels[$targetStoreId] = $translatedData['attributes']['frontend_label'];
-            $attribute->setStoreLabels($storeLabels);
+            $attribute->setFrontendLabels($storeLabels);
             $attribute->setOption($optionsArray);
             $this->attributeRepository->save($attribute);
         }

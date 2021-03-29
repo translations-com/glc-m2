@@ -153,7 +153,9 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
         }
 
         $this->storeId = $this->getEditedStoreId();
-
+        if($this->entityTypeId == 4 && $this->savingEntity->getData('has_options') == true){
+            return;
+        }
         if ($this->storeId != $this->adminStoreId && $this->storeId != $this->defaultStoreId) {
             // translation required only if entity's been edited in source language
             return;
@@ -358,15 +360,17 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
             return false;
         }
 
-        if (is_array($newData['frontend_label'])) {
-            if ($oldData['frontend_label'] != $newData['frontend_label'][$this->storeId]) {
-                return true;
-            }
-        } else {
-            if ($oldData['frontend_label'] != $newData['frontend_label']) {
-                return true;
-            }
-        }
+		if(isset($newData['frontend_label']) && isset($oldData['frontend_label'])){
+			if (is_array($newData['frontend_label'])) {
+				if ($oldData['frontend_label'] != $newData['frontend_label'][$this->storeId]) {
+					return true;
+				}
+			} else {
+				if ($oldData['frontend_label'] != $newData['frontend_label']) {
+					return true;
+				}
+			}
+		}
         $oldOptions = array();
         $options = $this->savingEntity->getOptions();
         if ($options != null) {

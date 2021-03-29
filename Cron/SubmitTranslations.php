@@ -754,7 +754,7 @@ class SubmitTranslations extends Translations
             $fieldName = $fieldNameData['name'];
             $maxLength = $fieldNameData['max_length'];
             $fieldValue = $block->getData($fieldName);
-            if (!empty($fieldValue)) {
+            if (!empty($fieldValue) && strlen($fieldValue) > 0) {
                 $attrArr[$fieldName] = $fieldValue;
                 $lengthArr[$fieldName] = $maxLength;
             }
@@ -795,7 +795,7 @@ class SubmitTranslations extends Translations
             $fieldName = $fieldNameData['name'];
             $maxLength = $fieldNameData['max_length'];
             $fieldValue = $page->getData($fieldName);
-            if (!empty($fieldValue)) {
+            if (!empty($fieldValue) && strlen($fieldValue) > 0) {
                 $attrArr[$fieldName] = $fieldValue;
                 $lengthArr[$fieldName] = $maxLength;
             }
@@ -1141,6 +1141,10 @@ class SubmitTranslations extends Translations
         }
 
         if (empty($data)) {
+            $logData = ['message' => "Unable to submit document, there is no data to create xml."];
+            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
             throw new \Exception("There is no data to create xml.");
         }
 

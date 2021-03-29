@@ -578,7 +578,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'attribute_text',
             [
                 'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                'length' => 24,
+                'length' => 64,
                 'after' => 'submission_instructions',
                 'comment' => 'Custom Text Attribute',
                 'default' => null
@@ -589,11 +589,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
             'attribute_combo',
             [
                 'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                'length' => 24,
+                'length' => 64,
                 'after' => 'attribute_text',
                 'comment' => 'Custom Combo Attribute',
                 'default' => null
             ]
         );
+
     }
 }
