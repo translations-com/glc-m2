@@ -909,11 +909,47 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return false;
     }
     /**
+     * Updates attribute labels
+     * @param int $attributeId
+     * @param int $targetStoreId
+     * @param string $value
+     * @throws \Exception
+     */
+    public function saveAttributeLabel($attributeId, $targetStoreId, $value){
+        $connection = $this->resource->getConnection();
+        $bind = ['attribute_id' => $attributeId, 'store_id' => $targetStoreId];
+        $select = $connection->select()->from(
+            ['c' => 'eav_attribute_label'],
+            ['*'])
+            ->where(
+                "c.attribute_id = :attribute_id"
+            )->where(
+                "c.store_id = :store_id"
+            );
+        $result = $connection->fetchRow($select, $bind);
+        if($result != false){
+            try {
+                $connection->update('eav_attribute_label', ["value" => $value], ['attribute_id = ?' => (int)$attributeId, 'store_id = ?' => (int)$targetStoreId]);
+            } catch (\Exception $e){
+                if($this->logger->isErrorEnabled()){
+                    $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
+                }
+            }
+        } else{
+            try{
+                $connection->insert('eav_attribute_label', ["value" => $value, "attribute_id" => $attributeId, "store_id" => $targetStoreId]);
+            } catch (\Exception $e) {
+                if ($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
+                }
+            }
+        }
+    }
+    /**
      * Updates attribute option labels
      * @param int $optionId
      * @param int $targetStoreId
      * @param string $value
-     * @return true/false
      * @throws \Exception
      */
      public function saveOptionLabel($optionId, $targetStoreId, $value){

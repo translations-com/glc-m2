@@ -1056,23 +1056,7 @@ class Item extends AbstractModel
             //$optionsAttribute->setOptions($options);
             //$this->attributeRepository->save($optionsAttribute);
             //$optionsAttribute->save();
-            $attribute = $this->attributeRepository->get(
-                ProductAttributeInterface::ENTITY_TYPE_CODE,
-                $entityId
-            );
-            $storeLabels = $attribute->getFrontendLabels();
-            $labelAlreadyExists = false;
-            foreach($storeLabels as $label){
-                if($label->getStoreId() == $targetStoreId){
-                    $label->setLabel($translatedData['attributes']['frontend_label']);
-                    $labelAlreadyExists = true;
-                }
-            }
-            if(!$labelAlreadyExists){
-                $storeLabels[] = $this->frontendLabelFactory->create()->setStoreId($targetStoreId)->setLabel($translatedData['attributes']['frontend_label']);
-            }
-            $attribute->setFrontendLabels($storeLabels);
-            $this->attributeRepository->save($attribute);
+            $this->helper->saveAttributeLabel($entityId, $targetStoreId, $translatedData['attributes']['frontend_label']);
         }
 
         // if we're here all ok. Update item status, set success message, remove xml
