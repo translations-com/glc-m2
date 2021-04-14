@@ -18,6 +18,7 @@ use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
+use \TransPerfect\GlobalLink\Model\FieldProductCategoryFactory as FieldProductCategoryFactory;
 /**
  * Class Data
  *
@@ -25,6 +26,10 @@ use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollection
  */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    /**
+     * @var FieldProductCategoryFactory
+     */
+    protected $fieldProductCategoryFactory;
     /**
      * @var \Magento\Eav\Model\Config
      */
@@ -149,8 +154,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
         PageCollectionFactory $pageCollectionFactory,
         BlockCollectionFactory $blockCollectionFactory,
-        StoreCollectionFactory $storeCollectionFactory
+        StoreCollectionFactory $storeCollectionFactory,
+        FieldProductCategoryFactory $fieldProductCategoryFactory
     ) {
+        $this->fieldProductCategoryFactory  = $fieldProductCategoryFactory;
         $this->eavConfig = $eavConfig;
         $this->resource = $resource;
         $this->eavAttribute = $eavAttribute;
@@ -1023,13 +1030,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $existingFieldRow->setData('attribute_id', $existingEntity->getData('attribute_id'));
                 $existingFieldRow->save();
             } else{
-                $this->productFieldModel->setData('include_in_translation', 1);
-                $this->productFieldModel->setData('entity_attribute_id', $existingEntity->getEntityAttributeId());
-                $this->productFieldModel->setData('entity_type_id', $existingEntity->getData('entity_type_id'));
-                $this->productFieldModel->setData('attribute_set_id', $existingEntity->getData('attribute_set_id'));
-                $this->productFieldModel->setData('attribute_group_id', $existingEntity->getData('attribute_group_id'));
-                $this->productFieldModel->setData('attribute_id', $existingEntity->getData('attribute_id'));
-                $this->productFieldModel->save();
+                $newRecord = $this->fieldProductCategoryFactory->create();
+                $newRecord->setData('include_in_translation', 1);
+                $newRecord->setData('entity_attribute_id', $existingEntity->getEntityAttributeId());
+                $newRecord->setData('entity_type_id', $existingEntity->getData('entity_type_id'));
+                $newRecord->setData('attribute_set_id', $existingEntity->getData('attribute_set_id'));
+                $newRecord->setData('attribute_group_id', $existingEntity->getData('attribute_group_id'));
+                $newRecord->setData('attribute_id', $existingEntity->getData('attribute_id'));
+                $newRecord->save();
             }
         }
         return $this;
