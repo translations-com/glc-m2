@@ -5,6 +5,7 @@ namespace TransPerfect\GlobalLink\Helper;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use \TransPerfect\GlobalLink\Model\ResourceModel\Category\Attribute\CollectionCustomFactory as CategoryAttributeCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Field;
 use \TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCustomFactory as ProductAttributeCollectionFactory;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
@@ -12,6 +13,7 @@ use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
+use \TransPerfect\GlobalLink\Model\FieldProductCategoryFactory as FieldProductCategoryFactory;
 
 /**
  * Class Product
@@ -20,6 +22,10 @@ use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollection
  */
 class Product extends Data
 {
+    /**
+     * @var use \TransPerfect\GlobalLink\Model\FieldProductCategoryFactory
+     */
+    protected $fieldProductCategoryFactory;
     /**
      * @var \Magento\Catalog\Model\ProductRepository
      */
@@ -94,7 +100,8 @@ class Product extends Data
         \TransPerfect\GlobalLink\Model\Entity\Attribute $entityAttribute,
         PageCollectionFactory $pageCollectionFactory,
         BlockCollectionFactory $blockCollectionFactory,
-        StoreCollectionFactory $storeCollectionFactory
+        StoreCollectionFactory $storeCollectionFactory,
+        FieldProductCategoryFactory $fieldProductCategoryFactory
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -106,6 +113,7 @@ class Product extends Data
         $this->pageCollectionFactory = $pageCollectionFactory;
         $this->blockCollectionFactory = $blockCollectionFactory;
         $this->storeCollectionFactory = $storeCollectionFactory;
+        $this->fieldProductCategoryFactory = $fieldProductCategoryFactory;
         parent::__construct(
             $context,
             $eavAttribute,
@@ -125,7 +133,8 @@ class Product extends Data
             $entityAttribute,
             $pageCollectionFactory,
             $blockCollectionFactory,
-            $storeCollectionFactory
+            $storeCollectionFactory,
+            $fieldProductCategoryFactory
         );
     }
 
