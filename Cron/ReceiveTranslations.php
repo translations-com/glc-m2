@@ -332,7 +332,7 @@ class ReceiveTranslations extends Translations
         $queues->addFieldToFilter(
             'status',
             ['in' => [
-                Queue::STATUS_FINISHED,
+                Queue::STATUS_FINISHED, Queue::STATUS_SENT,
             ]]
         );
         foreach($queues as $queue){
