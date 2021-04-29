@@ -86,7 +86,9 @@ class CancelEntityTranslationRequest implements \Magento\Framework\Event\Observe
         }
 
         $user = $this->authSession->getUser();
-        Item::setActor('user: '.$user->getUsername().'('.$user->getId().')');
+        if(isset($user)) {
+            Item::setActor('user: ' . $user->getUsername() . '(' . $user->getId() . ')');
+        }
 
         // Get all Items related to given Entity and cancel them
         $items = $this->itemCollectionFactory->create();
