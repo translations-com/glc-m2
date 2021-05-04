@@ -6,8 +6,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use TransPerfect\GlobalLink\Cron\SubmitTranslations;
-
 class SubmitTranslationsCommand extends Command
 {
     /**
@@ -16,7 +14,7 @@ class SubmitTranslationsCommand extends Command
     protected $submitTranslations;
 
     public function __construct(
-        SubmitTranslations $submitTranslations
+        \TransPerfect\GlobalLink\Cron\SubmitTranslations $submitTranslations
     ) {
         $this->submitTranslations = $submitTranslations;
         parent::__construct();

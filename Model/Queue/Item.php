@@ -525,7 +525,8 @@ class Item extends AbstractModel
             return false;
         }
 
-        $isCancelled = $this->translationService->cancelTargetByDocumentId(
+        $isCancelled =
+            $this->translationService->cancelTargetByDocumentId(
             $this->getDocumentTicket(),
             $this->getPdLocaleIsoCode()
         );
@@ -621,10 +622,11 @@ class Item extends AbstractModel
 
         foreach ($targetStoreIds as $targetStoreId) {
             $reviewId = null;
-            $oldEntity = $this->reviewCollectionFactory->create()->addStoreFilter($sourceStoreId)->getItemById($entityId);
-
-            $needNewEntity = true;
-
+            $oldEntity = $this->reviewCollectionFactory->create()->getItemById($entityId);//$this->reviewCollectionFactory->create()->addStoreFilter($sourceStoreId)->getItemById($entityId);
+            $translatedEntity = $this->reviewCollectionFactory->create()->addStoreFilter($targetStoreId)->getItemById($entityId);
+            if($translatedEntity == null) {
+                $needNewEntity = true;
+            }
             if ($needNewEntity) {
                 $newEntity = $this->reviewFactory->create();
                 $newEntity->unsetData('review_id');

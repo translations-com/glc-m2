@@ -6,12 +6,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use TransPerfect\GlobalLink\Cron\ReceiveTranslations;
-
 class ReceiveTranslationsCommand extends Command
 {
     public function __construct(
-        ReceiveTranslations $receiveTranslations
+        \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations
     ) {
         $this->receiveTranslations = $receiveTranslations;
         parent::__construct();

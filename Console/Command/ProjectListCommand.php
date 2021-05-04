@@ -2,11 +2,9 @@
 
 namespace TransPerfect\GlobalLink\Console\Command;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TransPerfect\GlobalLink\Model\TranslationService;
 
 class ProjectListCommand extends Command
 {
@@ -20,8 +18,10 @@ class ProjectListCommand extends Command
      */
     private $scopeConfig;
 
-    public function __construct(TranslationService $translationService, ScopeConfigInterface $scopeConfig)
-    {
+    public function __construct(
+        \TransPerfect\GlobalLink\Model\TranslationService $translationService,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+    ){
         $this->translationService = $translationService;
         $this->scopeConfig = $scopeConfig;
         parent::__construct();

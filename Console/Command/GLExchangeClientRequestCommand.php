@@ -6,10 +6,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputOptionFactory;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
 
 class GLExchangeClientRequestCommand extends Command
 {
@@ -28,8 +26,8 @@ class GLExchangeClientRequestCommand extends Command
     const KEY_PARAM = 'param';
 
     public function __construct(
-        GLExchangeClient $glExchangeClient,
-        InputOptionFactory $inputOptionFactory
+        \TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient $glExchangeClient,
+        \Symfony\Component\Console\Input\InputOptionFactory $inputOptionFactory
     ) {
         $this->glExchangeClient = $glExchangeClient;
         $this->inputOptionFactory = $inputOptionFactory;

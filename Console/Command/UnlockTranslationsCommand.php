@@ -6,10 +6,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use TransPerfect\GlobalLink\Cron\CancelTranslations;
-use TransPerfect\GlobalLink\Cron\SubmitTranslations;
-use TransPerfect\GlobalLink\Cron\ReceiveTranslations;
-
 class UnlockTranslationsCommand extends Command
 {
     /**
@@ -36,9 +32,9 @@ class UnlockTranslationsCommand extends Command
      */
 
     public function __construct(
-        SubmitTranslations $submitTranslations,
-        ReceiveTranslations $receiveTranslations,
-        CancelTranslations $cancelTranslations
+        \TransPerfect\GlobalLink\Cron\SubmitTranslations $submitTranslations,
+        \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations,
+        \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations
     ) {
         $this->submitTranslations = $submitTranslations;
         $this->receiveTranslations = $receiveTranslations;

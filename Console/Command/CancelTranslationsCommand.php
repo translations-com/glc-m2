@@ -6,12 +6,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use TransPerfect\GlobalLink\Cron\CancelTranslations;
-
 class CancelTranslationsCommand extends Command
 {
     public function __construct(
-        CancelTranslations $cancelTranslations
+        \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations
     ) {
         $this->cancelTranslations = $cancelTranslations;
         parent::__construct();

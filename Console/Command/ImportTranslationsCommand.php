@@ -12,14 +12,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use TransPerfect\GlobalLink\Cron\ImportTranslations;
-
 class ImportTranslationsCommand extends Command
 {
     private $importTranslations;
 
     public function __construct(
-        ImportTranslations $importTranslations
+        \TransPerfect\GlobalLink\Cron\ImportTranslations $importTranslations
     ) {
         $this->importTranslations = $importTranslations;
         parent::__construct();

@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Magento\Eav\Setup\EavSetupFactory;
-use Magento\Framework\ObjectManagerInterface;
 
 class ResetAdaptorCommand extends Command
 {
@@ -26,7 +25,7 @@ class ResetAdaptorCommand extends Command
      * @param ObjectManagerInterface $objectManager
      */
 
-    public function __construct(ObjectManagerInterface $objectManager) {
+    public function __construct(\Magento\Framework\ObjectManagerInterface $objectManager) {
         $this->objectManager = $objectManager;
         $this->resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $this->connection = $this->resource->getConnection();
