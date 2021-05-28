@@ -4,8 +4,8 @@ namespace TransPerfect\GlobalLink\Model\SoapClient;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
-use TransPerfect\GlobalLink\Model\SoapClient\GLExchange\GLExchangeLocalFactory;
 use PDConfig;
+use TransPerfect\GlobalLink\Model\SoapClient\GLExchange\GLExchangeLocalFactory;
 
 /**
  * Class GLExchangeClient
@@ -48,7 +48,7 @@ class GLExchangeClient
     /**
      * GlobalLink Logging levels
      */
-    protected $enabledLevels = array();
+    protected $enabledLevels = [];
     /**
      * constructor
      */
@@ -118,7 +118,7 @@ class GLExchangeClient
         $connection = $this->glExchangeLocalFactory->create($data);
 
         $logData = ['message' => 'Connected to GLPD'];
-        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+        if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
 
@@ -147,7 +147,7 @@ class GLExchangeClient
                 $error = 'Connection failed';
             }
         } catch (\Exception $e) {
-            $error = 'Connection failed. '.$e->getMessage();
+            $error = 'Connection failed. ' . $e->getMessage();
         }
         return $error;
     }
@@ -308,7 +308,7 @@ class GLExchangeClient
                 'line' => $e->getLine(),
                 'message' => $e->getMessage(),
                 ];
-            if(in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+            if (in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             throw $e;
@@ -529,12 +529,12 @@ class GLExchangeClient
         $submission->isUrgent = (bool) $data['submissionPriority'];
         $submission->instructions = $data['submissionNotes'];
         $submission->dueDate = strtotime($data['submissionDueDate'])*1000;
-        foreach($customAttributes as $attribute){
-            if($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
+        foreach ($customAttributes as $attribute) {
+            if ($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
                 $submission->customAttributes[$attribute->name] = $data['attribute_text'];
                 $textAttributeFilled = true;
             }
-            if($data['attribute_combo'] != null && $attribute->type == 'COMBO' && $comboAttributeFilled == false) {
+            if ($data['attribute_combo'] != null && $attribute->type == 'COMBO' && $comboAttributeFilled == false) {
                 $submission->customAttributes[$attribute->name] = $data['attribute_combo'];
                 $comboAttributeFilled = true;
             }
@@ -566,12 +566,11 @@ class GLExchangeClient
         $message = "Document uploaded to GLPD. Document ticket: {$documentTicket}. Item name: {$document->name}, Source language: {$document->sourceLanguage}, Target Language(s): {$targetLanguagesString}. ";
         $debugMessage = "Entity Data: {$document->data}";
 
-
         $logData = ['message' => $message];
-        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+        if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
-        if(in_array($this::LOGGING_LEVEL_DEBUG, $this->enabledLevels)) {
+        if (in_array($this::LOGGING_LEVEL_DEBUG, $this->enabledLevels)) {
             $logData = ['message' => $debugMessage];
             $this->bgLogger->debug($this->bgLogger->bgLogMessage($logData));
             if (!empty($data['logInfo'])) {
@@ -595,7 +594,7 @@ class GLExchangeClient
 
         $message = "Submission created. Submission ticket: {$submissionTicket}.";
         $logData = ['message' => $message];
-        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+        if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
 
@@ -613,9 +612,9 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
 
-        for($i=0; $i < 30; $i++){
+        for ($i=0; $i < 30; $i++) {
             $targetTickets = $client->getCompletedTargetsBySubmission($tickets, $this->maxTargetCount);
-            if($targetTickets != null){
+            if ($targetTickets != null) {
                 return $targetTickets;
             }
         }
@@ -629,10 +628,17 @@ class GLExchangeClient
      *
      * @return PDTarget[]
      */
-    public function receiveTranslationsByProject($project){
+    public function receiveTranslationsByProject($project)
+    {
         $client = $this->getConnect();
-        $pdproject = $client->getProject($project[0]);
-        return $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
+        $pdproject = $client->getProject($project);
+        for ($i=0; $i < 8; $i++) {
+            $targetTickets = $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
+            if($targetTickets != null)
+                return $targetTickets;
+        }
+
+        return $targetTickets;
     }
 
     /**
@@ -641,7 +647,8 @@ class GLExchangeClient
      * @return [Target]
      */
 
-    public function getCompletedTargetsBySubmission($submissionTicket){
+    public function getCompletedTargetsBySubmission($submissionTicket)
+    {
         $client = $this->getConnect();
         return $client->getCompletedTargetsBySubmission($submissionTicket, $this->maxTargetCount);
     }

@@ -4,9 +4,9 @@ namespace TransPerfect\GlobalLink\Controller\Adminhtml;
 
 use Magento\Backend\App\Action as BackendAction;
 use Magento\Framework\Registry;
-use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
-use TransPerfect\GlobalLink\Model\Queue\Item;
 use TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
+use TransPerfect\GlobalLink\Model\Queue\Item;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 
 /**
  * Class Submission
@@ -79,15 +79,15 @@ class Submission extends BackendAction
         $this->bgLogger = $bgLogger;
         $this->receiveTranslations = $receiveTranslations;
         $this->cancelTranslations = $cancelTranslations;
-        if($scopeConfig->getValue('globallink/general/automation') == 1){
+        if ($scopeConfig->getValue('globallink/general/automation') == 1) {
             $this->isAutomaticMode = true;
-        } else{
+        } else {
             $this->isAutomaticMode = false;
         }
         BackendAction::__construct($context);
         $user = $this->_auth->getUser();
         if (!empty($user)) {
-            Item::setActor('user: '.$user->getUsername().'('.$user->getId().')');
+            Item::setActor('user: ' . $user->getUsername() . '(' . $user->getId() . ')');
         }
     }
 

@@ -1,7 +1,7 @@
 <?php
 namespace TransPerfect\GlobalLink\Block\Adminhtml\Submission\Base;
 
-use \Magento\Backend\Block\Widget\Form\Generic as GenericForm;
+use Magento\Backend\Block\Widget\Form\Generic as GenericForm;
 
 /**
  * Class Form
@@ -63,8 +63,6 @@ class Form extends GenericForm
         $this->differentStoresSelected = $registry->registry('differentStoresSelected');
         $this->objectStoreId = $registry->registry('objectStoreId');
         $this->_prepareData();
-
-
     }
 
     /**
@@ -112,7 +110,7 @@ class Form extends GenericForm
                 'readonly' => 'readonly',
             ]
         );
-        if($this->differentStoresSelected) {
+        if ($this->differentStoresSelected) {
             $fieldset->addField(
                 'submission[source_language]',
                 'note',
@@ -121,8 +119,7 @@ class Form extends GenericForm
                     'text' => __('Cannot translate, multiple languages selected.'),
                 ]
             );
-        }
-        else {
+        } else {
             $fieldset->addField(
                 'submission[source_language]',
                 'note',
@@ -142,8 +139,7 @@ class Form extends GenericForm
                 'name' => 'submission[project]',
                 'required' => true,
                 'values' => $serviceProjectsData['projects'],
-                'after_element_html' =>
-                    $this->getProjectsScripts()
+                'after_element_html' => $this->getProjectsScripts()
                     . $serviceProjectsData['projectsMessage'],
                 'onchange' => 'projectChange(this)',
             ]
@@ -151,9 +147,9 @@ class Form extends GenericForm
 
         foreach ($serviceProjectsData['targetlocales'] as $projectShortcode => $locales) {
             $customAttributes = null;
-            foreach($serviceProjectsData['projects'] as $currentProject){
-                if($projectShortcode == $currentProject['value']){
-                    if(isset($currentProject['custom_attributes'])) {
+            foreach ($serviceProjectsData['projects'] as $currentProject) {
+                if ($projectShortcode == $currentProject['value']) {
+                    if (isset($currentProject['custom_attributes'])) {
                         $customAttributes = $currentProject['custom_attributes'];
                     }
                 }
@@ -171,7 +167,7 @@ class Form extends GenericForm
                 foreach ($tempLocales as $localeCode => $localeName) {
                     $stores = $this->helper->getStoresByLocaleCode($localeCode);
                     foreach ($stores as $store) {
-                        $newLocales[] = ['value' => $store->getId(), 'label' => $store->getName().': '.$localeName];
+                        $newLocales[] = ['value' => $store->getId(), 'label' => $store->getName() . ': ' . $localeName];
                     }
                 }
             }
@@ -179,7 +175,7 @@ class Form extends GenericForm
             $locales = $newLocales;
             /** end: TRAN-53 **/
 
-            $fieldId = 'localize_'.$projectShortcode;
+            $fieldId = 'localize_' . $projectShortcode;
             if (!empty($locales)) {
                 $fieldset->addField(
                     $fieldId,
@@ -190,7 +186,7 @@ class Form extends GenericForm
                         'options' => $locales,
                         'required' => true,
                         'value' => '',
-                        'onchange' => 'validatecheckboxes(\''.$fieldId.'\')',
+                        'onchange' => 'validatecheckboxes(\'' . $fieldId . '\')',
                         'after_element_html' => $this->getCheckboxesAfterHtml($fieldId),
                         'display' => 'none',
                     ]
@@ -203,30 +199,92 @@ class Form extends GenericForm
                         'label' => __('Target Language(s)'),
                         'required' => true,
                         'text' => '<label class="mage-error">'
-                            .__("This project doesn't have any translate directions with current source language")
-                            .'</label>',
+                            . __("This project doesn't have any translate directions with current source language")
+                            . '</label>',
                         'after_element_html' => $this->getNotesAfterHtml($fieldId),
                     ]
                 );
             }
-            if($customAttributes != null) {
-                foreach ($customAttributes as $attribute) {
-                    if ($attribute->type == 'TEXT') {
+            if ($customAttributes != null) {
+                $textAttributePopulated = false;
+                $comboAttributePopulated = false;
+                if(is_array($customAttributes)) {
+                    foreach ($customAttributes as $attribute) {
+                        if ($attribute->type == 'TEXT' && $textAttributePopulated == false) {
+                            $attributeFieldId = 'attribute_' . $projectShortcode . '_text';
+                            if ($attribute->mandatory == true) {
+                                $fieldset->addField(
+                                    $attributeFieldId,
+                                    'text',
+                                    [
+                                        'name' => 'submission[attribute_text]',
+                                        'label' => __($attribute->name) . ' (Required)',
+                                        'title' => __($attribute->name),
+                                        'required' => false,
+                                        'display' => 'none',
+                                        'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                                    ]
+                                );
+                            } else {
+                                $fieldset->addField(
+                                    $attributeFieldId,
+                                    'text',
+                                    [
+                                        'name' => 'submission[attribute_text]',
+                                        'label' => __($attribute->name),
+                                        'title' => __($attribute->name),
+                                        'required' => false,
+                                        'display' => 'none',
+                                        'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                                    ]
+                                );
+                            }
+                            $textAttributePopulated = true;
+                        } elseif ($attribute->type == 'COMBO' && $comboAttributePopulated == false) {
+                            $newValues = [];
+                            $attributeFieldId = 'attribute_' . $projectShortcode . '_combo';
+                            $values = explode(',', $attribute->values);
+                            if ($attribute->mandatory == false) {
+                                $newValues[] = ['value' => '', 'label' => ''];
+                            }
+                            foreach ($values as $value) {
+                                $newValues[] = ['value' => $value, 'label' => $value];
+                            }
+                            $values = $newValues;
+                            $fieldset->addField(
+                                $attributeFieldId,
+                                'select',
+                                [
+                                    'name' => 'submission[attribute_combo]',
+                                    'label' => __($attribute->name),
+                                    'title' => __($attribute->name),
+                                    'values' => $values,
+                                    'required' => false,
+                                    'display' => 'none',
+                                    'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
+                                ]
+                            );
+                            $comboAttributePopulated = true;
+                        }
+                    }
+                } else if(is_object($customAttributes)){
+                    $attribute = $customAttributes;
+                    if ($attribute->type == 'TEXT' && $textAttributePopulated == false) {
                         $attributeFieldId = 'attribute_' . $projectShortcode . '_text';
-                        if($attribute->mandatory == true) {
+                        if ($attribute->mandatory == true) {
                             $fieldset->addField(
                                 $attributeFieldId,
                                 'text',
                                 [
                                     'name' => 'submission[attribute_text]',
-                                    'label' => __($attribute->name).' (Required)',
+                                    'label' => __($attribute->name) . ' (Required)',
                                     'title' => __($attribute->name),
                                     'required' => false,
                                     'display' => 'none',
                                     'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
                                 ]
                             );
-                        } else{
+                        } else {
                             $fieldset->addField(
                                 $attributeFieldId,
                                 'text',
@@ -240,15 +298,15 @@ class Form extends GenericForm
                                 ]
                             );
                         }
-                    }
-                    elseif($attribute->type == 'COMBO'){
+                        $textAttributePopulated = true;
+                    } elseif ($attribute->type == 'COMBO' && $comboAttributePopulated == false) {
                         $newValues = [];
                         $attributeFieldId = 'attribute_' . $projectShortcode . '_combo';
                         $values = explode(',', $attribute->values);
-                        if($attribute->mandatory == false){
+                        if ($attribute->mandatory == false) {
                             $newValues[] = ['value' => '', 'label' => ''];
                         }
-                        foreach($values as $value){
+                        foreach ($values as $value) {
                             $newValues[] = ['value' => $value, 'label' => $value];
                         }
                         $values = $newValues;
@@ -265,6 +323,7 @@ class Form extends GenericForm
                                 'after_element_html' => $this->getAttributesAfterHtml($attributeFieldId)
                             ]
                         );
+                        $comboAttributePopulated = true;
                     }
                 }
             }
@@ -313,10 +372,9 @@ class Form extends GenericForm
      */
     protected function _prepareData()
     {
-        if($this->objectStoreId == null){
+        if ($this->objectStoreId == null) {
             $storeId = $this->getSourceStoreId();
-        }
-        else{
+        } else {
             $storeId = $this->objectStoreId;
         }
         $this->selectedStore = $this->_storeManager->getStore($storeId);
@@ -379,14 +437,14 @@ class Form extends GenericForm
     protected function getProjectsScripts()
     {
         return
-        "<script type='text/javascript'>
+            "<script type='text/javascript'>
         function projectChange(el){
             jQuery(\"input[name='submission[localize][]']\").prop('checked', false);
 
             jQuery('.checkboxes-error-message').hide();
 
             var selectedShortcode = jQuery(el).val();
-            
+
             var fieldId = 'localize_'+selectedShortcode;
             var attributeFieldIdText = 'attribute_'+selectedShortcode+'_text';
             var attributeFieldIdCombo = 'attribute_'+selectedShortcode+'_combo';
@@ -421,8 +479,9 @@ class Form extends GenericForm
      *
      * @param string $fieldId
      */
-    protected function getAttributesAfterHtml($fieldId){
-        $html = "<style type='text/css'>.field-".$fieldId."{display:none;}</style>";
+    protected function getAttributesAfterHtml($fieldId)
+    {
+        $html = "<style type='text/css'>.field-" . $fieldId . "{display:none;}</style>";
         return $html;
     }
     /**
@@ -435,8 +494,8 @@ class Form extends GenericForm
      */
     protected function getCheckboxesAfterHtml($fieldId)
     {
-        $html = "<label style='display:none' for='".$fieldId."' generated='false' class='mage-error checkboxes-error-message' id='error-message-".$fieldId."'>This is a required field.</label>";
-        $html .= "<style type='text/css'>.field-".$fieldId."{display:none;}</style>";
+        $html = "<label style='display:none' for='" . $fieldId . "' generated='false' class='mage-error checkboxes-error-message' id='error-message-" . $fieldId . "'>This is a required field.</label>";
+        $html .= "<style type='text/css'>.field-" . $fieldId . "{display:none;}</style>";
 
         return $html;
     }
@@ -451,7 +510,7 @@ class Form extends GenericForm
      */
     protected function getNotesAfterHtml($fieldId)
     {
-        $html = "<style type='text/css'>.field-".$fieldId."{display:none;}</style>";
+        $html = "<style type='text/css'>.field-" . $fieldId . "{display:none;}</style>";
 
         return $html;
     }
@@ -497,7 +556,7 @@ class Form extends GenericForm
                 ]
             );
             foreach ($response as $project) {
-                if(in_array($project->projectInfo->shortCode, $shortCodes)) {
+                if (in_array($project->projectInfo->shortCode, $shortCodes)) {
                     $projectsArray[] = [
                         'label' => $project->projectInfo->name,
                         'value' => $project->projectInfo->shortCode,
@@ -524,8 +583,8 @@ class Form extends GenericForm
                 ['label' => 'None', 'value' => 'error']
             ];
             $projectsMessage = '<label class="mage-error">'
-                .__("Can't get projects from GLPD Service").'<br>'.$e->getMessage()
-                .'</label>';
+                . __("Can't get projects from GLPD Service") . '<br>' . $e->getMessage()
+                . '</label>';
         }
 
         return [

@@ -1,14 +1,12 @@
 <?php
 namespace TransPerfect\GlobalLink\Cron;
 
+use Magento\Bundle\Model\Product\Type as BundleType;
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
+use Magento\Customer\Api\CustomerMetadataInterface;
+use TransPerfect\GlobalLink\Helper\Data as HelperData;
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
-use TransPerfect\GlobalLink\Model\TranslationService;
-use TransPerfect\GlobalLink\Helper\Data as HelperData;
-use Magento\Eav\Api\Data\AttributeInterface;
-use Magento\Customer\Api\CustomerMetadataInterface;
-use Magento\Catalog\Api\Data\ProductAttributeInterface;
-use Magento\Bundle\Model\Product\Type as BundleType;
 
 /**
  * Class SubmitTranslations
@@ -65,7 +63,8 @@ class SubmitTranslations extends Translations
     /**
      * Automatic setting execute method
      */
-    public function executeAutomatic($queue){
+    public function executeAutomatic($queue)
+    {
         $this->mode = 'automatic';
         $this->automaticQueue = $queue;
         $this->execute();
@@ -78,7 +77,7 @@ class SubmitTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start submit translation task (mode:{$this->mode})"];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
 
@@ -99,7 +98,7 @@ class SubmitTranslations extends Translations
                 $this->limitUploads = self::DEFAULT_LIMIT_UPLOADS;
             }
 
-            if($this->mode == 'automatic'){
+            if ($this->mode == 'automatic') {
                 $queues = $this->queueCollectionFactory->create();
                 $queues->addFieldToFilter(
                     'id',
@@ -121,7 +120,7 @@ class SubmitTranslations extends Translations
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were no any unsent items found. Finish."];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             }
@@ -140,8 +139,7 @@ class SubmitTranslations extends Translations
             }
 
             $this->eventManager->dispatch('transperfect_globallink_submit_queue_after', ['queues' => $processedQueues]);
-        }
-        finally{
+        } finally {
             $this->unlockJob();
         }
     }
@@ -225,12 +223,14 @@ class SubmitTranslations extends Translations
 
         $limitUploads = $this->limitUploads;
         foreach ($items as $item) {
-            $this->cancelExistingDuplicates($item);
+            if (!$this->allowDuplicateSubmissions) {
+                $this->cancelExistingDuplicates($item);
+            }
             $itemEntityTypeId = $item->getEntityTypeId();
             $itemEntityId = $item->getEntityId();
 
             $this->itemName =  preg_replace('/[^A-Za-z0-9\-]/', '', $item->getEntityName());
-            $filePath = $xmlFolder.'/'.$this->getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $this->itemName);
+            $filePath = $xmlFolder . '/' . $this->getXmlFileName($originStoreId, $itemEntityTypeId, $itemEntityId, $this->itemName);
 
             if (!$this->file->fileExists($filePath, true)) {
                 if ($limitUploads < 1) {
@@ -255,7 +255,7 @@ class SubmitTranslations extends Translations
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
                     ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
@@ -282,15 +282,15 @@ class SubmitTranslations extends Translations
         } catch (\Exception $e) {
             $queue->setStatus(Queue::STATUS_INPROGRESS);
             $errorMessage = 'Exception while submission.'
-                .' '.$e->getMessage()
-                ." (site={$originStoreId}, queue={$queue->getId()})";
+                . ' ' . $e->getMessage()
+                . " (site={$originStoreId}, queue={$queue->getId()})";
             $this->cliMessage($errorMessage, 'error');
             $logData = [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'message' => $errorMessage,
             ];
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
@@ -306,7 +306,8 @@ class SubmitTranslations extends Translations
         //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Finish queue']));
     }
 
-    protected function cancelExistingDuplicates($item){
+    protected function cancelExistingDuplicates($item)
+    {
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
             'status_id',
@@ -316,11 +317,11 @@ class SubmitTranslations extends Translations
                 Item::STATUS_NEW,
             ]]
         );
-        $items->addFieldToFilter('entity_id', array('eq' => $item->getEntityId()));
-        $items->addFieldToFilter('entity_type_id', array('eq' => $item->getEntityTypeId()));
-        $items->addFieldToFilter('pd_locale_iso_code', array('eq' => $item->getPdLocaleIsoCode()));
-        foreach($items as $duplicateItem){
-            if($duplicateItem->getId() != $item->getId()) {
+        $items->addFieldToFilter('entity_id', ['eq' => $item->getEntityId()]);
+        $items->addFieldToFilter('entity_type_id', ['eq' => $item->getEntityTypeId()]);
+        $items->addFieldToFilter('pd_locale_iso_code', ['eq' => $item->getPdLocaleIsoCode()]);
+        foreach ($items as $duplicateItem) {
+            if ($duplicateItem->getId() != $item->getId()) {
                 $duplicateItem->cancelItem();
                 if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $logData = [
@@ -365,18 +366,18 @@ class SubmitTranslations extends Translations
                 } catch (\Exception $e) {
                     $queue->setStatus(Queue::STATUS_INPROGRESS);
                     $errorMessage = 'Exception while sending a document.'
-                        .' '.$e->getMessage()
-                        ." (site={$queue->getOriginStoreId()}, "
-                        . $this->helper->getEntityTypeOptionArray()[$entityTypeId].' '
-                        ."(id={$entityId}), "
-                        ."queue={$queue->getId()}, items=".implode(',', $entityData['item_ids']).')';
+                        . ' ' . $e->getMessage()
+                        . " (site={$queue->getOriginStoreId()}, "
+                        . $this->helper->getEntityTypeOptionArray()[$entityTypeId] . ' '
+                        . "(id={$entityId}), "
+                        . "queue={$queue->getId()}, items=" . implode(',', $entityData['item_ids']) . ')';
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
                     ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
@@ -387,24 +388,24 @@ class SubmitTranslations extends Translations
                 if (empty($documentTicket)) {
                     $queue->setStatus(Queue::STATUS_INPROGRESS);
                     $errorMessage = 'Document ticket recieved from GLPD is empty'
-                        ." (site={$queue->getOriginStoreId()}, "
-                        . $this->helper->getEntityTypeOptionArray()[$entityTypeId].' '
-                        ."(id={$entityId}), "
-                        ."queue={$queue->getId()}, items=".implode(',', $entityData['item_ids']).')';
+                        . " (site={$queue->getOriginStoreId()}, "
+                        . $this->helper->getEntityTypeOptionArray()[$entityTypeId] . ' '
+                        . "(id={$entityId}), "
+                        . "queue={$queue->getId()}, items=" . implode(',', $entityData['item_ids']) . ')';
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => __FILE__,
                         'line' => __LINE__,
                         'message' => $errorMessage,
                     ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     $dataToSend[$entityTypeId][$entityId]['upload_failed'] = 1;
                 } else {
                     $dataToSend[$entityTypeId][$entityId]['document_ticket'] = $documentTicket;
-                    $this->cliMessage('Document uploaded (document ticket '.$documentTicket.')');
+                    $this->cliMessage('Document uploaded (document ticket ' . $documentTicket . ')');
                     $haveUploadedDocuments = true;
                 }
                 //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Finish entity '.$entityId]));
@@ -413,7 +414,7 @@ class SubmitTranslations extends Translations
 
         if ($haveUploadedDocuments) {
             $submissionTicket = $this->translationService->startSubmission();
-            $this->cliMessage('Submission created (submission ticket '.$submissionTicket.')');
+            $this->cliMessage('Submission created (submission ticket ' . $submissionTicket . ')');
         }
 
         return $submissionTicket;
@@ -433,7 +434,7 @@ class SubmitTranslations extends Translations
     protected function sendDocument($originStoreId, $entityTypeId, $entityId, $entityData, $queue)
     {
         $fileName = $this->getXmlFileName($originStoreId, $entityTypeId, $entityId, $entityData['entity_name']);
-        $filePath = $this->translationService->getSendFolder().'/'.$fileName;
+        $filePath = $this->translationService->getSendFolder() . '/' . $fileName;
         $sourceStore = $this->storeManager->getStore($originStoreId);
         switch ($entityTypeId) {
             case HelperData::CATALOG_PRODUCT_TYPE_ID:
@@ -509,9 +510,9 @@ class SubmitTranslations extends Translations
         $data['data'] = $this->file->read($filePath);
 
         $data['logInfo'] = "(site={$originStoreId}, "
-            . $this->helper->getEntityTypeOptionArray()[$entityTypeId].' '
-            ."(id={$entityId}), "
-            ."queue={$queue->getId()}, items=".implode(',', $entityData['item_ids']).")";
+            . $this->helper->getEntityTypeOptionArray()[$entityTypeId] . ' '
+            . "(id={$entityId}), "
+            . "queue={$queue->getId()}, items=" . implode(',', $entityData['item_ids']) . ")";
 
         return $this->translationService->sendDocumentForTranslate($data);
     }
@@ -579,9 +580,9 @@ class SubmitTranslations extends Translations
         $name = $this->itemName =  preg_replace('/[^A-Za-z0-9\-]/', '', $itemEntityName);
 
         if (empty($name)) {
-            $name = 'store_'.$originStoreId.'-'
-                .'type_'.$itemEntityTypeId.'-'
-                .'id_'.$itemEntityId;
+            $name = 'store_' . $originStoreId . '-'
+                . 'type_' . $itemEntityTypeId . '-'
+                . 'id_' . $itemEntityId;
         }
 
         $name .= '.xml';
@@ -725,7 +726,7 @@ class SubmitTranslations extends Translations
         $fieldNames = array_intersect_key($fieldNames, array_unique(array_map('serialize', $fieldNames)));  // multidim. array unique
         if (empty($fieldNames)) {
             $logData = ['message' => "No field configuration was set up for one of the entities submitted for translation. Check your field configuration pages."];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
         }
@@ -858,7 +859,7 @@ class SubmitTranslations extends Translations
             $value = $option->getValue();
             $label = $option->getLabel();
             if (!empty($value) && !empty($label) && !is_numeric($label)) {
-                $optArr['entity_'.$entityId][$value] = $label;
+                $optArr['entity_' . $entityId][$value] = $label;
             }
         }
 
@@ -914,7 +915,7 @@ class SubmitTranslations extends Translations
             $value = $option->getValue();
             $label = $option->getLabel();
             if (!empty($value) && !empty($label) && !is_numeric($label)) {
-                $optArr['entity_'.$entityId][$value] = $label;
+                $optArr['entity_' . $entityId][$value] = $label;
             }
         }
 
@@ -968,7 +969,6 @@ class SubmitTranslations extends Translations
             $optArr = $this->getProductDataCustomOptions($customOptions, $entityId);
         }
 
-
         // bundle product options
         if ($product->getTypeId() == BundleType::TYPE_CODE) {
             $options = $this->bundleOption
@@ -980,7 +980,7 @@ class SubmitTranslations extends Translations
                 $title = $option->getTitle();
                 $optionId = $option->getOptionId();
                 if (!empty($optionId) && !empty($title) && !is_numeric($title)) {
-                    $optArr['entity_'.$entityId][$optionId] = $title;
+                    $optArr['entity_' . $entityId][$optionId] = $title;
                 }
             }
         }
@@ -1013,8 +1013,8 @@ class SubmitTranslations extends Translations
             $title = $option->getTitle();
             $optionId = $option->getOptionId();
             if (!empty($optionId) && !empty($title)) {
-                $optArr['entity_'.$entityId][$optionId] = $title;
-                if($option->getValues() != null) {
+                $optArr['entity_' . $entityId][$optionId] = $title;
+                if ($option->getValues() != null) {
                     foreach ($option->getValues() as $value) {
                         $valueTitle = $value->getTitle();
                         $valueId = $value->getOptionTypeId();
@@ -1043,8 +1043,6 @@ class SubmitTranslations extends Translations
         $fieldNames = $this->getFieldsToTranslate(HelperData::CATALOG_CATEGORY_TYPE_ID);
 
         $category = $this->categoryRepository->get($entityId, $storeId);
-
-
 
         $attrArr = [];
         $optArr = [];
@@ -1142,7 +1140,7 @@ class SubmitTranslations extends Translations
 
         if (empty($data)) {
             $logData = ['message' => "Unable to submit document, there is no data to create xml."];
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             throw new \Exception("There is no data to create xml.");
@@ -1199,10 +1197,9 @@ class SubmitTranslations extends Translations
         }
 
         if (!$this->file->write($filePath, $xmlString)) {
-            throw new \Exception("Can't write xml data to file ".$filePath);
+            throw new \Exception("Can't write xml data to file " . $filePath);
         }
     }
-
 
     /**
      * Add attributes into Dom

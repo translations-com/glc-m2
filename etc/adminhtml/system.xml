@@ -9,7 +9,7 @@
             <tab>transperfect</tab>
             <resource>TransPerfect_GlobalLink::config</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>GlobalLink 1.8.4 General Properties</label>
+                <label>GlobalLink 1.8.5 General Properties</label>
                 <field id="logging_level" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Logging Level</label>
                     <source_model>TransPerfect\GlobalLink\Model\Config\Source\Logging</source_model>
@@ -53,10 +53,13 @@
                     <label>Files per Submission</label>
                     <validate>validate-greater-than-zero validate-number required-entry</validate>
                 </field>
-
                 <field id="max_target_count" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Max Target Count</label>
                     <validate>validate-greater-than-zero validate-number required-entry</validate>
+                </field>
+                <field id="allow_duplicate_submissions" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Allow Duplicate Submissions</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
             <group id="connection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

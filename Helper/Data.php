@@ -803,7 +803,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return $locales[$id];
         }
 
-        return '';
+        return 'Unknown Language';
     }
     /**
      * @param \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory $collectionFactory

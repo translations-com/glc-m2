@@ -4,11 +4,6 @@ namespace TransPerfect\GlobalLink\Cron;
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
 use TransPerfect\GlobalLink\Model\TranslationService;
-use TransPerfect\GlobalLink\Helper\Data as HelperData;
-use Magento\Eav\Api\Data\AttributeInterface;
-use Magento\Customer\Api\CustomerMetadataInterface;
-use Magento\Catalog\Api\Data\ProductAttributeInterface;
-use Magento\Bundle\Model\Product\Type as BundleType;
 
 /**
  * Class ReceiveTranslations
@@ -32,6 +27,8 @@ class ReceiveTranslations extends Translations
 
     protected $automaticItemIds = null;
 
+    protected $targets = null;
+
     /**
      * Cron job execute method
      */
@@ -52,7 +49,8 @@ class ReceiveTranslations extends Translations
     /**
      * Automatic command execute method
      */
-    public function executeAutomatic(){
+    public function executeAutomatic()
+    {
         $this->mode = 'automatic';
         $this->execute();
     }
@@ -63,7 +61,7 @@ class ReceiveTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start receive translations task (mode:{$this->mode})"];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             if (!$this->lockJob()) {
@@ -74,8 +72,22 @@ class ReceiveTranslations extends Translations
             if ($this->mode == 'cli') {
                 $this->appState->setAreaCode('adminhtml');
             }
+            try {
+                $this->targets = $this->translationService->receiveTranslationsByProject();
+            } catch (\Exception $e) {
+                $errorMessage = 'Exception while receiving targets by project. ' . $e->getMessage();
+                $this->cliMessage($errorMessage, 'error');
+                $logData = [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'message' => $errorMessage,
+                ];
+                if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                }
+            }
             $logData = ['message' => "Checking for redelivery targets to finalize queue data."];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             $this->redeliveryQueueReset();
@@ -91,19 +103,19 @@ class ReceiveTranslations extends Translations
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were no any unfinished items found. Finishing."];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             }
 
             $processedQueues = [];
+
             foreach ($queues as $queue) {
                 $this->proceedQueue($queue);
                 $processedQueues[] = $queue;
             }
             $this->eventManager->dispatch('transperfect_globallink_receive_queue_after', ['queues' => $processedQueues, 'items' => $this->itemCollection]);
-        }
-        finally{
+        } finally {
             $this->unlockJob();
         }
     }
@@ -155,7 +167,7 @@ class ReceiveTranslations extends Translations
         $targetStoreIds = [];
         foreach ($items as $item) {
             $logData = ['message' => "Beginning download of items."];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             if (!$item->getSubmissionTicket()) {
@@ -183,26 +195,12 @@ class ReceiveTranslations extends Translations
 
         if (!empty($submissionsAndItems)) {
             // current queue has items which must be examined if translation completed
-            try {
-                $targets = $this->translationService->receiveTranslationsByTickets(array_keys($submissionsAndItems), $queue);
-
-            } catch (\Exception $e) {
-                $errorMessage = 'Exception while receiving targets by submission tickets. '.$e->getMessage();
-                $this->cliMessage($errorMessage, 'error');
-                $logData = [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'message' => $errorMessage,
-                    ];
-                if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
-                    $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
-                }
-                $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
-            }
+            $targets = $this->getSubmissionTargetsFromProject($documentsAndItems);
+            //$targets = $this->translationService->receiveTranslationsByTickets(array_keys($submissionsAndItems), $queue);
             $targetArray = implode(array_keys($submissionsAndItems));
             if (empty($targets)) {
                 $logData = ['message' => "No targets found in PD. Finishing. Submission Item Array: {$targetArray}"];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
                 $logData = null;
@@ -225,7 +223,7 @@ class ReceiveTranslations extends Translations
                     $logData = [
                         'message' => $logMessage
                     ];
-                    if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                         $this->bgLogger->addInfo($logMessage);
                     }
                     $dom = simplexml_load_string($translatedText);
@@ -236,20 +234,18 @@ class ReceiveTranslations extends Translations
                             $maxLengthError = true;
                             $item->setStatusId(Item::STATUS_MAXLENGTH);
                             $item->save();
-                            $errorMessage = "Max length for field \"". (string)$child->attributes()->attribute_code . "\" for document ticket " . $target->documentTicket . " is greater than the allowed length.";
+                            $errorMessage = "Max length for field \"" . (string)$child->attributes()->attribute_code . "\" for document ticket " . $target->documentTicket . " is greater than the allowed length.";
                             $this->cliMessage($errorMessage, 'error');
                             $logData = [
                                 'file' => __FILE__,
                                 'line' => __LINE__,
                                 'message' => $errorMessage,
                             ];
-                            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                             }
                             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
-                        }
-                        elseif($item->getStatusId() == Item::STATUS_MAXLENGTH && $maxLengthError != true)
-                        {
+                        } elseif ($item->getStatusId() == Item::STATUS_MAXLENGTH && $maxLengthError != true) {
                             $item->setStatusId(Item::STATUS_INPROGRESS);
                             $item->save();
                             $message = "Attempting to download document ticket " . $target->documentTicket . " again, reverting status to in progress. Previously there was a max_length error.";
@@ -259,91 +255,75 @@ class ReceiveTranslations extends Translations
                                 'line' => __LINE__,
                                 'message' => $message,
                             ];
-                            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                             }
                         }
                     }
                 } catch (\Exception $e) {
-                    $errorMessage = 'Exception while downloading target '.$targetTicket.': '.$e->getMessage();
+                    $errorMessage = 'Exception while downloading target ' . $targetTicket . ': ' . $e->getMessage();
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
-                        ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    ];
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
                 $downloadingItemId = $documentsAndItems[$target->documentTicket][$target->targetLocale];
-                $fileName = 'item_'.$downloadingItemId.'.xml';
+                $fileName = 'item_' . $downloadingItemId . '.xml';
 
-                $filePath = $xmlFolder.'/'.$fileName;
+                $filePath = $xmlFolder . '/' . $fileName;
                 if (!$this->file->write($filePath, $translatedText)) {
-                    $errorMessage = "Can't write xml data to file ".$filePath;
+                    $errorMessage = "Can't write xml data to file " . $filePath;
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => __FILE__,
                         'line' => __LINE__,
                         'message' => $errorMessage,
-                        ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    ];
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     continue;
                 }
                 $this->moveItemsInDownloaded([$downloadingItemId=>$targetTicket]);
-                if($this->mode == 'automatic'){
+                if ($this->mode == 'automatic') {
                     $this->automaticItemIds[] = $downloadingItemId;
                 }
-                $this->cliMessage($fileName.' downloaded for item '.$downloadingItemId.' from queue '.$queue->getId());
+                $this->cliMessage($fileName . ' downloaded for item ' . $downloadingItemId . ' from queue ' . $queue->getId());
                 $queue->setProcessed(true);
             }
         }
         $this->tryToSetQueueFinished($queue);
         return $this;
     }
-    protected function redeliveryQueueReset(){
+    protected function redeliveryQueueReset()
+    {
         $xmlFolder = $this->translationService->getReceiveFolder();
-        try{
-            $targets = $this->translationService->receiveTranslationsByProject();
-        }  catch (\Exception $e) {
-            $errorMessage = 'Exception while receiving targets by submission tickets. '.$e->getMessage();
-            $this->cliMessage($errorMessage, 'error');
-            $logData = [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'message' => $errorMessage,
-            ];
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
-                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
-            }
-        }
-        if (empty($targets)) {
-            return $this;
-        }
         $itemResource = $this->itemResourceFactory->create();
         // get all queues that have been submitted
         $queues = $this->queueCollectionFactory->create();
         $queues->addFieldToFilter(
             'status',
             ['in' => [
-                Queue::STATUS_FINISHED, Queue::STATUS_SENT,
+                Queue::STATUS_FINISHED,
             ]]
         );
-        foreach($queues as $queue){
+        foreach ($queues as $queue) {
             $documentTickets = $itemResource->getDistinctDocTicketsForQueue($queue->getId());
-            foreach($targets as $target){
-                if(in_array($target->documentTicket, $documentTickets)){
+            foreach ($this->targets as $target) {
+                if (in_array($target->documentTicket, $documentTickets)) {
                     $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered but completed in PD, resetting queue status to sent."];
-                    if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                         $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                     }
-                    if(!$queue->getStatus(Queue::STATUS_SENT)){
+                    if (!$queue->getStatus(Queue::STATUS_SENT)) {
                         $queue->setStatus(Queue::STATUS_SENT);
                         $queue->save();
                     }
@@ -356,7 +336,18 @@ class ReceiveTranslations extends Translations
         }
         return $this;
     }
-
+    public function getSubmissionTargetsFromProject($ticketArray)
+    {
+        $targetArray = [];
+        foreach ($this->targets as $target) {
+            foreach ($ticketArray as $key => $value) {
+                if ($target->documentTicket == $key) {
+                    $targetArray[] = $target;
+                }
+            }
+        }
+        return $targetArray;
+    }
 
     /**
      * Update Items
@@ -371,7 +362,7 @@ class ReceiveTranslations extends Translations
             ['in' => array_keys($itemIds)]
         );
         foreach ($items as $item) {
-            if($item->getStatusId() != Item::STATUS_MAXLENGTH){
+            if ($item->getStatusId() != Item::STATUS_MAXLENGTH) {
                 $item->setStatusId(Item::STATUS_FINISHED);
             }
             $item->setTargetTicket($itemIds[$item->getId()]);
@@ -380,18 +371,22 @@ class ReceiveTranslations extends Translations
         $items->save();
     }
 
-    protected function getItemByDocTicket($docTicket){
+    protected function getItemByDocTicket($docTicket)
+    {
         $items = $this->itemCollectionFactory->create();
-        $items->addFieldToFilter('document_ticket',
-            ['eq' => $docTicket]);
+        $items->addFieldToFilter(
+            'document_ticket',
+            ['eq' => $docTicket]
+        );
         $item = null;
-        if($items->getSize()){
+        if ($items->getSize()) {
             $item = $items->getFirstItem();
         }
         return $item;
     }
 
-    public function getAutomaticItemIds(){
+    public function getAutomaticItemIds()
+    {
         return $this->automaticItemIds;
     }
 }

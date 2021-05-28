@@ -71,7 +71,6 @@ class Grid extends Extended
                     'children',
                     'custom_layout_update',
                     'path_in_store',
-                    'url_key',
                     'url_path',
             ]]
         );

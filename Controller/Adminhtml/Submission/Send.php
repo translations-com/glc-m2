@@ -8,9 +8,9 @@
  */
 namespace TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
 
-use \Magento\Backend\App\Action as BackendAction;
-use TransPerfect\GlobalLink\Helper\Ui\Logger;
+use Magento\Backend\App\Action as BackendAction;
 use Magento\Framework\App\ResponseInterface;
+use TransPerfect\GlobalLink\Helper\Ui\Logger;
 use TransPerfect\GlobalLink\Model\Queue\Item;
 use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
 
@@ -62,7 +62,7 @@ class Send extends BackendAction
      * @var \TransPerfect\GlobalLink\Helper\Ui\Logger
      */
     protected $logger;
-    
+
     /**
      * @var \TransPerfect\GlobalLink\Helper\Product
      */
@@ -81,6 +81,10 @@ class Send extends BackendAction
      * @var bool
      */
     protected $isAutomaticMode;
+    /**
+     * @var bool
+     */
+    protected $allowDuplicateSubmissions;
     /**
      * @var \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory
      */
@@ -115,7 +119,6 @@ class Send extends BackendAction
         \TransPerfect\GlobalLink\Cron\SubmitTranslations $submitTranslations,
         ItemCollectionFactory $itemCollectionFactory,
         \TransPerfect\GlobalLink\Helper\Data $helper
-
     ) {
         parent::__construct($context);
         $this->_dateTime = $dateTime;
@@ -132,12 +135,17 @@ class Send extends BackendAction
         $this->itemCollectionFactory = $itemCollectionFactory;
         $this->helper = $helper;
         if (!empty($user)) {
-            Item::setActor('user: '.$user->getUsername().'('.$user->getId().')');
+            Item::setActor('user: ' . $user->getUsername() . '(' . $user->getId() . ')');
         }
-        if($this->scopeConfig->getValue('globallink/general/automation') == 1){
+        if ($this->scopeConfig->getValue('globallink/general/automation') == 1) {
             $this->isAutomaticMode = true;
-        } else{
+        } else {
             $this->isAutomaticMode = false;
+        }
+        if ($this->scopeConfig->getValue('globallink/general/allow_duplicate_submissions') == 1) {
+            $this->allowDuplicateSubmissions = true;
+        } else {
+            $this->allowDuplicateSubmissions = false;
         }
     }
 
@@ -178,20 +186,21 @@ class Send extends BackendAction
         return $this->_authorization->isAllowed('TransPerfect_GlobalLink::management');
     }
 
-    protected function checkForCompletedSubmission($itemId, $locales, $entityType){
+    protected function checkForCompletedSubmission($itemId, $locales, $entityType)
+    {
         /** @todo
          *  Create function to check for existing complete submissions in PD.
          */
         $items = $this->itemCollectionFactory->create();
-        $items->addFieldToFilter('entity_id', array('eq' => $itemId));
-        $items->addFieldToFilter('entity_type_id', array('eq' => $entityType));
+        $items->addFieldToFilter('entity_id', ['eq' => $itemId]);
+        $items->addFieldToFilter('entity_type_id', ['eq' => $entityType]);
         $items->addFieldToFilter(
             'pd_locale_iso_code',
             ['in' => [$this->helper->getPdLocaleIsoCodeByStoreId($locales)]]
         );
-        if(count($items) >= 1){
-            foreach($items as $item){
-                if($item->getSubmissionTicket() != null && $this->helper->checkForCompletedSubmissionByTicket($item->getSubmissionTicket())){
+        if (count($items) >= 1) {
+            foreach ($items as $item) {
+                if ($item->getSubmissionTicket() != null && $this->helper->checkForCompletedSubmissionByTicket($item->getSubmissionTicket())) {
                     return true;
                 }
             }

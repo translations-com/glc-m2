@@ -20,7 +20,7 @@ class Classifiers implements \Magento\Framework\Option\ArrayInterface
         \TransPerfect\Globallink\Model\SoapClient\GLExchangeClient $testService,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
-    
+
         $this->translationService = $translationService;
         $this->testService = $testService;
         $this->scopeConfig = $scopeConfig;
@@ -68,19 +68,20 @@ class Classifiers implements \Magento\Framework\Option\ArrayInterface
                 }
                 $currentShortCode = trim($project->projectInfo->shortCode);
                 if(!in_array($currentShortCode, $shortCodes)){
-                    break;
-                }
-                $currentFormats = $project->fileFormatProfiles;
-                if (is_array($currentFormats)) {
-                    foreach ($currentFormats as $format) {
-                        $currentProfileName = $format->profileName;
+                    //DO NOTHING
+                } else {
+                    $currentFormats = $project->fileFormatProfiles;
+                    if (is_array($currentFormats)) {
+                        foreach ($currentFormats as $format) {
+                            $currentProfileName = $format->profileName;
+                            $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
+                            $i++;
+                        }
+                    } else {
+                        $currentProfileName = $currentFormats->profileName;
                         $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
                         $i++;
                     }
-                } else {
-                    $currentProfileName = $currentFormats->profileName;
-                    $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
-                    $i++;
                 }
             }
         } else {

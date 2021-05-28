@@ -1,38 +1,35 @@
 <?php
 namespace TransPerfect\GlobalLink\Cron;
 
-use \TransPerfect\GlobalLink\Model\ResourceModel\Queue\CollectionFactory as QueueCollectionFactory;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Queue\ItemFactory as ItemResourceFactory;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Field\CollectionFactory as FieldCollectionFactory;
-use \TransPerfect\GlobalLink\Model\TranslationService;
-use \Magento\Framework\Filesystem;
-use \Magento\Framework\App\Filesystem\DirectoryList;
-use \Magento\Framework\DomDocument\DomDocumentFactory;
-
-use \Magento\Cms\Model\BlockFactory;
-use \Magento\Cms\Model\PageFactory;
-use \Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
-use \Magento\Store\Model\StoreManagerInterface;
-use \Magento\Framework\App\Config\ScopeConfigInterface;
-use \TransPerfect\GlobalLink\Helper\Data as HelperData;
-use \Magento\Eav\Api\AttributeRepositoryInterface;
-use \Magento\Framework\Api\SearchCriteriaBuilder;
-use \Magento\Framework\Api\FilterBuilder;
-use \Magento\Catalog\Api\ProductRepositoryInterface;
-use \Magento\Catalog\Api\CategoryRepositoryInterface;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCustomFactory as ProductAttributeCollectionFactory;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Category\Attribute\CollectionCustomFactory as CategoryAttributeCollectionFactory;
-use \Magento\Catalog\Model\Product\Option as ProductOption;
-use \Magento\Bundle\Model\Option as BundleOption;
-use \Magento\Framework\Filesystem\Io\File;
-use \Magento\Framework\Filesystem\Glob;
-use \Symfony\Component\Console\Output\ConsoleOutput;
-use \TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
-use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
+use Magento\Bundle\Model\Option as BundleOption;
+use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product\Option as ProductOption;
 use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator as ProductUrlPathGenerator;
-use Magento\Framework\Registry;
-use \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory as ReviewCollectionFactory;
+use Magento\Cms\Model\BlockFactory;
+use Magento\Cms\Model\PageFactory;
+
+use Magento\Eav\Api\AttributeRepositoryInterface;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DomDocument\DomDocumentFactory;
+use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Glob;
+use Magento\Framework\Filesystem\Io\File;
+use Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory as ReviewCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use TransPerfect\GlobalLink\Helper\Data as HelperData;
+use TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
+use TransPerfect\GlobalLink\Model\ResourceModel\Category\Attribute\CollectionCustomFactory as CategoryAttributeCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Field\CollectionFactory as FieldCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCustomFactory as ProductAttributeCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\CollectionFactory as QueueCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\ItemFactory as ItemResourceFactory;
+use TransPerfect\GlobalLink\Model\TranslationService;
 
 /**
  * Class Translations
@@ -191,10 +188,12 @@ abstract class Translations
      * @var \Magento\Framework\Registry
      */
     protected $registry;
-
+    /**
+     * @var false|string[]
+     */
     protected $loggingLevels;
 
-
+    protected $allowDuplicateSubmissions;
     /**
      * Translations constructor.
      *
@@ -258,7 +257,6 @@ abstract class Translations
         ProductUrlPathGenerator $productUrlPathGenerator,
         \Magento\Framework\Registry $registry,
         ReviewCollectionFactory $reviewCollectionFactory
-
     ) {
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->itemCollectionFactory = $itemCollectionFactory;
@@ -290,6 +288,11 @@ abstract class Translations
         $this->reviewCollectionFactory = $reviewCollectionFactory;
         $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
         $this->registry = $registry;
+        if ($this->scopeConfig->getValue('globallink/general/allow_duplicate_submissions') == 1) {
+            $this->allowDuplicateSubmissions = true;
+        } else {
+            $this->allowDuplicateSubmissions = false;
+        }
     }
 
     /**
@@ -299,7 +302,7 @@ abstract class Translations
      */
     protected function clearDir($dirPath)
     {
-        $files = Glob::glob($dirPath.'/*');
+        $files = Glob::glob($dirPath . '/*');
         foreach ($files as $file) {
             $this->file->rmdirRecursive($file);
         }
@@ -314,7 +317,7 @@ abstract class Translations
     {
         if (!empty($this->mode) && $this->mode == 'cli') {
             if ($type=='error') {
-                $message = '<error>'.$message.'</error>';
+                $message = '<error>' . $message . '</error>';
             }
             $this->out->writeln($message);
         }
@@ -347,9 +350,10 @@ abstract class Translations
     /**
      * get whether the submit queue is locked
      */
-    public function isJobLocked(){
+    public function isJobLocked()
+    {
         $lockFolder = $this->translationService->getLockFolder();
-        $filePath = $lockFolder.'/'.$this->getLockFileName();
+        $filePath = $lockFolder . '/' . $this->getLockFileName();
 
         if ($this->file->fileExists($filePath, true)) {
             return true;
@@ -366,12 +370,12 @@ abstract class Translations
     protected function lockJob()
     {
         $lockFolder = $this->translationService->getLockFolder();
-        $filePath = $lockFolder.'/'.$this->getLockFileName();
+        $filePath = $lockFolder . '/' . $this->getLockFileName();
 
         if ($this->file->fileExists($filePath, true)) {
             $message = 'Lock file found. Previous run is not finished yet. Exit.';
             $logData = ['message' => $message];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);
@@ -379,9 +383,9 @@ abstract class Translations
         }
 
         if (!$this->file->write($filePath, 'lock')) {
-            $message ="Can't create lock file ".$filePath;
+            $message ="Can't create lock file " . $filePath;
             $logData = ['message' => $message];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);
@@ -397,12 +401,12 @@ abstract class Translations
     public function unlockJob()
     {
         $lockFolder = $this->translationService->getLockFolder();
-        $filePath = $lockFolder.'/'.$this->getLockFileName();
+        $filePath = $lockFolder . '/' . $this->getLockFileName();
 
         if (!$this->file->rm($filePath)) {
-            $message ="Can't remove lock file ".$filePath;
+            $message ="Can't remove lock file " . $filePath;
             $logData = ['message' => $message];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);

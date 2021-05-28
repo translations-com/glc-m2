@@ -10,7 +10,6 @@
 namespace TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
 
 use TransPerfect\GlobalLink\Controller\Adminhtml\Submission;
-use TransPerfect\GlobalLink\Model\Queue\Item;
 
 /**
  * Class Cancel
@@ -42,25 +41,23 @@ class Cancel extends Submission
             $this->messageManager->addErrorMessage(__('Nothing selected'));
             return $this->resultRedirect->setPath('*/*/index');
         }
-        foreach($items as $item){
-            if($item->isCompleted()){
-                if(!in_array($item->getSubmissionName(), $completedItems)) {
+        foreach ($items as $item) {
+            if ($item->isCompleted()) {
+                if (!in_array($item->getSubmissionName(), $completedItems)) {
                     $completedItems[] = $item->getSubmissionName();
                 }
             }
         }
         try {
-            if(count($completedItems) > 0){
-                $completedItemsString = "Cannot cancel the following submissions because they are complete in PD: ".implode(",", $completedItems) .". Please import instead.";
+            if (count($completedItems) > 0) {
+                $completedItemsString = "Cannot cancel the following submissions because they are complete in PD: " . implode(",", $completedItems) . ". Please import instead.";
                 $this->messageManager->addErrorMessage($completedItemsString);
-            }
-            else{
-                if($this->isAutomaticMode) {
+            } else {
+                if ($this->isAutomaticMode) {
                     $items->walk('cancelItem');
                     //$this->cancelTranslations->executeAutomatic();
                     $this->messageManager->addSuccessMessage(__('Submissions have been cancelled'));
-                }
-                else{
+                } else {
                     $items->walk('cancelItem');
                     $this->messageManager->addSuccessMessage(__('Submissions have been moved to cancellation queue'));
                 }

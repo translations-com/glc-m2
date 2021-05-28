@@ -2,32 +2,32 @@
 
 namespace TransPerfect\GlobalLink\Model\Queue;
 
-use Magento\Cms\Model\Page;
-use Magento\Framework\Exception\NotFoundException;
-use Magento\Framework\Model\AbstractModel;
-use TransPerfect\GlobalLink\Helper\Data as Helper;
+use Braintree\Customer;
+use Magento\Bundle\Model\Option as BundleOption;
+use Magento\Bundle\Model\Product\Type as BundleType;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
-use TransPerfect\GlobalLink\Model\Queue;
-use TransPerfect\GlobalLink\Model\QueueFactory;
-use TransPerfect\GlobalLink\Model\TranslationService;
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product\Option as ProductOption;
+use Magento\Cms\Model\Page;
+use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Magento\Customer\Api\CustomerMetadataInterface;
+use Magento\Eav\Api\AttributeOptionManagementInterface;
+use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Framework\DomDocument\DomDocumentFactory;
 use Magento\Framework\Filesystem\Io\File;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
-use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
-use Magento\Eav\Api\AttributeRepositoryInterface;
-use Magento\Eav\Api\AttributeOptionManagementInterface;
-use Magento\Catalog\Api\Data\ProductAttributeInterface;
-use TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Bundle\Model\Product\Type as BundleType;
-use Magento\Catalog\Model\Product\Option as ProductOption;
-use Magento\Bundle\Model\Option as BundleOption;
-use Magento\Customer\Api\CustomerMetadataInterface;
-use TransPerfect\GlobalLink\Model\Entity\TranslationStatus;
-use TransPerfect\GlobalLink\Model\ResourceModel\Entity\TranslationStatus as TranslationStatusResource;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollectionFactory;
+use TransPerfect\GlobalLink\Helper\Data as Helper;
+use TransPerfect\GlobalLink\Logger\BgTask\Logger as BgLogger;
+use TransPerfect\GlobalLink\Model\Entity\TranslationStatus;
+use TransPerfect\GlobalLink\Model\Queue;
+use TransPerfect\GlobalLink\Model\QueueFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Entity\TranslationStatus as TranslationStatusResource;
+use TransPerfect\GlobalLink\Model\TranslationService;
 
 /**
  * Class Item
@@ -175,13 +175,13 @@ class Item extends AbstractModel
     /**
      * @var array
      */
-    static protected $goodStores = [];
-    static protected $badStores = [];
+    protected static $goodStores = [];
+    protected static $badStores = [];
 
     /**
      * who uses the module
      */
-    static protected $actor = '';
+    protected static $actor = '';
 
     /**
      * @var \Magento\UrlRewrite\Model\ResourceModel\UrlRewriteCollectionFactory
@@ -195,6 +195,11 @@ class Item extends AbstractModel
     /**
      * @var \Magento\Review\Model\ReviewFactory $reviewFactory
      */
+    /**
+     * @var Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection
+     */
+    protected $ratingCollectionFactory;
+
     protected $reviewFactory;
     /**
      * Init
@@ -235,6 +240,7 @@ class Item extends AbstractModel
      * @param \Magento\Review\Model\ReviewFactory                                   $reviewFactory
      * @param \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory          $frontendLabelFactory
      * @param \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory            $optionLabelFactory
+     * @param \Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection     $ratingCollectionFactory
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -264,7 +270,8 @@ class Item extends AbstractModel
         \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory,
         \Magento\Review\Model\ReviewFactory $reviewFactory,
         \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory $frontendLabelFactory,
-        \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory $optionLabelFactory
+        \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory $optionLabelFactory,
+        \Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection $ratingCollectionFactory
     ) {
         parent::__construct($context, $registry);
         $this->messageManager = $messageManager;
@@ -292,9 +299,10 @@ class Item extends AbstractModel
         $this->reviewFactory = $reviewFactory;
         $this->frontendLabelFactory = $frontendLabelFactory;
         $this->optionLabelFactory = $optionLabelFactory;
-        if($scopeConfig->getValue('globallink/general/automation') == 1){
+        $this->ratingCollectionFactory = $ratingCollectionFactory;
+        if ($scopeConfig->getValue('globallink/general/automation') == 1) {
             $this->isAutomaticMode = true;
-        } else{
+        } else {
             $this->isAutomaticMode = false;
         }
     }
@@ -378,40 +386,39 @@ class Item extends AbstractModel
             switch ($this->getEntityTypeId()) :
                 case Helper::CATALOG_CATEGORY_TYPE_ID:
                     $this->applyTranslationCatalogCategory();
-                    break;
-                case Helper::CMS_BLOCK_TYPE_ID:
+            break;
+            case Helper::CMS_BLOCK_TYPE_ID:
                     $this->applyTranslationCmsBlock();
-                    break;
-                case Helper::CMS_PAGE_TYPE_ID:
+            break;
+            case Helper::CMS_PAGE_TYPE_ID:
                     $this->applyTranslationCmsPage();
-                    break;
-                case Helper::CATALOG_PRODUCT_TYPE_ID:
+            break;
+            case Helper::CATALOG_PRODUCT_TYPE_ID:
                     $this->applyTranslationCatalogProduct();
-                    break;
-                case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
+            break;
+            case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationProductAttribute();
-                    break;
-                case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
+            break;
+            case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationCustomerAttribute();
-                    break;
-                case Helper::PRODUCT_REVIEW_ID:
+            break;
+            case Helper::PRODUCT_REVIEW_ID:
                     $this->applyTranslationReview();
-                    break;
-                default:
+            break;
+            default:
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
             endswitch;
             $start = microtime(true);
             $this->sendDownloadConfirmation();
             $logData = [
-                'message' => "Send download confirmation duration: ".(microtime(true) - $start)." seconds",
+                'message' => "Send download confirmation duration: " . (microtime(true) - $start) . " seconds",
             ];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
-
         } catch (\Exception $e) {
             $this->messageManager->addError($e->getMessage());
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->_logError($e, $queue);
             }
         }
@@ -429,7 +436,7 @@ class Item extends AbstractModel
         try {
             $this->getResource()->delete($this);
         } catch (\Exception $e) {
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->_logError($e, $queue);
             }
             throw $e;
@@ -465,7 +472,7 @@ class Item extends AbstractModel
                 case self::STATUS_FINISHED:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
-                    if($this->isAutomaticMode){
+                    if ($this->isAutomaticMode) {
                         $this->cancelTranslationCall();
                     }
                     break;
@@ -476,7 +483,7 @@ class Item extends AbstractModel
                 case self::STATUS_INPROGRESS:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);
-                    if($this->isAutomaticMode){
+                    if ($this->isAutomaticMode) {
                         $this->cancelTranslationCall();
                     }
                     break;
@@ -490,7 +497,7 @@ class Item extends AbstractModel
                     break;
             }
         } catch (\Exception $e) {
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->_logError($e, $queue);
             }
             throw $e;
@@ -501,13 +508,13 @@ class Item extends AbstractModel
     /**
      * Makes an API call to see if the item is completed on the PD side
      */
-    public function isCompleted(){
+    public function isCompleted()
+    {
         $submissionTicket = $this->getSubmissionTicket();
         $completedTargets = $this->translationService->getCompletedTargetsBySubmission($this->getSubmissionTicket());
-        if(count($completedTargets) > 0){
+        if (count($completedTargets) > 0) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
@@ -525,8 +532,7 @@ class Item extends AbstractModel
             return false;
         }
 
-        $isCancelled =
-            $this->translationService->cancelTargetByDocumentId(
+        $isCancelled = $this->translationService->cancelTargetByDocumentId(
             $this->getDocumentTicket(),
             $this->getPdLocaleIsoCode()
         );
@@ -621,12 +627,10 @@ class Item extends AbstractModel
         $translatedData = $this->getTranslatedData();
 
         foreach ($targetStoreIds as $targetStoreId) {
-            $reviewId = null;
-            $oldEntity = $this->reviewCollectionFactory->create()->getItemById($entityId);//$this->reviewCollectionFactory->create()->addStoreFilter($sourceStoreId)->getItemById($entityId);
-            $translatedEntity = $this->reviewCollectionFactory->create()->addStoreFilter($targetStoreId)->getItemById($entityId);
-            if($translatedEntity == null) {
-                $needNewEntity = true;
-            }
+
+            $oldEntity = $this->reviewCollectionFactory->create()->getItemById($entityId);
+            $needNewEntity = true;
+
             if ($needNewEntity) {
                 $newEntity = $this->reviewFactory->create();
                 $newEntity->unsetData('review_id');
@@ -720,14 +724,13 @@ class Item extends AbstractModel
                         $foundBlock->save();
                         $this->setData('new_entity_id', $foundBlock->getBlockId());
                         $needNewEntity = false;
-                    } elseif($stores[0] == '0'){
+                    } elseif ($stores[0] == '0') {
                         $foundBlock = $this->resetStoreViews($foundBlock);
                         $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
                         $foundBlock->setStoreId($updateStores);
                         $foundBlock->save();
                         $this->setData('new_entity_id', $foundBlock->getBlockId());
-                    }
-                    else {
+                    } else {
                         // remove target store from store list and create new block
                         $updateStores = $this->removeStoreIdFromEntityStores($foundBlock, $targetStoreId);
                         $foundBlock->setStoreId($updateStores);
@@ -820,19 +823,19 @@ class Item extends AbstractModel
             if ($needNewEntity) {
                 $newEntity = $this->pageFactory->create();
                 $newEntity->setData($translatedData['attributes']);
-                if(!array_key_exists('content', $translatedData['attributes'])){
+                if (!array_key_exists('content', $translatedData['attributes'])) {
                     $newEntity->setContent($oldEntity->getContent());
                 }
-                if(!array_key_exists('title', $translatedData['attributes'])){
+                if (!array_key_exists('title', $translatedData['attributes'])) {
                     $newEntity->setTitle($oldEntity->getTitle());
                 }
-                if(!array_key_exists('content_heading', $translatedData['attributes'])){
+                if (!array_key_exists('content_heading', $translatedData['attributes'])) {
                     $newEntity->setContentHeading($oldEntity->getContentHeading());
                 }
-                if(!array_key_exists('meta_keywords', $translatedData['attributes'])){
+                if (!array_key_exists('meta_keywords', $translatedData['attributes'])) {
                     $newEntity->setMetaKeywords($oldEntity->getMetaKeywords());
                 }
-                if(!array_key_exists('meta_description', $translatedData['attributes'])){
+                if (!array_key_exists('meta_description', $translatedData['attributes'])) {
                     $newEntity->setMetaDescription($oldEntity->getMetaDescription());
                 }
                 $newEntity->setIdentifier($oldEntity->getIdentifier());
@@ -923,7 +926,7 @@ class Item extends AbstractModel
                 foreach ($bundleOptions as $option) {
                     $optionId = $option->getOptionId();
                     if (!empty($optionId)) {
-                        if (empty($translatedData['options']['entity_'.$entityId][$optionId])) {
+                        if (empty($translatedData['options']['entity_' . $entityId][$optionId])) {
                             $this->messageManager->addError(__(
                                 'Item %1. Translation for bundle option (id %2) not found. Entity skipped.',
                                 $this->getId(),
@@ -931,7 +934,7 @@ class Item extends AbstractModel
                             ));
                             return;
                         }
-                        $newOptionTitle = $translatedData['options']['entity_'.$entityId][$optionId];
+                        $newOptionTitle = $translatedData['options']['entity_' . $entityId][$optionId];
                         $option->setTitle($newOptionTitle);
                         $option->setStoreId($targetStoreId);
                     }
@@ -940,18 +943,18 @@ class Item extends AbstractModel
                 // Disable save() until that will be fixed
                 // $bundleOptions->save();
             } else {
-                if($translatedData['options'] != null) {
+                if ($translatedData['options'] != null) {
                     $customOptions = $this->productOption->getProductOptionCollection($product);
-                    $newCustomOptions = array();
+                    $newCustomOptions = [];
                     foreach ($customOptions as $option) {
                         $optionId = $option->getData('option_id');
                         $translatedOptions = $translatedData['options'];
-                        if($translatedOptions['entity_'.$entityId][$optionId] != null){
-                            $option->setTitle($translatedOptions['entity_'.$entityId][$optionId]);
-                            $option->setDefaultTitle($translatedOptions['entity_'.$entityId][$optionId]);
-                            $option->setStoreTitle($translatedOptions['entity_'.$entityId][$optionId]);
+                        if ($translatedOptions['entity_' . $entityId][$optionId] != null) {
+                            $option->setTitle($translatedOptions['entity_' . $entityId][$optionId]);
+                            $option->setDefaultTitle($translatedOptions['entity_' . $entityId][$optionId]);
+                            $option->setStoreTitle($translatedOptions['entity_' . $entityId][$optionId]);
                         }
-                        if(isset($translatedOptions['option_'.$optionId])) {
+                        if (isset($translatedOptions['option_' . $optionId])) {
                             foreach ($translatedOptions['option_' . $optionId] as $valueId => $translatedValue) {
                                 if ($option->getValueById($valueId) != null) {
                                     $value = $option->getValueById($valueId);
@@ -964,7 +967,6 @@ class Item extends AbstractModel
                         $option->save();
                         $newCustomOptions[] = $option;
                         $hasOptions = true;
-
                     }
                     $product->setCustomOptions($newCustomOptions);
                     // M2 currently doesn't allow to save custom option titles for storeviews
@@ -973,11 +975,11 @@ class Item extends AbstractModel
             }
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
-            foreach($translatedData['attributes'] as $attributeName => $attributeValue){
+            foreach ($translatedData['attributes'] as $attributeName => $attributeValue) {
                 $product->getResource()->saveAttribute($product, $attributeName);
             }
             $existingImageFields = array_intersect($imageFields, array_keys($translatedData['attributes']));
-            if(count($existingImageFields) > 0) {
+            if (count($existingImageFields) > 0) {
                 foreach ($mediaGallery as $image) {
                     foreach ($existingImageFields as $currentField) {
                         $matchingField = str_replace("_label", "", $currentField);
@@ -990,12 +992,11 @@ class Item extends AbstractModel
                 $product->save();
             }
             $logData = [
-                'message' => "Save attribute duration: ".(microtime(true) - $start)." seconds",
+                'message' => "Save attribute duration: " . (microtime(true) - $start) . " seconds",
             ];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
-
         }
         $start = microtime(true);
         // if we're here all ok. Update item status, set success message, remove xml
@@ -1003,20 +1004,19 @@ class Item extends AbstractModel
         $this->save();
         $this->messageManager->addSuccess(__('Translation of Item %1 (%2) successfully applied to all target stores', $this->getId(), $this->getEntityName()));
         $logData = [
-            'message' => "Update queue status duration: ".(microtime(true) - $start)." seconds",
+            'message' => "Update queue status duration: " . (microtime(true) - $start) . " seconds",
         ];
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
-
 
         $start = microtime(true);
         $this->updateEntitySubmissionStatus($targetStoreIds);
         $this->removeXml();
         $logData = [
-            'message' => "Update submission status duration: ".(microtime(true) - $start)." seconds",
+            'message' => "Update submission status duration: " . (microtime(true) - $start) . " seconds",
         ];
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
     }
@@ -1049,11 +1049,10 @@ class Item extends AbstractModel
                 if (empty($optionId)) {
                     continue;
                 }
-                if (!empty($translatedData['options']['entity_'.$entityId][$optionId])) {
+                if (!empty($translatedData['options']['entity_' . $entityId][$optionId])) {
                     /* Added 03/24/2021 Justin Griffin, due to inability to save data using Magento constructs */
-                    $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_'.$entityId][$optionId]));
+                    $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_' . $entityId][$optionId]));
                 }
-
             }
             //$optionsAttribute->setOptions($options);
             //$this->attributeRepository->save($optionsAttribute);
@@ -1087,47 +1086,27 @@ class Item extends AbstractModel
         $translatedData = $this->getTranslatedData();
 
         foreach ($targetStoreIds as $targetStoreId) {
-            $optionsArray = [];
-
-            $stores = [0];
-            $stores = array_merge($stores, $this->helper->getAllStoresIds());
-            foreach ($stores as $storeId) {
-                $attribute = $this->attributeRepository->get(
-                    CustomerMetadataInterface::ENTITY_TYPE_CUSTOMER,
-                    $entityId
-                );
-                $attribute->setStoreId($storeId);
-
-                $options = $this->attributeOptionManagement->getItems(
-                    CustomerMetadataInterface::ENTITY_TYPE_CUSTOMER,
-                    $entityId
-                );
-
-                foreach ($options as $option) {
-                    $optionId = $option->getValue();
-                    if (empty($optionId)) {
-                        continue;
-                    }
-                    $optionsArray['order'][$optionId] = (int)$option->getSortOrder();
-                    if ($storeId == $targetStoreId) {
-                        $optionsArray['value'][$optionId][$storeId] = $translatedData['options']['entity_'.$entityId][$optionId];
-                    } else {
-                        $optionsArray['value'][$optionId][$storeId] = $option->getLabel();
-                    }
-                }
-            }
-
-            $attribute = $this->attributeRepository->get(
+            $optionsAttribute = $this->attributeRepository->get(
                 CustomerMetadataInterface::ENTITY_TYPE_CUSTOMER,
                 $entityId
             );
-            $storeLabels = $attribute->getStoreLabels();
-            $extraLabels = $attribute->getFrontendLabels();
-            $storeLabels[$targetStoreId] = $translatedData['attributes']['frontend_label'];
-            $attribute->setFrontendLabels($storeLabels);
-            $attribute->setOption($optionsArray);
-            $this->attributeRepository->save($attribute);
+            $options = $optionsAttribute->getOptions();
+            foreach ($options as $option) {
+                $optionId = $option->getValue();
+                if (empty($optionId)) {
+                    continue;
+                }
+                if (!empty($translatedData['options']['entity_' . $entityId][$optionId])) {
+                    /* Added 03/24/2021 Justin Griffin, due to inability to save data using Magento constructs */
+                    $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_' . $entityId][$optionId]));
+                }
+            }
+            //$optionsAttribute->setOptions($options);
+            //$this->attributeRepository->save($optionsAttribute);
+            //$optionsAttribute->save();
+            $this->helper->saveAttributeLabel($entityId, $targetStoreId, $translatedData['attributes']['frontend_label']);
         }
+
         // if we're here all ok. Update item status, set success message, remove xml
         $this->setStatusId(self::STATUS_APPLIED);
         $this->save();
@@ -1144,8 +1123,8 @@ class Item extends AbstractModel
     protected function getFilePath()
     {
         $xmlFolder = $this->translationService->getReceiveFolder();
-        $filename = 'item_'.$this->getId();
-        return $xmlFolder.'/'.$filename.'.xml';
+        $filename = 'item_' . $this->getId();
+        return $xmlFolder . '/' . $filename . '.xml';
     }
 
     /**
@@ -1202,7 +1181,6 @@ class Item extends AbstractModel
             $attributes = $dom->getElementsByTagName('attribute');
             $xmlData['attributes'] = $this->parseXmlGetAttributesArray($attributes);
 
-
             $options = $dom->getElementsByTagName('option');
             $xmlData['options'] = $this->parseXmlGetOptionsArray($options);
 
@@ -1211,9 +1189,9 @@ class Item extends AbstractModel
             $logData = [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'message' => 'Exception in parsing target XML. '.$e->getMessage(),
+                'message' => 'Exception in parsing target XML. ' . $e->getMessage(),
             ];
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             throw new \Exception($this->bgLogger->bgLogMessage($logData), $e->getCode(), $e);
@@ -1328,10 +1306,11 @@ class Item extends AbstractModel
         return $stores;
     }
 
-    protected function resetStoreViews($entity){
+    protected function resetStoreViews($entity)
+    {
         $stores = $this->storeManager->getStores();
         $storeIds = [];
-        foreach($stores as $currentStore){
+        foreach ($stores as $currentStore) {
             $storeIds[] = $currentStore->getId();
         }
         $entity->setStoreId($storeIds);
@@ -1378,7 +1357,7 @@ class Item extends AbstractModel
                     $items = $this->getCollection();
                     $items->addFieldToFilter('entity_id', $this->getEntityId());
                     $items->addFieldToFilter('entity_type_id', $this->getEntityTypeId());
-                    $items->addFieldToFilter('target_stores', ['like' => '%,'.$storeId.',%']);
+                    $items->addFieldToFilter('target_stores', ['like' => '%,' . $storeId . ',%']);
                     $items->setOrder('id', 'desc');
                     $items->setPageSize(1)->setCurPage(1);
                     foreach ($items as $item) {
@@ -1403,13 +1382,13 @@ class Item extends AbstractModel
         try {
             $confirmationTicket = $this->translationService->sendDownloadConfirmation($this->getTargetTicket());
         } catch (\Exception $e) {
-            $errorMessage = 'Exception while sending download confirmation for target '.$this->getTargetTicket().': '.$e->getMessage();
+            $errorMessage = 'Exception while sending download confirmation for target ' . $this->getTargetTicket() . ': ' . $e->getMessage();
             $logData = [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'message' => $errorMessage,
                 ];
-            if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                 $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             $queue = $this->_getQueue();

@@ -238,7 +238,7 @@ class Grid extends Extended
                 ->joinFields(['eas' => $collection->getTable('eav_attribute_set')], ' AND ', ['eas.attribute_set_id = main_table.attribute_set_id'], ['attribute_set_name'])
                 ->addFieldToFilter('ea.backend_type', ['in' => ['text', 'varchar']])
                 ->addFieldToFilter('ea.frontend_input', ['in' => ['text', 'textarea']])
-                ->addFieldToFilter('ea.attribute_code', ['nin' => ['custom_layout_update','url_key','url_path']]);
+                ->addFieldToFilter('ea.attribute_code', ['nin' => ['cust om_layout_update','url_path']]);
             $this->productAttributeCollection = $collection;
         }
 

@@ -4,14 +4,12 @@ namespace TransPerfect\GlobalLink\Model;
 
 use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Store\Model\ScopeInterface;
-use SoapClient;
-use SoapFault;
-use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
-use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
-use Magento\Framework\Filesystem;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
+use Magento\Store\Model\ScopeInterface;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
+use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
 
 class TranslationService
 {
@@ -124,12 +122,12 @@ class TranslationService
      *
      * @param string $shortCode
      */
-    public function getCustomAttributes($shortCode){
+    public function getCustomAttributes($shortCode)
+    {
         $pdproject = $this->glExchangeClient->getConnect()->getProject($shortCode);
         $customAttributes = $pdproject->customAttributes;
         return $customAttributes;
     }
-
 
     /**
      * Submit translation
@@ -183,9 +181,9 @@ class TranslationService
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
                             'message' => "Can't get translation by ticket {$ticket}. "
-                                .$e->getMessage(),
+                                . $e->getMessage(),
                             ];
-                        if(in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+                        if (in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
                             $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                         }
                         $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
@@ -198,7 +196,7 @@ class TranslationService
         $this->moveItemsInError($problemTickets);
         $ticketCount = count($targets);
         $logData = ['message' => "Tickets were found. Count of tickets: {$ticketCount}"];
-        if(in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+        if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
         return $targets;
@@ -215,7 +213,9 @@ class TranslationService
     {
         $targets = [];
         try {
-            $targets = $this->glExchangeClient->receiveTranslationsByProject($this->projectShortCodes);
+            foreach($this->projectShortCodes as $project) {
+                $targets = array_merge($targets, $this->glExchangeClient->receiveTranslationsByProject($project));
+            }
         } catch (\Exception $e) {
             throw $e;
         }
@@ -404,7 +404,8 @@ class TranslationService
      * Gets completed targets by submission
      * @return Target[]
      */
-    public function getCompletedTargetsBySubmission($submissionTicket){
+    public function getCompletedTargetsBySubmission($submissionTicket)
+    {
         return $this->glExchangeClient->getCompletedTargetsBySubmission($submissionTicket);
     }
 }

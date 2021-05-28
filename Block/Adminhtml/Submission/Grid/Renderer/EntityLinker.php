@@ -44,21 +44,33 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         //$storeId = str_replace(",", "", $row['target_stores']);
         $outputValue = $this->helper->getLocaleColumnLabel($value, false, true);
         $storeIdArray = $this->helper->getStoreIdFromLocale($value);
-        $storeId = $storeIdArray[0];
+        if($storeIdArray != null) {
+            $storeId = $storeIdArray[0];
+        } else{
+            $storeId = null;
+        }
         if($submissionStatus != Item::STATUS_APPLIED && $columnName == 'pd_locale_iso_code'){
             return $outputValue;
         } else {
             switch ($entityType) {
                 case $this->helper::CATALOG_PRODUCT_TYPE_ID:
-                    return "<a href='{$this->backendHelper->getUrl('catalog/product/edit',
+                    if($storeId == null){
+                        return $outputValue;
+                    } else {
+                        return "<a href='{$this->backendHelper->getUrl('catalog/product/edit',
                     ['id' => $row['entity_id'],
                      'store' => $storeId
                     ])}' style=\"font-weight:bold\">" . $outputValue . "</a>";
+                    }
                 case $this->helper::CATALOG_CATEGORY_TYPE_ID:
-                    return "<a href='{$this->backendHelper->getUrl('catalog/category/edit',
+                    if($storeId == null){
+                        return $outputValue;
+                    } else {
+                        return "<a href='{$this->backendHelper->getUrl('catalog/category/edit',
                     ['id' => $row['entity_id'],
                      'store' => $storeId
                     ])}' style=\"font-weight:bold\">" . $outputValue . "</a>";
+                    }
                 case $this->helper::CMS_PAGE_TYPE_ID:
                     if($columnName == 'source_locale') {
                         return "<a href='{$this->backendHelper->getUrl('cms/page/edit',

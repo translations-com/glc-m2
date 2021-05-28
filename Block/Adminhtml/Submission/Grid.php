@@ -4,8 +4,8 @@ namespace TransPerfect\GlobalLink\Block\Adminhtml\Submission;
 
 use Magento\Backend\Block\Widget\Grid\Extended;
 use TransPerfect\GlobalLink\Helper\Data;
-use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory;
 use TransPerfect\GlobalLink\Model\Queue\Item;
+use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory;
 
 /**
  * Class Grid
@@ -66,14 +66,14 @@ class Grid extends Extended
         $this->registry = $registry;
         $this->bgLogger = $bgLogger;
         $this->messageManager = $messageManager;
-        if($scopeConfig->getValue('globallink/general/automation') == 1){
+        if ($scopeConfig->getValue('globallink/general/automation') == 1) {
             $this->isAutomaticMode = true;
-        } else{
+        } else {
             $this->isAutomaticMode = false;
         }
-        if($scopeConfig->getValue('globallink/general/auto_import') == 1){
+        if ($scopeConfig->getValue('globallink/general/auto_import') == 1) {
             $this->autoImport = true;
-        } else{
+        } else {
             $this->autoImport = false;
         }
         parent::__construct($context, $backendHelper, $data);
@@ -84,11 +84,10 @@ class Grid extends Extended
      */
     protected function _construct()
     {
-        if($this->isAutomaticMode && !$this->autoImport){
+        if ($this->isAutomaticMode && !$this->autoImport) {
             $this->cancelTranslations->executeAutomatic();
             $this->receiveTranslations->executeAutomatic();
-        }
-        else if($this->autoImport){
+        } elseif ($this->autoImport) {
             $this->cancelTranslations->executeAutomatic();
             $this->receiveTranslations->executeAutomatic();
             $automaticItemIds = $this->receiveTranslations->getAutomaticItemIds();
