@@ -48,7 +48,7 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
      */
     protected function getLocaleLabel($id)
     {
-        $locales = $this->_helperGlobalLink->getLocales(false, true);
+        $locales = $this->_helperGlobalLink->getLocales(false, true, true);
 
         if (isset($locales[$id])) {
             return $locales[$id];

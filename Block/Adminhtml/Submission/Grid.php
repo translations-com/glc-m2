@@ -51,9 +51,6 @@ class Grid extends Extended
         \Magento\Backend\Helper\Data $backendHelper,
         CollectionFactory $collectionFactory,
         Data $helper,
-        \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations,
-        \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Registry $registry,
         \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
@@ -61,21 +58,9 @@ class Grid extends Extended
     ) {
         $this->helper = $helper;
         $this->itemCollectionFactory = $collectionFactory;
-        $this->receiveTranslations = $receiveTranslations;
-        $this->cancelTranslations = $cancelTranslations;
         $this->registry = $registry;
         $this->bgLogger = $bgLogger;
         $this->messageManager = $messageManager;
-        if ($scopeConfig->getValue('globallink/general/automation') == 1) {
-            $this->isAutomaticMode = true;
-        } else {
-            $this->isAutomaticMode = false;
-        }
-        if ($scopeConfig->getValue('globallink/general/auto_import') == 1) {
-            $this->autoImport = true;
-        } else {
-            $this->autoImport = false;
-        }
         parent::__construct($context, $backendHelper, $data);
     }
 
@@ -84,7 +69,7 @@ class Grid extends Extended
      */
     protected function _construct()
     {
-        if ($this->isAutomaticMode && !$this->autoImport) {
+        /*if ($this->isAutomaticMode && !$this->autoImport) {
             $this->cancelTranslations->executeAutomatic();
             $this->receiveTranslations->executeAutomatic();
         } elseif ($this->autoImport) {
@@ -123,7 +108,7 @@ class Grid extends Extended
                 }
                 $this->messageManager->addSuccessMessage(__('Submissions were successfully received and applied to target stores.'));
             }
-        }
+        }*/
         parent::_construct();
         $this->setId('translation_submission');
         $this->setDefaultSort('request_date');

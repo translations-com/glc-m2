@@ -214,7 +214,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return project short codes
      */
     public function getProjectShortCodes(){
-        return explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ));
+        return array_map('trim', explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE )));
     }
     /*
      * @return custom attributes
@@ -641,9 +641,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *          'fr-FR' => 'French (France)',
      *      ]
      */
-    public function getLocales($limitByStores = false, $includeSource = false)
+    public function getLocales($limitByStores = false, $includeSource = false, $onlyConfiguredProjects = false)
     {
-        $targetLocales = $this->getAllLocales($includeSource);
+        $targetLocales = $this->getAllLocales($includeSource, $onlyConfiguredProjects);
 
         if ($limitByStores) {
             $storeLocales = [];
@@ -674,8 +674,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *          'fr-FR' => 'French (France)',
      *      ]
      */
-    protected function getAllLocales($includeSource = false)
+    protected function getAllLocales($includeSource = false, $onlyConfiguredProjects = false)
     {
+        $shortCodes = $this->getProjectShortCodes();
         try {
             $response = $this->translationService->requestGLExchange(
                 '/services/ProjectService',
@@ -686,15 +687,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             );
             $targetLocales = [];
             $sourceLocales = [];
-            foreach ($response as $project) {
-                if(isset($project->projectLanguageDirections->sourceLanguage)){
-                    $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
-                    $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
-                }
-                else {
-                    foreach ($project->projectLanguageDirections as $direction) {
-                        $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
-                        $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
+            foreach ($response as $project){
+                if(in_array($project->projectInfo->shortCode, $shortCodes) && $onlyConfiguredProjects == true){
+                    if (isset($project->projectLanguageDirections->sourceLanguage)) {
+                        $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
+                        $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
+                    } else {
+                        foreach ($project->projectLanguageDirections as $direction) {
+                            $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
+                            $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
+                        }
+                    }
+                } else if($onlyConfiguredProjects == false){
+                    if (isset($project->projectLanguageDirections->sourceLanguage)) {
+                        $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
+                        $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
+                    } else {
+                        foreach ($project->projectLanguageDirections as $direction) {
+                            $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
+                            $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
+                        }
                     }
                 }
             }
@@ -751,7 +763,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getLocaleOptions($withEmpty = true)
     {
-        $locales = $this->getLocales(false, true);
+        $locales = $this->getLocales(false, true, true);
 
         $options = [];
         if ($withEmpty) {

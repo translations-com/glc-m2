@@ -29,7 +29,7 @@ class Submission extends Container
             $this->addButton(
                 'sync_with_pd',
                 [
-                    'label' => __('Refresh Dashboard'),
+                    'label' => __('Check for Translations'),
                     'onclick' => 'confirmSetLocation("' . __('Are you sure you want to refresh the dashboard?') . '", \'' . $this->getUrl('*/*/sync') . '\')',
                     'class' => 'add primary',
                 ]
@@ -39,7 +39,7 @@ class Submission extends Container
             $this->addButton(
                 'sync_and_import',
                 [
-                    'label' => __('Refresh Dashboard'),
+                    'label' => __('Check for & Import Translations'),
                     'onclick' => 'confirmSetLocation("' . __('Are you sure you want to refresh the dashboard? Any received content will be imported automatically.') . '", \'' . $this->getUrl('*/*/autoimport') . '\')',
                     'class' => 'add primary',
                 ]

@@ -74,12 +74,12 @@ class Classifiers implements \Magento\Framework\Option\ArrayInterface
                     if (is_array($currentFormats)) {
                         foreach ($currentFormats as $format) {
                             $currentProfileName = $format->profileName;
-                            $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
+                            $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName . ' - ' . $currentShortCode];
                             $i++;
                         }
                     } else {
                         $currentProfileName = $currentFormats->profileName;
-                        $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
+                        $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName . ' - ' . $currentShortCode];
                         $i++;
                     }
                 }

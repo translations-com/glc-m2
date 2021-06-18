@@ -838,7 +838,9 @@ class Item extends AbstractModel
                 if (!array_key_exists('meta_description', $translatedData['attributes'])) {
                     $newEntity->setMetaDescription($oldEntity->getMetaDescription());
                 }
-                $newEntity->setIdentifier($oldEntity->getIdentifier());
+                if (!array_key_exists('identifier', $translatedData['attributes'])) {
+                    $newEntity->setIdentifier($oldEntity->getIdentifier());
+                }
                 $newEntity->setPageLayout($oldEntity->getPageLayout());
                 $newEntity->setIsActive($oldEntity->getIsActive());
                 $newEntity->setSortOrder($oldEntity->getSortOrder());

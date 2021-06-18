@@ -81,11 +81,15 @@ class Grid extends Extended
         }
         $collection = false;
         if ($currentStore) {
-            $rootCategoryId = $this->_storeManager->getStore($currentStore)->getRootCategoryId();
+            //$rootCategoryId = $this->_storeManager->getStore($currentStore)->getRootCategoryId();
             /** @var \Magento\Catalog\Model\Category $rootCategory */
-            $rootCategory = $this->categoryRepository->get($rootCategoryId, $currentStore);
+            /*$rootCategory = $this->categoryRepository->get($rootCategoryId, $currentStore);
             $collection = $rootCategory->getCategories($rootCategoryId, 0, false, true);
+            $collection->setStore($currentStore);*/
+            $collection = $this->collectionFactory->create();
+            $collection->addAttributeToSelect('*');
             $collection->setStore($currentStore);
+            $collection->addAttributeToFilter('level', ['gt' => 1]);
         }
         /** @var \Magento\Catalog\Model\ResourceModel\Category\Collection $collection */
         if (!$collection) {
