@@ -72,15 +72,37 @@ class Classifiers implements \Magento\Framework\Option\ArrayInterface
                 } else {
                     $currentFormats = $project->fileFormatProfiles;
                     if (is_array($currentFormats)) {
+                        $formatExists = false;
                         foreach ($currentFormats as $format) {
                             $currentProfileName = $format->profileName;
-                            $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName . ' - ' . $currentShortCode];
-                            $i++;
+                            if(!empty($fileFormats)){
+                                foreach($fileFormats as $format){
+                                    if($currentProfileName == $format['value']){
+                                        $formatExists = true;
+                                    }
+                                }
+                            }
+                            if(!$formatExists) {
+                                $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
+                                $i++;
+                                $formatExists = false;
+                            }
                         }
                     } else {
                         $currentProfileName = $currentFormats->profileName;
-                        $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName . ' - ' . $currentShortCode];
-                        $i++;
+                        $formatExists = false;
+                        if (!empty($fileFormats)) {
+                            foreach ($fileFormats as $format) {
+                                if ($currentProfileName == $format['value']) {
+                                    $formatExists = true;
+                                }
+                            }
+                        }
+                        if(!$formatExists) {
+                            $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
+                            $i++;
+                            $formatExists = false;
+                        }
                     }
                 }
             }
