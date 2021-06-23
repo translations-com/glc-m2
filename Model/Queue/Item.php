@@ -788,7 +788,11 @@ class Item extends AbstractModel
             // try to find page with our identifier where target store set directly
             $needNewEntity = true;
             $pages = $this->pageCollectionFactory->create();
-            $pages->addFieldToFilter('identifier', $identifier);
+            if (!array_key_exists('identifier', $translatedData['attributes'])) {
+                $pages->addFieldToFilter('identifier', $identifier);
+            } else{
+                $pages->addFieldToFilter('identifier', $translatedData['attributes']['identifier']);
+            }
             $pages->addStoreFilter($targetStoreId);
             $pagesFound = $pages->getSize();
             if ($pagesFound) {
