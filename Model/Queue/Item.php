@@ -712,7 +712,11 @@ class Item extends AbstractModel
             // try to find block with our identifier where target store set directly
             $needNewEntity = true;
             $blocks = $this->blockCollectionFactory->create();
-            $blocks->addFieldToFilter('identifier', $identifier);
+            if (!array_key_exists('identifier', $translatedData['attributes'])) {
+                $blocks->addFieldToFilter('identifier', $identifier);
+            } else{
+                $blocks->addFieldToFilter('identifier', $translatedData['attributes']['identifier']);
+            }
             $blocks->addStoreFilter($targetStoreId);
             $blocksFound = count($blocks);
             if ($blocksFound) {
@@ -746,7 +750,9 @@ class Item extends AbstractModel
                 $newEntity->setTitle($oldEntity->getTitle());
                 $newEntity->addData($translatedData['attributes']);
                 $newEntity->setStoreId($targetStoreId);
-                $newEntity->setIdentifier($oldEntity->getIdentifier());
+                if (!array_key_exists('identifier', $translatedData['attributes'])) {
+                    $newEntity->setIdentifier($oldEntity->getIdentifier());
+                }
                 $newEntity->setIsActive($oldEntity->getIsActive());
                 $newEntity->save();
                 $this->setData('new_entity_id', $newEntity->getBlockId());
