@@ -812,6 +812,7 @@ class Item extends AbstractModel
                             $this->addNewCmsRevision($foundPage, $translatedData['attributes']);
                         }
                         $needNewEntity = false;
+                        $foundPage->save();
                         $this->setData('new_entity_id', $foundPage->getPageId());
                     } elseif ($stores[0] == '0') {
                         $foundPage = $this->resetStoreViews($foundPage);
