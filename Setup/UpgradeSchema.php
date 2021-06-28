@@ -184,6 +184,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $this->upgradeToVersion('0.9.7');
         $this->upgradeToVersion('1.8.0');
         $this->upgradeToVersion('1.8.4');
+        $this->upgradeToVersion('1.8.5');
         $this->installer->endSetup();
     }
 
@@ -596,5 +597,22 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]
         );
 
+    }
+    /**
+     * Adds columns include_options to the globallink_job_queue table to keep track of choosing to translate product attribute options.
+     */
+    protected function upgradeTo_185()
+    {
+        $connection = $this->installer->getConnection();
+        $connection->addColumn(
+            $this->tableQueue,
+            'include_options',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
+                'unsigned' => true,
+                'nullable' => true,
+                'comment' => 'Only applicable to the product attribute entity type.'
+            ]
+        );
     }
 }

@@ -68,6 +68,7 @@ class Send extends BaseSubmission
                 'items' => $data['submission']['items'],
                 'localizations' => $data['submission']['localize'],
                 'confirmation_email' => $data['submission']['confirmation_email'],
+                'include_options' => $data['submission']['include_options']
             ];
             if (isset($data['submission']['attribute_text'])) {
                 $queueData['attribute_text'] = $data['submission']['attribute_text'];

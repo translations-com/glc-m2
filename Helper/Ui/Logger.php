@@ -14,8 +14,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 use TransPerfect\GlobalLink\Api\LoggerInterface;
 use Magento\Backend\Model\Auth;
-use TransPerfect\GlobalLink\Helper\Data as Helper;
-use TransPerfect\GlobalLink\Helper\Data;
 
 /**
  * Class Logger
@@ -24,6 +22,9 @@ use TransPerfect\GlobalLink\Helper\Data;
  */
 class Logger extends AbstractHelper
 {
+    const LOGGING_LEVEL_DEBUG = 0;
+    const LOGGING_LEVEL_INFO = 1;
+    const LOGGING_LEVEL_ERROR = 2;
     /**
      * Severity types
      */
@@ -42,9 +43,16 @@ class Logger extends AbstractHelper
     const CONFIG_DELETE_ACTION_TYPE = 'config_delete_action';
 
     /**
-     * @var \TransPerfect\GlobalLink\Helper\Data
+     * Object types
      */
-    protected $helper;
+    const CATALOG_CATEGORY_TYPE_ID = 3;
+    const CATALOG_PRODUCT_TYPE_ID = 4;
+    const PRODUCT_ATTRIBUTE_TYPE_ID = 11;
+    const CMS_PAGE_TYPE_ID = 12;
+    const CMS_BLOCK_TYPE_ID = 13;
+    const CUSTOMER_ATTRIBUTE_TYPE_ID = 14;
+    const PRODUCT_REVIEW_ID = 15;
+
     /**
      * @var \Magento\Backend\Model\Auth
      */
@@ -73,11 +81,9 @@ class Logger extends AbstractHelper
     public function __construct(
         Context $context,
         LoggerInterface $logger,
-        Auth $auth,
-        Helper $helper
+        Auth $auth
     ) {
         $this->url = $context->getUrlBuilder();
-        $this->helper = $helper;
         $this->auth = $auth;
         parent::__construct($context);
         $this->_logger = $logger;
@@ -114,22 +120,22 @@ class Logger extends AbstractHelper
         $logAction = false;
         switch ($actionData['severity']) {
             case self::NOTICE:
-                if (in_array(Data::LOGGING_LEVEL_INFO, $levels)) {
+                if (in_array(self::LOGGING_LEVEL_INFO, $levels)) {
                     $logAction = 'addInfo';
                 }
                 break;
             case self::ALERT:
-                if (in_array(Data::LOGGING_LEVEL_ERROR, $levels)) {
+                if (in_array(self::LOGGING_LEVEL_ERROR, $levels)) {
                     $logAction = 'addError';
                 }
                 break;
             case self::CRITICAL:
-                if (in_array(Data::LOGGING_LEVEL_ERROR, $levels)) {
+                if (in_array(self::LOGGING_LEVEL_ERROR, $levels)) {
                     $logAction = 'addCritical';
                 }
                 break;
             case self::DEBUG:
-                if (in_array(Data::LOGGING_LEVEL_DEBUG, $levels)) {
+                if (in_array(self::LOGGING_LEVEL_DEBUG, $levels)) {
                     $logAction = 'addDebug';
                 }
                 break;
@@ -154,16 +160,20 @@ class Logger extends AbstractHelper
     public function logAction($entityId, $actionType, $data = [], $severity = 'debug', $message = '')
     {
         if ($this->enabledLevels !== null) {
-            $entityMetaData = $this->helper->mapObjectTypeToModel();
+            $entityMetaData = $this->mapObjectTypeToModel();
             $data['user'] = $this->auth->getUser()->getName();
             $data['action'] = $this->url->getCurrentUrl();
-            $_data['message'] = $entityMetaData[$entityId]['messages'][$actionType];
-            if ($message) {
-                $_data['message'] .= ' | ' . $message;
+            if(isset($entityMetaData[$entityId]['messages'][$actionType])){
+                $data['message'] = $entityMetaData[$entityId]['messages'][$actionType];
+            } else{
+                $data['message'] = '';
             }
-            $_data['severity'] = $severity;
-            $_data['context'] = $data;
-            $actionData = $this->prepareLogData($_data);
+            if ($message) {
+                $data['message'] .= ' | ' . $message;
+            }
+            $data['severity'] = $severity;
+            $data['context'] = $data;
+            $actionData = $this->prepareLogData($data);
             $this->logSubmissionAction($actionData);
         }
         return $this;
@@ -171,7 +181,7 @@ class Logger extends AbstractHelper
 
     public function isDebugEnabled(){
         $levels = explode(',', $this->enabledLevels);
-        if (in_array(Data::LOGGING_LEVEL_DEBUG, $levels)) {
+        if (in_array(self::LOGGING_LEVEL_DEBUG, $levels)) {
             return true;
         } else{
             return false;
@@ -179,7 +189,7 @@ class Logger extends AbstractHelper
     }
     public function isErrorEnabled(){
         $levels = explode(',', $this->enabledLevels);
-        if (in_array(Data::LOGGING_LEVEL_ERROR, $levels)) {
+        if (in_array(self::LOGGING_LEVEL_ERROR, $levels)) {
             return true;
         } else{
             return false;
@@ -187,11 +197,81 @@ class Logger extends AbstractHelper
     }
     public function isInfoEnabled(){
         $levels = explode(',', $this->enabledLevels);
-        if (in_array(Data::LOGGING_LEVEL_INFO, $levels)) {
+        if (in_array(self::LOGGING_LEVEL_INFO, $levels)) {
             return true;
         } else{
             return false;
         }
+    }
+    /**
+     * @return array
+     */
+    public function mapObjectTypeToModel()
+    {
+        return [
+            self::CATALOG_CATEGORY_TYPE_ID => [
+                'class' => \Magento\Catalog\Model\Category::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Categories'),
+                    'send_action' => __('Send for Translation - Categories'),
+                    'config_action' => __('Field Configuration - Categories'),
+                ]
+            ],
+            self::CATALOG_PRODUCT_TYPE_ID => [
+                'class' => \Magento\Catalog\Model\Product::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Products'),
+                    'send_action' => __('Send for Translation - Products'),
+                    'config_action' => __('Field Configuration - Products'),
+                ]
+            ],
+            self::PRODUCT_ATTRIBUTE_TYPE_ID => [
+                'class' => \Magento\Eav\Model\Attribute::class,
+                'entity' => \Magento\Catalog\Model\Product::ENTITY,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Product Attributes'),
+                    'send_action' => __('Send for Translation - Product Attributes'),
+                    'config_action' => __('Field Configuration - Product Attributes'),
+                ]
+            ],
+            self::CMS_PAGE_TYPE_ID => [
+                'class' => \Magento\Cms\Model\Page::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - CMS Pages'),
+                    'send_action' => __('Send for Translation - CMS Pages'),
+                    'config_action' => __('Field Configuration - CMS Pages'),
+                    'config_add_action' => __('Field Configuration Add - CMS Pages'),
+                    'config_delete_action' => __('Field Configuration Delete - CMS Pages')
+                ]
+            ],
+            self::CMS_BLOCK_TYPE_ID => [
+                'class' =>\Magento\Cms\Model\Block::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - CMS Blocks'),
+                    'send_action' => __('Send for Translation - CMS Blocks'),
+                    'config_action' => __('Field Configuration - CMS Blocks'),
+                    'config_add_action' => __('Field Configuration Add - CMS Blocks'),
+                    'config_delete_action' => __('Field Configuration Delete - CMS Blocks')
+                ]
+            ],
+            self::CUSTOMER_ATTRIBUTE_TYPE_ID => [
+                'class' => \Magento\Eav\Model\Attribute::class,
+                'entity' => \Magento\Customer\Model\Customer::ENTITY,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Customer Attributes'),
+                    'send_action' => __('Send for Translation - Customer Attributes'),
+                    'config_action' => __('Field Configuration - Customer Attributes'),
+                ]
+            ],
+            self::PRODUCT_REVIEW_ID => [
+                'class' => \Magento\Review\Model\Review::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Product Reviews'),
+                    'send_action' => __('Send for Translation - Product Reviews'),
+                    'config_action' => __('Field Configuration - Product Reviews'),
+                ]
+            ],
+        ];
     }
 
 }

@@ -155,7 +155,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         PageCollectionFactory $pageCollectionFactory,
         BlockCollectionFactory $blockCollectionFactory,
         StoreCollectionFactory $storeCollectionFactory,
-        FieldProductCategoryFactory $fieldProductCategoryFactory
+        FieldProductCategoryFactory $fieldProductCategoryFactory,
+        \TransPerfect\GlobalLink\Helper\Ui\Logger $logger
     ) {
         $this->fieldProductCategoryFactory  = $fieldProductCategoryFactory;
         $this->eavConfig = $eavConfig;
@@ -177,6 +178,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->pageCollectionFactory = $pageCollectionFactory;
         $this->blockCollectionFactory = $blockCollectionFactory;
         $this->storeCollectionFactory = $storeCollectionFactory;
+        $this->logger = $logger;
         parent::__construct($context);
         $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
@@ -506,76 +508,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         return false;
     }
-    /**
-     * @return array
-     */
-    public function mapObjectTypeToModel()
-    {
-        return [
-            self::CATALOG_CATEGORY_TYPE_ID => [
-                'class' => \Magento\Catalog\Model\Category::class,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - Categories'),
-                    'send_action' => __('Send for Translation - Categories'),
-                    'config_action' => __('Field Configuration - Categories'),
-                ]
-            ],
-            self::CATALOG_PRODUCT_TYPE_ID => [
-                'class' => \Magento\Catalog\Model\Product::class,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - Products'),
-                    'send_action' => __('Send for Translation - Products'),
-                    'config_action' => __('Field Configuration - Products'),
-                ]
-            ],
-            self::PRODUCT_ATTRIBUTE_TYPE_ID => [
-                'class' => \Magento\Eav\Model\Attribute::class,
-                'entity' => \Magento\Catalog\Model\Product::ENTITY,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - Product Attributes'),
-                    'send_action' => __('Send for Translation - Product Attributes'),
-                    'config_action' => __('Field Configuration - Product Attributes'),
-                ]
-            ],
-            self::CMS_PAGE_TYPE_ID => [
-                'class' => \Magento\Cms\Model\Page::class,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - CMS Pages'),
-                    'send_action' => __('Send for Translation - CMS Pages'),
-                    'config_action' => __('Field Configuration - CMS Pages'),
-                    'config_add_action' => __('Field Configuration Add - CMS Pages'),
-                    'config_delete_action' => __('Field Configuration Delete - CMS Pages')
-                ]
-            ],
-            self::CMS_BLOCK_TYPE_ID => [
-                'class' =>\Magento\Cms\Model\Block::class,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - CMS Blocks'),
-                    'send_action' => __('Send for Translation - CMS Blocks'),
-                    'config_action' => __('Field Configuration - CMS Blocks'),
-                    'config_add_action' => __('Field Configuration Add - CMS Blocks'),
-                    'config_delete_action' => __('Field Configuration Delete - CMS Blocks')
-                ]
-            ],
-            self::CUSTOMER_ATTRIBUTE_TYPE_ID => [
-                'class' => \Magento\Eav\Model\Attribute::class,
-                'entity' => \Magento\Customer\Model\Customer::ENTITY,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - Customer Attributes'),
-                    'send_action' => __('Send for Translation - Customer Attributes'),
-                    'config_action' => __('Field Configuration - Customer Attributes'),
-                ]
-            ],
-            self::PRODUCT_REVIEW_ID => [
-                'class' => \Magento\Review\Model\Review::class,
-                'messages' => [
-                    'form_action' => __('Send for Translation Form - Product Reviews'),
-                    'send_action' => __('Send for Translation - Product Reviews'),
-                    'config_action' => __('Field Configuration - Product Reviews'),
-                ]
-            ],
-        ];
-    }
+
 
     public function reIndexing()
     {
@@ -1170,5 +1103,75 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return false;
         }
 
+    }
+    /**
+     * @return array
+     */
+    public function mapObjectTypeToModel()
+    {
+        return [
+            self::CATALOG_CATEGORY_TYPE_ID => [
+                'class' => \Magento\Catalog\Model\Category::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Categories'),
+                    'send_action' => __('Send for Translation - Categories'),
+                    'config_action' => __('Field Configuration - Categories'),
+                ]
+            ],
+            self::CATALOG_PRODUCT_TYPE_ID => [
+                'class' => \Magento\Catalog\Model\Product::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Products'),
+                    'send_action' => __('Send for Translation - Products'),
+                    'config_action' => __('Field Configuration - Products'),
+                ]
+            ],
+            self::PRODUCT_ATTRIBUTE_TYPE_ID => [
+                'class' => \Magento\Eav\Model\Attribute::class,
+                'entity' => \Magento\Catalog\Model\Product::ENTITY,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Product Attributes'),
+                    'send_action' => __('Send for Translation - Product Attributes'),
+                    'config_action' => __('Field Configuration - Product Attributes'),
+                ]
+            ],
+            self::CMS_PAGE_TYPE_ID => [
+                'class' => \Magento\Cms\Model\Page::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - CMS Pages'),
+                    'send_action' => __('Send for Translation - CMS Pages'),
+                    'config_action' => __('Field Configuration - CMS Pages'),
+                    'config_add_action' => __('Field Configuration Add - CMS Pages'),
+                    'config_delete_action' => __('Field Configuration Delete - CMS Pages')
+                ]
+            ],
+            self::CMS_BLOCK_TYPE_ID => [
+                'class' =>\Magento\Cms\Model\Block::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - CMS Blocks'),
+                    'send_action' => __('Send for Translation - CMS Blocks'),
+                    'config_action' => __('Field Configuration - CMS Blocks'),
+                    'config_add_action' => __('Field Configuration Add - CMS Blocks'),
+                    'config_delete_action' => __('Field Configuration Delete - CMS Blocks')
+                ]
+            ],
+            self::CUSTOMER_ATTRIBUTE_TYPE_ID => [
+                'class' => \Magento\Eav\Model\Attribute::class,
+                'entity' => \Magento\Customer\Model\Customer::ENTITY,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Customer Attributes'),
+                    'send_action' => __('Send for Translation - Customer Attributes'),
+                    'config_action' => __('Field Configuration - Customer Attributes'),
+                ]
+            ],
+            self::PRODUCT_REVIEW_ID => [
+                'class' => \Magento\Review\Model\Review::class,
+                'messages' => [
+                    'form_action' => __('Send for Translation Form - Product Reviews'),
+                    'send_action' => __('Send for Translation - Product Reviews'),
+                    'config_action' => __('Field Configuration - Product Reviews'),
+                ]
+            ],
+        ];
     }
 }

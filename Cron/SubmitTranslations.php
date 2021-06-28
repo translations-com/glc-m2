@@ -14,6 +14,10 @@ use TransPerfect\GlobalLink\Model\Queue\Item;
 class SubmitTranslations extends Translations
 {
     /**
+     * @var bool includeOptions
+     */
+    private $includeOptions;
+    /**
      * @var string current run mode cron|cli
      */
     protected $mode;
@@ -220,7 +224,7 @@ class SubmitTranslations extends Translations
 
         // set status optimistically
         $queue->setStatus(Queue::STATUS_SENT);
-
+        $this->includeOptions = $queue->getData('include_options');
         $limitUploads = $this->limitUploads;
         foreach ($items as $item) {
             if (!$this->allowDuplicateSubmissions) {
@@ -908,22 +912,22 @@ class SubmitTranslations extends Translations
         if (empty($attrArr)) {
             return [];
         }
+        if($this->includeOptions == 1) {
+            $options = $attribute->getOptions();
 
-        $options = $attribute->getOptions();
-
-        foreach ($options as $option) {
-            $value = $option->getValue();
-            $label = $option->getLabel();
-            if (!empty($value) && !empty($label) && !is_numeric($label)) {
-                $optArr['entity_' . $entityId][$value] = $label;
+            foreach ($options as $option) {
+                $value = $option->getValue();
+                $label = $option->getLabel();
+                if (!empty($value) && !empty($label) && !is_numeric($label)) {
+                    $optArr['entity_' . $entityId][$value] = $label;
+                }
             }
+            $data['options'] = $optArr;
         }
-
         $data['object_id'] = $entityId;
         $data['object_type_id'] = HelperData::PRODUCT_ATTRIBUTE_TYPE_ID;
 
         $data['attributes'] = $attrArr;
-        $data['options'] = $optArr;
         $data['max_length'] = $lengthArr;
 
         return $data;

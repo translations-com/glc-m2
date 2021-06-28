@@ -111,7 +111,7 @@ class TranslationStatus extends AbstractDb
                     //skip cms pages and cms blocks
                     continue;
                 }
-
+                $entityIds = array_unique(($entityIds));
                 $existInDB = $this->isExistForTypeAndStoreByEntities($typeId, $entityIds, $storeId);
                 //prepare update request for selected ids
                 $updateWhere = array_merge($updateWhere, array_keys($existInDB));

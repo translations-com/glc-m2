@@ -101,7 +101,8 @@ class Product extends Data
         PageCollectionFactory $pageCollectionFactory,
         BlockCollectionFactory $blockCollectionFactory,
         StoreCollectionFactory $storeCollectionFactory,
-        FieldProductCategoryFactory $fieldProductCategoryFactory
+        FieldProductCategoryFactory $fieldProductCategoryFactory,
+        \TransPerfect\GlobalLink\Helper\Ui\Logger $logger
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -134,7 +135,8 @@ class Product extends Data
             $pageCollectionFactory,
             $blockCollectionFactory,
             $storeCollectionFactory,
-            $fieldProductCategoryFactory
+            $fieldProductCategoryFactory,
+            $logger
         );
     }
 

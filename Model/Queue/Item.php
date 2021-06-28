@@ -397,7 +397,7 @@ class Item extends AbstractModel
                     $this->applyTranslationCatalogProduct();
             break;
             case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
-                    $this->applyTranslationProductAttribute();
+                    $this->applyTranslationProductAttribute($queue->getData('include_options'));
             break;
             case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationCustomerAttribute();
@@ -1044,7 +1044,7 @@ class Item extends AbstractModel
      * @return void
      * @throws \Exception
      */
-    protected function applyTranslationProductAttribute()
+    protected function applyTranslationProductAttribute($includeOptions)
     {
         $entityId = $this->getEntityId();
         $targetStoreIds = $this->getTargetStoreIds();
@@ -1056,15 +1056,26 @@ class Item extends AbstractModel
                 ProductAttributeInterface::ENTITY_TYPE_CODE,
                 $entityId
             );
-            $options = $optionsAttribute->getOptions();
-            foreach ($options as $option) {
-                $optionId = $option->getValue();
-                if (empty($optionId)) {
-                    continue;
-                }
-                if (!empty($translatedData['options']['entity_' . $entityId][$optionId])) {
-                    /* Added 03/24/2021 Justin Griffin, due to inability to save data using Magento constructs */
-                    $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_' . $entityId][$optionId]));
+            if($includeOptions == 1) {
+                if($optionsAttribute->getIsUserDefined() == 1) {
+                    $options = $optionsAttribute->getOptions();
+                    foreach ($options as $option) {
+                        $optionId = $option->getValue();
+                        if (empty($optionId)) {
+                            continue;
+                        }
+                        if (!empty($translatedData['options']['entity_' . $entityId][$optionId])) {
+                            /* Added 03/24/2021 Justin Griffin, due to inability to save data using Magento constructs */
+                            $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_' . $entityId][$optionId]));
+                        }
+                    }
+                } else{
+                    $logData = [
+                        'message' => 'Attribute options were chosen to be translated, but could not. The attribute was not user defined.',
+                    ];
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                        $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+                    }
                 }
             }
             //$optionsAttribute->setOptions($options);
