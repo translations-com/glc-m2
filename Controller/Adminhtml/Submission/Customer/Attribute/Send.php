@@ -69,11 +69,12 @@ class Send extends BaseSubmission
                 'localizations' => $data['submission']['localize'],
                 'confirmation_email' => $data['submission']['confirmation_email'],
             ];
-            if (isset($data['submission']['attribute_text'])) {
-                $queueData['attribute_text'] = $data['submission']['attribute_text'];
+            $project = $data['submission']['project'];
+            if (isset($data['submission']['attribute_text'][$project])) {
+                $queueData['attribute_text'] = $data['submission']['attribute_text'][$project];
             }
-            if (isset($data['submission']['attribute_combo'])) {
-                $queueData['attribute_combo'] = $data['submission']['attribute_combo'];
+            if (isset($data['submission']['attribute_combo'][$project])) {
+                $queueData['attribute_combo'] = $data['submission']['attribute_combo'][$project];
             }
             $queue->setData($queueData);
             try {
