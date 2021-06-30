@@ -217,7 +217,7 @@ class Form extends GenericForm
                                     $attributeFieldId,
                                     'text',
                                     [
-                                        'name' => 'submission[attribute_text]',
+                                        'name' => 'submission[attribute_text]['.$projectShortcode.']',
                                         'label' => __($attribute->name) . ' (Required)',
                                         'title' => __($attribute->name),
                                         'required' => false,
@@ -230,7 +230,7 @@ class Form extends GenericForm
                                     $attributeFieldId,
                                     'text',
                                     [
-                                        'name' => 'submission[attribute_text]',
+                                        'name' => 'submission[attribute_text]['.$projectShortcode.']',
                                         'label' => __($attribute->name),
                                         'title' => __($attribute->name),
                                         'required' => false,
@@ -255,7 +255,7 @@ class Form extends GenericForm
                                 $attributeFieldId,
                                 'select',
                                 [
-                                    'name' => 'submission[attribute_combo]',
+                                    'name' => 'submission[attribute_combo]['.$projectShortcode.']',
                                     'label' => __($attribute->name),
                                     'title' => __($attribute->name),
                                     'values' => $values,
@@ -276,7 +276,7 @@ class Form extends GenericForm
                                 $attributeFieldId,
                                 'text',
                                 [
-                                    'name' => 'submission[attribute_text]',
+                                    'name' => 'submission[attribute_text]['.$projectShortcode.']',
                                     'label' => __($attribute->name) . ' (Required)',
                                     'title' => __($attribute->name),
                                     'required' => false,
@@ -289,7 +289,7 @@ class Form extends GenericForm
                                 $attributeFieldId,
                                 'text',
                                 [
-                                    'name' => 'submission[attribute_text]',
+                                    'name' => 'submission[attribute_text]['.$projectShortcode.']',
                                     'label' => __($attribute->name),
                                     'title' => __($attribute->name),
                                     'required' => false,
@@ -314,7 +314,7 @@ class Form extends GenericForm
                             $attributeFieldId,
                             'select',
                             [
-                                'name' => 'submission[attribute_combo]',
+                                'name' => 'submission[attribute_combo]['.$projectShortcode.']',
                                 'label' => __($attribute->name),
                                 'title' => __($attribute->name),
                                 'values' => $values,

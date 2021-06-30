@@ -33,6 +33,7 @@ class Send extends BaseSubmission
             $dueDate = $data['submission']['due_date'];
             $dueDate = $this->_dateTime->gmtTimestamp($dueDate);
             $dueDate = $dueDate + (24*60*60) - 1;
+            $project = $data['submission']['project'];
 
             $formData = $this->getRequest()->getParam('submission');
             foreach ($data['submission']['items'] as $itemId => $itemName) {
@@ -75,11 +76,11 @@ class Send extends BaseSubmission
                 'localizations' => $data['submission']['localize'],
                 'confirmation_email' => $data['submission']['confirmation_email']
             ];
-            if (isset($data['submission']['attribute_text'])) {
-                $queueData['attribute_text'] = $data['submission']['attribute_text'];
+            if (isset($data['submission']['attribute_text'][$project])) {
+                $queueData['attribute_text'] = $data['submission']['attribute_text'][$project];
             }
-            if (isset($data['submission']['attribute_combo'])) {
-                $queueData['attribute_combo'] = $data['submission']['attribute_combo'];
+            if (isset($data['submission']['attribute_combo'][$project])) {
+                $queueData['attribute_combo'] = $data['submission']['attribute_combo'][$project];
             }
             $queue->setData($queueData);
 
