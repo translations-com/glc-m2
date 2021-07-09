@@ -77,15 +77,12 @@ class Create extends BackendAction
             if (!empty($sessionData) && $sessionData != null) {
                 $productsToTranslate = array_keys($sessionData['items']);
             } else {
-                $selected = $this->getRequest()->getParam('selected');
-                if($selected != null) {
+                $sessionData = $this->session->getFormData();
+                if (!empty($sessionData)) {
+                    $productsToTranslate = array_keys($sessionData['items']);
+                } else {
                     $collection = $this->filter->getCollection($this->productCollectionFactory->create());
                     $productsToTranslate = $collection->getAllIds();
-                }
-                else {
-                    $error = __('No items are selected for translation');
-                    $this->messageManager->addErrorMessage($error);
-                    return $this->_redirect('catalog/product');
                 }
             }
         }
