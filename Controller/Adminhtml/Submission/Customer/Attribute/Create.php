@@ -35,6 +35,12 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        $attributeId = $this->getRequest()->getParam('id');
+        if($attributeId == null){
+            $this->messageManager->addErrorMessage("The attribute does not exist. Please save before attempting to send for translation");
+            $redirectFactory = $this->resultRedirectFactory->create();
+            return $redirectFactory->setPath('adminhtml/customer_attribute');
+        }
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

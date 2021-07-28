@@ -229,13 +229,16 @@ class ReceiveTranslations extends Translations
                     $dom = simplexml_load_string($translatedText);
                     foreach ($dom->children() as $child) {
                         $nodeValue = (string) $child;
+                        $nodeLength = mb_strlen($nodeValue);
                         $maxLength = (string)$child->attributes()->max_length;
-                        if (strlen($nodeValue) > $maxLength && $maxLength != "none" && $maxLength != "") {
+                        if ($nodeLength > $maxLength && $maxLength != "none" && $maxLength != "") {
                             $maxLengthError = true;
                             $item->setStatusId(Item::STATUS_MAXLENGTH);
                             $item->save();
                             $errorMessage = "Max length for field \"" . (string)$child->attributes()->attribute_code . "\" for document ticket " . $target->documentTicket . " is greater than the allowed length.";
+                            $errorMessage2 = "Field contents: " . $nodeValue;
                             $this->cliMessage($errorMessage, 'error');
+                            $this->cliMessage($errorMessage2, 'error');
                             $logData = [
                                 'file' => __FILE__,
                                 'line' => __LINE__,

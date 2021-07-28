@@ -51,13 +51,13 @@ class Send extends BaseSubmission
                 if ($attribute->type == 'TEXT') {
                     if ($attribute->mandatory && $formData['attribute_text'] == "") {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
-                        return $resultRedirect->setPath('catalog/product');
+                        return $resultRedirect->setPath('review/product/index');
                     }
                 }
                 if ($attribute->type == 'COMBO') {
                     if ($attribute->mandatory && !isset($formData['attribute_combo'])) {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
-                        return $resultRedirect->setPath('catalog/product');
+                        return $resultRedirect->setPath('review/product/index');
                     }
                 }
             }
