@@ -155,8 +155,8 @@ class Grid extends Extended
     {
         /** @var \Magento\Catalog\Model\ResourceModel\Category\Attribute\Collection $collection */
         $collection = $this->collectionFactory->create();
-        $collection->appendFieldData();
-        $collection->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
+        $collection->appendData();
+        $collection->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
         $attributes = $collection->getAllIds();
         return implode(",", $attributes);
     }

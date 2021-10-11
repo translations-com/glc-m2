@@ -950,7 +950,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $entity_type_id = $this->eavConfig->getEntityType($entity_type_id)->getId();
             $entityType = $this->eavConfig->getEntityType($entity_type_id);
         }
-
+        /** @var \Magento\Framework\DB\Adapter\Pdo\Mysql $connection */
+        $connection = $this->resource->getConnection();
+        $table = $connection->getTableName('eav_entity_attribute');
+        $connection->beginTransaction();
+        $connection->update($table, ['include_in_translation' => 0], ['entity_type_id = ?' => $entity_type_id]);
+        $connection->update($table, ['include_in_translation' => 1], ['attribute_id IN (?)' => $attributeIds], true);
+        try {
+            $connection->commit();
+        } catch (\Exception $e) {
+            $connection->rollBack();
+            throw $e;
+        }
+        return $this;
+        /*
         $connection = $this->resource->getConnection();
         $table = $connection->getTableName('globallink_field_product_category');
         $connection->beginTransaction();
@@ -962,7 +975,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $connection->rollBack();
             throw $e;
         }
-        /** @var \Magento\Framework\DB\Adapter\Pdo\Mysql $connection */
+
         foreach ($attributeIds as $attribute) {
             $existingFieldRow = $this->productFieldModel->getRecordByAttributeId($attribute);
             $existingEntity = $this->entityAttribute->getRecordByAttributeId($attribute);
@@ -984,8 +997,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $newRecord->setData('attribute_id', $existingEntity->getData('attribute_id'));
                 $newRecord->save();
             }
-        }
-        return $this;
+        }*/
     }
 
     /**

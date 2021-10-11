@@ -199,13 +199,17 @@ class Grid extends Extended
         $collection = $this->_getAttributeCollection();
         $selected = [];
 
-        foreach ($collection as $item) {
+        /*foreach ($collection as $item) {
             $matchingFieldRow = $this->productFieldModel->getRecord($item->getData('entity_attribute_id'));
             if ($matchingFieldRow->getData('include_in_translation') == 1) {
                 array_push($selected, $item->getId());
             }
+        }*/
+        foreach ($collection as $item) {
+            if ($item->getIncludeInTranslation()) {
+                array_push($selected, $item->getId());
+            }
         }
-
         return implode(',', $selected);
     }
 

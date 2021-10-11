@@ -409,7 +409,7 @@ class Item extends AbstractModel
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
             endswitch;
             $start = microtime(true);
-            $this->sendDownloadConfirmation();
+
             $logData = [
                 'message' => "Send download confirmation duration: " . (microtime(true) - $start) . " seconds",
             ];
@@ -1398,27 +1398,7 @@ class Item extends AbstractModel
         $this->translationStatusResource->moveToTranslated($allEntities, $targetStoreIds);
     }
 
-    /**
-     * send download confirmation for document of current item
-     */
-    protected function sendDownloadConfirmation()
-    {
-        try {
-            $confirmationTicket = $this->translationService->sendDownloadConfirmation($this->getTargetTicket());
-        } catch (\Exception $e) {
-            $errorMessage = 'Exception while sending download confirmation for target ' . $this->getTargetTicket() . ': ' . $e->getMessage();
-            $logData = [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'message' => $errorMessage,
-                ];
-            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
-                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
-            }
-            $queue = $this->_getQueue();
-            $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
-        }
-    }
+
 
     /**
      * remove data from url_rewrite table

@@ -29,6 +29,7 @@ class Autoimport extends Submission
     {
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
+        $this->cancelTranslations->executeAutomatic();
         //Runs receive translations command to import
         $this->receiveTranslations->executeAutomatic();
         $automaticItemIds = $this->receiveTranslations->getAutomaticItemIds();

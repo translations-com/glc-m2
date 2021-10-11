@@ -565,15 +565,25 @@ class Form extends GenericForm
                 }
 
                 $targetlocales[$project->projectInfo->shortCode] = [];
-                foreach ($project->projectLanguageDirections as $direction) {
-                    if ($direction->sourceLanguage->locale == $this->currentLocale) {
-                        // limit by stores locales
-                        if (array_key_exists($direction->targetLanguage->locale, $this->localize)) {
-                            $serviceLocaleLabel = $direction->targetLanguage->value;
-                            $targetlocales[$project->projectInfo->shortCode][] = [
-                                'value' => $direction->targetLanguage->locale,
-                                'label' => $serviceLocaleLabel,
-                            ];
+                if(isset($project->projectLanguageDirections->sourceLanguage) && isset($project->projectLanguageDirections->targetLanguage)){
+                    if (array_key_exists($project->projectLanguageDirections->targetLanguage->locale, $this->localize)) {
+                        $serviceLocaleLabel = $project->projectLanguageDirections->targetLanguage->value;
+                        $targetlocales[$project->projectInfo->shortCode][] = [
+                            'value' => $project->projectLanguageDirections->targetLanguage->locale,
+                            'label' => $serviceLocaleLabel,
+                        ];
+                    }
+                } else{
+                    foreach ($project->projectLanguageDirections as $direction) {
+                        if ($direction->sourceLanguage->locale == $this->currentLocale) {
+                            // limit by stores locales
+                            if (array_key_exists($direction->targetLanguage->locale, $this->localize)) {
+                                $serviceLocaleLabel = $direction->targetLanguage->value;
+                                $targetlocales[$project->projectInfo->shortCode][] = [
+                                    'value' => $direction->targetLanguage->locale,
+                                    'label' => $serviceLocaleLabel,
+                                ];
+                            }
                         }
                     }
                 }

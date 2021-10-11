@@ -134,6 +134,7 @@ class Grid extends Extended
      */
     protected function _prepareColumns()
     {
+        $localeOptions = $this->helper->getLocaleOptionsArray();
         $this->addColumn(
             'submission_name',
             [
@@ -175,7 +176,7 @@ class Grid extends Extended
                 'header' => __('Source Language'),
                 'index' => 'source_locale',
                 'type' => 'options',
-                'options' => $this->helper->getLocaleOptionsArray(),
+                'options' => $localeOptions,
                 'renderer' => '\TransPerfect\GlobalLink\Block\Adminhtml\Submission\Grid\Renderer\EntityLinker'
             ]
         );
@@ -185,7 +186,7 @@ class Grid extends Extended
                 'header' => __('Target Language'),
                 'index' => 'pd_locale_iso_code',
                 'type' => 'options',
-                'options' => $this->helper->getLocaleOptionsArray(),
+                'options' => $localeOptions,
                 'renderer' => '\TransPerfect\GlobalLink\Block\Adminhtml\Submission\Grid\Renderer\EntityLinker'
             ]
         );

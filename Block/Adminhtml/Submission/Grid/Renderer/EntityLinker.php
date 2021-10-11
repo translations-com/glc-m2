@@ -16,6 +16,7 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
 {
     protected $helper;
     protected $backendHelper;
+    protected $localeColumnLabels = [];
 
     public function __construct(
         Helper $helper,
@@ -42,7 +43,7 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         $newEntityId = $row['new_entity_id'];
         $originalEntityId = $row['entity_id'];
         //$storeId = str_replace(",", "", $row['target_stores']);
-        $outputValue = $this->helper->getLocaleColumnLabel($value, false, true);
+        $outputValue = $this->getLocaleColumnLabel($value);
         $storeIdArray = $this->helper->getStoreIdFromLocale($value);
         if($storeIdArray != null) {
             $storeId = $storeIdArray[0];
@@ -113,6 +114,16 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
         }
     }
 
-
+    /**
+     * @param $value
+     * @return string
+     */
+    private function getLocaleColumnLabel($value): string
+    {
+        if (!isset($this->_localColumnLables[$value])) {
+            $this->localeColumnLabels[$value] = $this->helper->getLocaleColumnLabel($value, false, true);
+        }
+        return $this->localeColumnLabels[$value];
+    }
 
 }

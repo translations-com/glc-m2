@@ -117,7 +117,14 @@ class Grid extends Extended
                 'index' => 'name',
             ]
         );
-
+        $this->addColumn(
+            'parent_id',
+            [
+                'header' => __('Parent Category'),
+                'index' => 'parent_id',
+                'renderer' => '\TransPerfect\GlobalLink\Block\Adminhtml\Category\Grid\Renderer\ParentColumn',
+            ]
+        );
         $this->addColumn(
             'is_active',
             [

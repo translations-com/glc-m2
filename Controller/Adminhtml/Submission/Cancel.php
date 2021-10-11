@@ -41,13 +41,15 @@ class Cancel extends Submission
             $this->messageManager->addErrorMessage(__('Nothing selected'));
             return $this->resultRedirect->setPath('*/*/index');
         }
-        foreach ($items as $item) {
+        //Modified 10/11/21 by Justin Griffin: Removing functionality like this makes it harder to restore functionality to other things when they break
+        $completedItems = [];
+        /*foreach ($items as $item) {
             if ($item->isCompleted()) {
                 if (!in_array($item->getSubmissionName(), $completedItems)) {
                     $completedItems[] = $item->getSubmissionName();
                 }
             }
-        }
+        }*/
         try {
             if (count($completedItems) > 0) {
                 $completedItemsString = "Cannot cancel the following submissions because they are complete in PD: " . implode(",", $completedItems) . ". Please import instead.";

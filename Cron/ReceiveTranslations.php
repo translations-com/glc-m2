@@ -213,6 +213,7 @@ class ReceiveTranslations extends Translations
                     // can be found by submission ticket but can already been downloaded before
                     continue;
                 }
+                $errorsEncountered = 0;
                 $targetTicket = $target->ticket;
                 $maxLengthError = false;
                 $item = $this->getItemByDocTicket($target->documentTicket);
@@ -232,6 +233,7 @@ class ReceiveTranslations extends Translations
                         $nodeLength = mb_strlen($nodeValue);
                         $maxLength = (string)$child->attributes()->max_length;
                         if ($nodeLength > $maxLength && $maxLength != "none" && $maxLength != "") {
+                            $errorsEncountered++;
                             $maxLengthError = true;
                             $item->setStatusId(Item::STATUS_MAXLENGTH);
                             $item->save();
@@ -282,6 +284,7 @@ class ReceiveTranslations extends Translations
 
                 $filePath = $xmlFolder . '/' . $fileName;
                 if (!$this->file->write($filePath, $translatedText)) {
+                    $errorsEncountered++;
                     $errorMessage = "Can't write xml data to file " . $filePath;
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
@@ -299,7 +302,14 @@ class ReceiveTranslations extends Translations
                 if ($this->mode == 'automatic') {
                     $this->automaticItemIds[] = $downloadingItemId;
                 }
-                $this->cliMessage($fileName . ' downloaded for item ' . $downloadingItemId . ' from queue ' . $queue->getId());
+                if(!$maxLengthError) {
+                    $this->cliMessage($fileName . ' downloaded for item ' . $downloadingItemId . ' from queue ' . $queue->getId());
+                } else{
+                    $this->cliMessage('Item ' . $downloadingItemId . ' was not downloaded from queue ' . $queue->getId() . ' due to max length error');
+                }
+                if($errorsEncountered < 1){
+                    $this->sendDownloadConfirmation($queue, $target);
+                }
                 $queue->setProcessed(true);
             }
         }
@@ -332,7 +342,7 @@ class ReceiveTranslations extends Translations
                     }
                     $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered but completed in PD, resetting queue status to sent.");
                     $item = $this->getItemByDocTicket($target->documentTicket);
-                    $item->setStatusId(Item::STATUS_ERROR_DOWNLOAD);
+                    $item->setStatusId(Item::STATUS_INPROGRESS);
                     $item->save();
                 }
             }
@@ -391,5 +401,25 @@ class ReceiveTranslations extends Translations
     public function getAutomaticItemIds()
     {
         return $this->automaticItemIds;
+    }
+    /**
+     * send download confirmation for document of current item
+     */
+    protected function sendDownloadConfirmation($queue, $target)
+    {
+        try {
+            $confirmationTicket = $this->translationService->sendDownloadConfirmation($target->ticket);
+        } catch (\Exception $e) {
+            $errorMessage = 'Exception while sending download confirmation for target ' . $target->ticket  . ': ' . $e->getMessage();
+            $logData = [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $errorMessage,
+            ];
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
+            $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
+        }
     }
 }

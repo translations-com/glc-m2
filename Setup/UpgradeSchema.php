@@ -185,6 +185,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $this->upgradeToVersion('1.8.0');
         $this->upgradeToVersion('1.8.4');
         $this->upgradeToVersion('1.8.5');
+        $this->upgradeToVersion('1.8.7');
         $this->installer->endSetup();
     }
 
@@ -612,6 +613,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'unsigned' => true,
                 'nullable' => true,
                 'comment' => 'Only applicable to the product attribute entity type.'
+            ]
+        );
+    }
+    protected function upgradeTo_187()
+    {
+        $this->installer->getConnection()->addColumn(
+            $this->installer->getTable('eav_entity_attribute'),
+            'include_in_translation',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
+                'length' => 1,
+                'nullable' => true,
+                'comment' => 'Include in Translation'
             ]
         );
     }

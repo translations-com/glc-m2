@@ -98,7 +98,9 @@ class Update extends BackendAction
         $selected = $this->getRequest()->getParam('selected');
 
         foreach ($productAttributeCollection as $attribute) {
-            $existingRow = $this->productFieldModel->getRecord($attribute->getEntityAttributeId());
+            $includeInTranslation = (in_array($attribute->getEntityAttributeId(), $selected)) ? 1 : 0;
+            $attribute->setData('include_in_translation', $includeInTranslation);
+            /*$existingRow = $this->productFieldModel->getRecord($attribute->getEntityAttributeId());
             $includeInTranslation = (in_array($attribute->getEntityAttributeId(), $selected)) ? 1 : 0;
             if ($existingRow != null) {
                 $attribute->setData('include_in_translation', $includeInTranslation);
@@ -122,7 +124,7 @@ class Update extends BackendAction
                 $this->productFieldModel->setData('include_in_translation', $includeInTranslation);
                 $attribute->save();
                 $this->productFieldModel->save();
-            }
+            }*/
         }
 
         try {
@@ -162,7 +164,7 @@ class Update extends BackendAction
             $this->productAttributeCollection = $this->entityAttributeFactory->create();
             $this->productAttributeCollection->addFieldToFilter('main_table.entity_type_id', ['eq' => $this->productEntityTypeId]);
             $this->productAttributeCollection->addFieldToFilter('main_table.attribute_set_id', ['eq' => $this->_getCurrentAttributeSetId()]);
-            $this->productAttributeCollection->getSelect()->joinLeft(['field_product'=> $this->productAttributeCollection->getTable('globallink_field_product_category')], 'main_table.entity_attribute_id = field_product.entity_attribute_id', ['field_product.include_in_translation']);
+            //$this->productAttributeCollection->getSelect()->joinLeft(['field_product'=> $this->productAttributeCollection->getTable('globallink_field_product_category')], 'main_table.entity_attribute_id = field_product.entity_attribute_id', ['field_product.include_in_translation']);
         }
 
         return $this->productAttributeCollection;

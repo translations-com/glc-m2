@@ -670,13 +670,13 @@ class SubmitTranslations extends Translations
             $attributeSetId = $product->getAttributeSetId();
 
             $attributes = $this->productAttributeCollectionFactory->create();
-            $attributes->appendFieldData();
+            $attributes->appendData();
             //4-16-18 Justin: These were commented out as we pave the way for the removal of any core table modifications.
             //This will now be joined to globallink_field_product_category
-            //$attributes->addFieldToFilter('eav_entity_attribute.attribute_set_id', $attributeSetId);
-            //$attributes->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
-            $attributes->addFieldToFilter('globallink_field_product_category.attribute_set_id', $attributeSetId);
-            $attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
+            $attributes->addFieldToFilter('eav_entity_attribute.attribute_set_id', $attributeSetId);
+            $attributes->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
+            //$attributes->addFieldToFilter('globallink_field_product_category.attribute_set_id', $attributeSetId);
+            //$attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
             foreach ($attributes as $attribute) {
                 switch ($attribute->getBackendType()) {
                     case 'varchar':
@@ -701,10 +701,12 @@ class SubmitTranslations extends Translations
             [HelperData::CATALOG_CATEGORY_TYPE_ID]
         )) {
             $attributes = $this->categoryAttributeCollectionFactory->create();
-            $attributes->appendFieldData();
+            $attributes->appendData();
             $categoryEntityTypeId = 3;
-            $attributes->addFieldToFilter('globallink_field_product_category.entity_type_id', $categoryEntityTypeId);
-            $attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
+            $attributes->addFieldToFilter('eav_entity_attribute.entity_type_id', $categoryEntityTypeId);
+            $attributes->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
+            //$attributes->addFieldToFilter('globallink_field_product_category.entity_type_id', $categoryEntityTypeId);
+            //$attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
 
             foreach ($attributes as $attribute) {
                 switch ($attribute->getBackendType()) {
