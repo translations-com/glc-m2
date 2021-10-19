@@ -55,7 +55,7 @@ class Grid extends Extended
     {
         /** @var \Magento\Framework\Data\Collection\AbstractDb $collection */
         $collection = $this->collectionFactory->create();
-        $collection->appendFieldData();
+        $collection->appendData();
         $collection->addFieldToFilter(
             'frontend_input',
             ['in' => ['text', 'textarea']]
@@ -72,6 +72,7 @@ class Grid extends Extended
                     'custom_layout_update',
                     'path_in_store',
                     'url_path',
+                    'automatic_sorting'
             ]]
         );
         $this->setCollection($collection);

@@ -632,7 +632,7 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
         $pdproject = $client->getProject($project);
-        for ($i=0; $i < 8; $i++) {
+        for ($i=0; $i < 30; $i++) {
             $targetTickets = $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
             if($targetTickets != null)
                 return $targetTickets;
@@ -650,6 +650,12 @@ class GLExchangeClient
     public function getCompletedTargetsBySubmission($submissionTicket)
     {
         $client = $this->getConnect();
+        for ($i=0; $i < 30; $i++) {
+            $targetTickets = $client->getCompletedTargetsBySubmission($submissionTicket, $this->maxTargetCount);
+            if ($targetTickets != null) {
+                return $targetTickets;
+            }
+        }
         return $client->getCompletedTargetsBySubmission($submissionTicket, $this->maxTargetCount);
     }
 }

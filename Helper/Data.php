@@ -1072,10 +1072,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         switch ($typeId) {
             case self::CATALOG_CATEGORY_TYPE_ID:
                 $attributes = $this->categoryAttributeCollectionFactory->create();
-                $attributes->appendFieldData();
+                $attributes->appendData();
                 $categoryEntityTypeId = 3;
-                $attributes->addFieldToFilter('globallink_field_product_category.entity_type_id', $categoryEntityTypeId);
-                $attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
+                $attributes->addFieldToFilter('eav_entity_attribute.entity_type_id', $categoryEntityTypeId);
+                $attributes->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
                 $result['ok'] = (bool) count($attributes);
                 break;
             case self::CATALOG_PRODUCT_TYPE_ID:
@@ -1091,9 +1091,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 foreach ($attrSets as $attributeSetId) {
                     $attributes = $this->productAttributeCollectionFactory->create();
-                    $attributes->appendFieldData();
-                    $attributes->addFieldToFilter('globallink_field_product_category.attribute_set_id', $attributeSetId);
-                    $attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
+                    $attributes->appendData();
+                    $attributes->addFieldToFilter('eav_entity_attribute.attribute_set_id', $attributeSetId);
+                    $attributes->addFieldToFilter('eav_entity_attribute.include_in_translation', 1);
                     if (!count($attributes)) {
                         $attributeSetRepository = $this->attributeSet->get($attributeSetId);
                         $result['ok'] = false;
