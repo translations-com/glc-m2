@@ -194,11 +194,11 @@ class TranslationService
             }
         }
         $this->moveItemsInError($problemTickets);
-        $ticketCount = count($targets);
+        /*$ticketCount = count($targets);
         $logData = ['message' => "Tickets were found. Count of tickets: {$ticketCount}"];
         if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
-        }
+        }*/
         return $targets;
     }
     /**

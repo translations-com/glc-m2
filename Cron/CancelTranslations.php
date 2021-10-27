@@ -82,6 +82,11 @@ class CancelTranslations extends Translations
                 if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
+            } else{
+                $logData = ['message' => "Found submissions to cancel, number = " . $queuesTotal];
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
             }
 
             $processedQueues = [];
@@ -111,6 +116,10 @@ class CancelTranslations extends Translations
         $sbmTickets = $itemResource->getDistinctSbmTicketsForQueue($queue->getId());
         $cancelled = $this->translationService->getCancelledTargetsBySubmissions($sbmTickets);
         $items = $this->itemCollectionFactory->create();
+        $logData = ['message' => "Beginning attempt of cancellation for submission = " . $queue->getData('name')];
+        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
         $items->addFieldToFilter(
             'status_id',
             ['nin' => [

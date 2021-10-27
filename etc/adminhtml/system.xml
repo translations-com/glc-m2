@@ -36,6 +36,11 @@
                     <label>Automatically Import After Checking for Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="receive_by_submission" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Receive Translations by Submission</label>
+                    <comment><![CDATA[Otherwise, translations will be received by project]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="email_errors" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Email Errors</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

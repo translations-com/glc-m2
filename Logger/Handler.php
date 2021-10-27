@@ -30,9 +30,10 @@ class Handler extends BaseLogger
     public function __construct(
         DriverInterface $filesystem
     ) {
+        $logFileName = 'transperfect_globallink_'.date('m-d-Y').'.log';
         $this->fileName = DIRECTORY_SEPARATOR.DirectoryList::VAR_DIR
             .DIRECTORY_SEPARATOR.DirectoryList::LOG
-            .DIRECTORY_SEPARATOR.self::LOG_FILE_NAME;
+            .DIRECTORY_SEPARATOR.$logFileName;
 
         parent::__construct($filesystem);
     }

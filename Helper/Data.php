@@ -182,6 +182,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         parent::__construct($context);
         $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
+    /**
+     * @return if receive type is by submission: true | false
+     */
+    public function isReceiveTypeBySubmission(){
+        if($this->scopeConfig->getValue('globallink/general/receive_by_submission') == 1){
+            return true;
+        } else{
+            return false;
+        }
+    }
 
     /**
      * @return pd locale iso code array from store id array

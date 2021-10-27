@@ -57,7 +57,7 @@ class Cancel extends Submission
             } else {
                 if ($this->isAutomaticMode) {
                     $items->walk('cancelItem');
-                    //$this->cancelTranslations->executeAutomatic();
+                    $this->cancelTranslations->executeAutomatic();
                     $this->messageManager->addSuccessMessage(__('Submissions have been cancelled'));
                 } else {
                     $items->walk('cancelItem');

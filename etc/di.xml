@@ -8,6 +8,7 @@
                 <item name="globallink_translations_receive" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ReceiveTranslationsCommand</item>
                 <item name="globallink_translations_cancel" xsi:type="object">TransPerfect\GlobalLink\Console\Command\CancelTranslationsCommand</item>
                 <item name="globallink_translations_import" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ImportTranslationsCommand</item>
+                <item name="globallink_logs_clear" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ClearLogsCommand</item>
                 <item name="globallink_translations_unlock" xsi:type="object">TransPerfect\GlobalLink\Console\Command\UnlockTranslationsCommand</item>
                 <item name="globallink_translations_reset" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ResetAdaptorCommand</item>
                 <item name="globallink_test_glexchangeclient_connect" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientConnectCommand</item>
@@ -125,6 +126,11 @@
         </arguments>
     </type>
     <type name="TransPerfect\GlobalLink\Console\Command\ResetAdaptorCommand">
+        <arguments>
+            <argument name="objectManager" xsi:type="object">\Magento\Framework\ObjectManagerInterface\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="TransPerfect\GlobalLink\Console\Command\ClearLogsCommand">
         <arguments>
             <argument name="objectManager" xsi:type="object">\Magento\Framework\ObjectManagerInterface\Proxy</argument>
         </arguments>

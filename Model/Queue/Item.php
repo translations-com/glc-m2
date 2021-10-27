@@ -470,16 +470,12 @@ class Item extends AbstractModel
                     break;
 
                 case self::STATUS_FINISHED:
-                    $this->setStatusId(self::STATUS_FOR_CANCEL);
+                    $this->setStatusId(self::STATUS_FOR_DELETE);
                     $this->getResource()->save($this);
-                    if ($this->isAutomaticMode) {
-                        $this->cancelTranslationCall();
-                    }
                     break;
                 case self::STATUS_APPLIED:
                     // can't cancel finished item
                     break;
-
                 case self::STATUS_INPROGRESS:
                     $this->setStatusId(self::STATUS_FOR_CANCEL);
                     $this->getResource()->save($this);

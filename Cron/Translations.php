@@ -375,18 +375,18 @@ abstract class Translations
         if ($this->file->fileExists($filePath, true)) {
             $message = 'Lock file found. Previous run is not finished yet. Exit.';
             $logData = ['message' => $message];
-            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);
             return false;
         }
 
         if (!$this->file->write($filePath, 'lock')) {
-            $message ="Can't create lock file " . $filePath;
+            $message ="Can't create lock file " . $filePath . ", please check permissions.";
             $logData = ['message' => $message];
-            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);
             return false;
@@ -404,10 +404,10 @@ abstract class Translations
         $filePath = $lockFolder . '/' . $this->getLockFileName();
 
         if (!$this->file->rm($filePath)) {
-            $message ="Can't remove lock file " . $filePath;
+            $message ="Can't remove lock file " . $filePath . ", please check permissions.";
             $logData = ['message' => $message];
-            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
-                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
             $this->cliMessage($message);
         }
