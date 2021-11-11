@@ -92,8 +92,8 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
                             if(!$formatExists) {
                                 $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
                                 $i++;
-                                $formatExists = false;
                             }
+                            $formatExists = false;
                         }
                     } else {
                         $currentProfileName = $currentFormats->profileName;
@@ -108,8 +108,8 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
                         if(!$formatExists) {
                             $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
                             $i++;
-                            $formatExists = false;
                         }
+                        $formatExists = false;
                     }
                 }
             }

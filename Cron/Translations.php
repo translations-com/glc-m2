@@ -432,11 +432,12 @@ abstract class Translations
             ['nin' => [
                 \TransPerfect\GlobalLink\Model\Queue\Item::STATUS_FINISHED,
                 \TransPerfect\GlobalLink\Model\Queue\Item::STATUS_APPLIED,
+                \TransPerfect\GlobalLink\Model\Queue\Item::STATUS_FOR_DELETE
             ]]
         );
         $foundItems = count($items);
 
-        if (!$foundItems) {
+        if ($foundItems == 0) {
             $queue->setStatus(\TransPerfect\GlobalLink\Model\Queue::STATUS_FINISHED);
             $queue->save();
         }

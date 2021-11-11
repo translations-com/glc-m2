@@ -78,12 +78,13 @@ class CancelTranslations extends Translations
             );
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
-                $logData = ['message' => "There were no any unfinished items found. Finish."];
+                $logData = ['message' => "There were not any submissions that could be checked found. Finishing....."];
+                $this->cliMessage("There were not any submissions that could be checked found. Finishing.....");
                 if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             } else{
-                $logData = ['message' => "Found submissions to cancel, number = " . $queuesTotal];
+                $logData = ['message' => "Found submissions to check for cancellation, number = " . $queuesTotal];
                 if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
@@ -116,7 +117,7 @@ class CancelTranslations extends Translations
         $sbmTickets = $itemResource->getDistinctSbmTicketsForQueue($queue->getId());
         $cancelled = $this->translationService->getCancelledTargetsBySubmissions($sbmTickets);
         $items = $this->itemCollectionFactory->create();
-        $logData = ['message' => "Beginning attempt of cancellation for submission = " . $queue->getData('name')];
+        $logData = ['message' => "Beginning cancellation check for submission = " . $queue->getData('name')];
         if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
@@ -130,8 +131,18 @@ class CancelTranslations extends Translations
             'document_ticket',
             ['in' => array_keys($cancelled)]
         );
+        $logData = ['message' => "Number of items available to check in submission = " . count($items)];
+        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
+        $remoteCancelExists = false;
         foreach ($items as $item) {
             if (in_array($item->getPdLocaleIsoCode(), $cancelled[$item->getDocumentTicket()])) {
+                $remoteCancelExists = true;
+                $logData = ['message' => "Found remotely cancelled item that needs to be synced, item ID: " . $item->getId()];
+                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
                 $item->setStatusId(Item::STATUS_FOR_DELETE);
                 $message = 'Local Item ('.$item->getId().') for remotely cancelled task has been removed.';
                 $this->cliMessage($message);
@@ -141,6 +152,12 @@ class CancelTranslations extends Translations
                 if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
+            }
+        }
+        if($remoteCancelExists == false) {
+            $logData = ['message' => "No remotely cancelled items were found for submission " . $queue->getName()];
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
         }
         $items->save();
@@ -159,7 +176,16 @@ class CancelTranslations extends Translations
             ]]
         );
         if ($items->getSize()) {
+            $logData = ['message' => "Found locally cancelled items that need to be synced, count = " . $items->getSize()];
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
             $queue->setProcessed(true);
+        } else{
+            $logData = ['message' => "No locally cancelled items were found that need to be synced"];
+            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
         }
         foreach ($items as $item) {
             if ($item->cancelTranslationCall()) {

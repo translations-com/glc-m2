@@ -82,8 +82,11 @@ class ReceiveTranslations extends Translations
                 $this->targets = $this->translationService->receiveTranslationsByProject();
                 if (count($this->targets) > 0 && in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Targets were found via PD. Count = " . count($this->targets)]));
-                } else if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                } else if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && count($this->targets == 0)) {
+                    $this->cliMessage("PD reported no targets were available.");
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "PD reported no targets were available."]));
+                } else if(count($this->targets == 0)){
+                    $this->cliMessage("PD reported no targets were available.");
                 }
             } catch (\Exception $e) {
                 $errorMessage = 'Exception while receiving targets by project. ' . $e->getMessage();
@@ -114,6 +117,7 @@ class ReceiveTranslations extends Translations
             $queuesTotal = count($queues);
             if (!$queuesTotal) {
                 $logData = ['message' => "There were not any unfinished items found. Finishing..."];
+                $this->cliMessage("There were not any unfinished items found. Finishing...");
                 if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
@@ -377,7 +381,7 @@ class ReceiveTranslations extends Translations
             if(is_array($this->targets) && count($this->targets) > 0) {
                 foreach ($this->targets as $target) {
                     if (in_array($target->documentTicket, $documentTickets)) {
-                        $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered but completed in PD, resetting queue status to sent."];
+                        $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered/cancelled but completed in PD, resetting queue status to sent."];
                         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                         }
@@ -385,7 +389,7 @@ class ReceiveTranslations extends Translations
                             $queue->setStatus(Queue::STATUS_SENT);
                             $queue->save();
                         }
-                        $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered but completed in PD, resetting queue status to sent.");
+                        $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered/cancelled but completed in PD, resetting queue status to sent.");
                         $item = $this->getItemByDocTicket($target->documentTicket);
                         $item->setStatusId(Item::STATUS_INPROGRESS);
                         $item->save();

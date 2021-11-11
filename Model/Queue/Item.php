@@ -341,7 +341,7 @@ class Item extends AbstractModel
             self::STATUS_NEW => 'Queued',
             self::STATUS_INPROGRESS => 'In Progress',
             self::STATUS_FINISHED => 'Ready to Import',
-            self::STATUS_ERROR_DOWNLOAD => 'Cancelled - Source Page Deleted',
+            //self::STATUS_ERROR_DOWNLOAD => 'Cancelled - Source Page Deleted',
             self::STATUS_APPLIED => 'Completed',
             self::STATUS_FOR_CANCEL => 'Waiting to be Cancelled',
             self::STATUS_FOR_DELETE => 'Cancelled',
