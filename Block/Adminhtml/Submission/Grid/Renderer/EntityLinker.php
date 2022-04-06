@@ -17,6 +17,7 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
     protected $helper;
     protected $backendHelper;
     protected $localeColumnLabels = [];
+    protected $locales;
 
     public function __construct(
         Helper $helper,
@@ -25,6 +26,7 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
     {
         $this->helper = $helper;
         $this->backendHelper = $backendHelper;
+        $this->locales = $this->helper->getLocales(false, true);
     }
 
     public function render(DataObject $row)
@@ -120,10 +122,9 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
      */
     private function getLocaleColumnLabel($value): string
     {
-        if (!isset($this->_localColumnLables[$value])) {
-            $this->localeColumnLabels[$value] = $this->helper->getLocaleColumnLabel($value, false, true);
+        if (empty($this->locales)) {
+            $this->locales = $this->helper->getLocales(false, true);
         }
-        return $this->localeColumnLabels[$value];
+        return isset($this->locales[$value]) ? $this->locales[$value] : 'Unknown Language';
     }
-
 }

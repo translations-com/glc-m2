@@ -180,7 +180,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->storeCollectionFactory = $storeCollectionFactory;
         $this->logger = $logger;
         parent::__construct($context);
-        $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
+        $this->loggingLevels = $this->scopeConfig->getValue('globallink/general/logging_level') == null ? [''] : explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
     /**
      * @return if receive type is by submission: true | false

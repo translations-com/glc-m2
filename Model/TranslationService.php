@@ -81,12 +81,12 @@ class TranslationService
         $this->username = $scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
         $this->password = $scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
         $shortCodes = $scopeConfig->getValue('globallink/general/project_short_codes', ScopeInterface::SCOPE_STORE);
-        $this->projectShortCodes = array_map('trim', explode(',', $shortCodes));
+        $this->projectShortCodes = array_map('trim', $shortCodes == null ? [''] : explode(',', $shortCodes));
         $this->itemCollectionFactory = $itemCollectionFactory;
         $this->bgLogger = $bgLogger;
         $this->filesystem = $filesystem;
         $this->file = $file;
-        $this->enabledLevels = explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
+        $this->enabledLevels = $scopeConfig->getValue('globallink/general/logging_level') == null ? [''] : explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
     }
 
     /**

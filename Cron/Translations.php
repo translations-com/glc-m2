@@ -286,7 +286,7 @@ abstract class Translations
         $this->eventManager = $eventManager;
         $this->productUrlPathGenerator = $productUrlPathGenerator;
         $this->reviewCollectionFactory = $reviewCollectionFactory;
-        $this->loggingLevels = explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
+        $this->loggingLevels = $this->scopeConfig->getValue('globallink/general/logging_level') == null ? [''] : explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
         $this->registry = $registry;
         if ($this->scopeConfig->getValue('globallink/general/allow_duplicate_submissions') == 1) {
             $this->allowDuplicateSubmissions = true;

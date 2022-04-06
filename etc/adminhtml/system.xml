@@ -11,7 +11,7 @@
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <field id="version" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Current Version</label>
-                    <frontend_model>TransPerfect\GlobalLink\Model\Config\Source\ReadOnly</frontend_model>
+                    <frontend_model>TransPerfect\GlobalLink\Model\Config\Source\MakeReadOnly</frontend_model>
                     <backend_model>TransPerfect\GlobalLink\Model\Config\Source\Version</backend_model>
                 </field>
                 <field id="logging_level" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

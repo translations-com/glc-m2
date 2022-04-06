@@ -272,7 +272,7 @@ class ReceiveTranslations extends Translations
                             'message' => $logMessage
                         ];
                         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
-                            $this->bgLogger->addInfo($logMessage);
+                            $this->bgLogger->info($logMessage);
                         }
                         $dom = simplexml_load_string($translatedText);
                         foreach ($dom->children() as $child) {

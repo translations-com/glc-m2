@@ -121,22 +121,22 @@ class Logger extends AbstractHelper
         switch ($actionData['severity']) {
             case self::NOTICE:
                 if (in_array(self::LOGGING_LEVEL_INFO, $levels)) {
-                    $logAction = 'addInfo';
+                    $logAction = 'info';
                 }
                 break;
             case self::ALERT:
                 if (in_array(self::LOGGING_LEVEL_ERROR, $levels)) {
-                    $logAction = 'addError';
+                    $logAction = 'error';
                 }
                 break;
             case self::CRITICAL:
                 if (in_array(self::LOGGING_LEVEL_ERROR, $levels)) {
-                    $logAction = 'addCritical';
+                    $logAction = 'critical';
                 }
                 break;
             case self::DEBUG:
                 if (in_array(self::LOGGING_LEVEL_DEBUG, $levels)) {
-                    $logAction = 'addDebug';
+                    $logAction = 'debug';
                 }
                 break;
         }

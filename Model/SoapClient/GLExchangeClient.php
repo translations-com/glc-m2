@@ -62,7 +62,7 @@ class GLExchangeClient
         $this->connectionUrl = $scopeConfig->getValue('globallink/connection/url', ScopeInterface::SCOPE_STORE);
         $this->username = $scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
         $this->password = $scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
-        $this->enabledLevels = explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
+        $this->enabledLevels = $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE) == null ? [''] : explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
 
         $this->userAgent = $request->getServerValue('HTTP_USER_AGENT');
         if (empty($this->userAgent)) {

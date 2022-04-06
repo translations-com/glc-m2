@@ -54,8 +54,8 @@ class Grid extends Extended
         BackendHelper $backendHelper,
         CollectionFactory $entityAttributeFactory,
         Config $eavConfig,
-        array $data = [],
-        \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel
+        \TransPerfect\GlobalLink\Model\FieldProductCategory $productFieldModel,
+        array $data = []
     ) {
         $this->entityAttributeFactory = $entityAttributeFactory;
         $this->productEntityTypeId = $eavConfig->getEntityType(\Magento\Catalog\Api\Data\ProductAttributeInterface::ENTITY_TYPE_CODE)

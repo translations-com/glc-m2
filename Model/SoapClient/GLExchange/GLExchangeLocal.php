@@ -67,7 +67,7 @@ class GLExchangeLocal extends GLExchange
     ) {
         parent::__construct($connectionConfig);
         //$reflection = new ReflectionClass($this);
-        $reflection = $reflectionFactory->create(['argument' => $this]);
+        $reflection = $reflectionFactory->create(['objectOrClass' => $this]);
         $reflection = $reflection->getParentClass();
         foreach ($reflection->getProperties() as $property) {
             $property->setAccessible(true);

@@ -28,7 +28,7 @@ class Email extends BaseEmail
      */
     public function execute(Observer $observer)
     {
-        $recipient = array_map('trim', explode(',', $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH)));
+        $recipient = $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH) == null ? [''] : array_map('trim', explode(',', $this->scopeConfig->getValue(self::ERROR_RECIPIENT_EMAIL_XPATH)));
         $username = $this->scopeConfig->getValue(self::PD_USERNAME);
         $enabled = (bool)$this->scopeConfig->getValue(self::ERROR_EMAIL_ENABLE_XPATH);
         $firstRecipient = $recipient[count($recipient)-1];
