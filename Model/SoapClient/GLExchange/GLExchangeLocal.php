@@ -52,22 +52,23 @@ class GLExchangeLocal extends GLExchange
     /**
      * Initialize Project Director connector
      *
-     * @param \PDConfig               $connectionConfig
-     * @param \getUserProjects        $getUserProjects
-     * @param \findProjectByShortCode $findProjectByShortCode
-     * @param \findProjectByName      $findProjectByName
-     * @param \findByTicket           $findByTicket
-     * @param \PDSubmission           $PDSubmission
-     * @param \PDDocument             $PDDocument
-     * @param \downloadTargetResource $downloadTargetResource
+     * @param \PDConfig                         $connectionConfig
+     * @param \CustomReflectionClassFactory     $reflectionFactory
+     * @param \ProductMetadataInterface         $productMetadata
      */
     public function __construct(
         \PDConfig $connectionConfig,
-        CustomReflectionClassFactory $reflectionFactory
+        CustomReflectionClassFactory $reflectionFactory,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata
     ) {
         parent::__construct($connectionConfig);
+        $version = $productMetadata->getVersion();
         //$reflection = new ReflectionClass($this);
-        $reflection = $reflectionFactory->create(['objectOrClass' => $this]);
+        if($version == '2.4.4' || $version == '2.4.5' || $version == '2.4.6' || $version == '2.4.7' || $version == '2.4.8') {
+            $reflection = $reflectionFactory->create(['objectOrClass' => $this]);
+        } else{
+            $reflection = $reflectionFactory->create(['argument' => $this]);
+        }
         $reflection = $reflection->getParentClass();
         foreach ($reflection->getProperties() as $property) {
             $property->setAccessible(true);

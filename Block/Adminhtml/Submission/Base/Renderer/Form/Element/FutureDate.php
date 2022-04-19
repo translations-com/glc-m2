@@ -14,19 +14,20 @@ class FutureDate extends Date
      * @param array $data
      */
     /*public function __construct(
-        Factory $factoryElement,
-        CollectionFactory $factoryCollection,
+        \Magento\Framework\Data\Form\Element\Factory $factoryElement,
+        \Magento\Framework\Data\Form\Element\CollectionFactory $factoryCollection,
         \Magento\Framework\Escaper $escaper,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         $data = []
     ) {
         $this->localeDate = $localeDate;
-        parent::__construct($factoryElement, $factoryCollection, $escaper, $data);
+        parent::__construct($factoryElement, $factoryCollection, $escaper, $localeDate, $data);
         $this->setType('text');
         $this->setExtType('textfield');
         if (isset($data['value'])) {
             $this->setValue($data['value']);
         }
+        $this->scopeConfig = $scopeConfig;
     }*/
 
     /**
@@ -49,14 +50,13 @@ class FutureDate extends Date
                 'Please specify "format" key in constructor, or set it using setFormat().'
             );
         }
-
-        $date = $this->localeDate->date(new \DateTime('now + 1day'))->format('m/d/y');
-
+        $date = $this->localeDate->date(new \DateTime('now + 2day'))->format('m/d/Y');
+        //$date = $this->localeDate->formatDate(new \DateTime('now + 1day'));
         $dataInit = 'data-mage-init="' . $this->_escape(
             json_encode(
                 [
                     'calendar' => [
-                        'dateFormat' => $dateFormat,
+                        'dateFormat' => 'm/d/Y',
                         'showsTime' => !empty($timeFormat),
                         'timeFormat' => $timeFormat,
                         'buttonImage' => $this->getImage(),

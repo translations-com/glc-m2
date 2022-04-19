@@ -226,7 +226,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @return project short codes
      */
     public function getProjectShortCodes(){
-        return array_map('trim', explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE )));
+        $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
+        return array_map('trim', explode(",", $shortCodeString));
     }
     /*
      * @return custom attributes

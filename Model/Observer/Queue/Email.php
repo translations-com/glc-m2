@@ -107,7 +107,7 @@ class Email implements ObserverInterface
                 $request_date = $queue->getData('request_date');
                 $receive_date = date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
                 $source_locale = $queue->getData('source_locale');
-                $recipient = explode(',', $queue->getConfirmationEmail());
+                $recipient = $queue->getConfirmationEmail() == null ? [''] : explode(',', $queue->getConfirmationEmail());
                 $queueItems = $queue->getItems();
                 $items = $this->itemCollectionFactory->create();
                 $items->addFieldToFilter(

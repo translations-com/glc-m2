@@ -42,11 +42,12 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
             $connectionUrl = $this->scopeConfig->getValue('globallink/connection/url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $username = $this->scopeConfig->getValue('globallink/connection/username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $password = $this->scopeConfig->getValue('globallink/connection/password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+            $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
             if(!$this->helper->isEnterprise()){
                 $fileFormats[0] = ['value' => 0, 'label' => 'This feature is not available outside of Commerce Edition'];
                 return $fileFormats;
             }
-            $shortCodes = array_map('trim', explode(",", $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE )));
+            $shortCodes = array_map('trim', explode(",", $shortCodeString));
             if ($connectionUrl == null || $username == null || $password == null) {
                 $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
                 return $fileFormats;

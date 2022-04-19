@@ -82,10 +82,10 @@ class ReceiveTranslations extends Translations
                 $this->targets = $this->translationService->receiveTranslationsByProject();
                 if (count($this->targets) > 0 && in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Targets were found via PD. Count = " . count($this->targets)]));
-                } else if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && count($this->targets == 0)) {
+                } else if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && count($this->targets) == 0) {
                     $this->cliMessage("PD reported no targets were available.");
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "PD reported no targets were available."]));
-                } else if(count($this->targets == 0)){
+                } else if(count($this->targets) == 0){
                     $this->cliMessage("PD reported no targets were available.");
                 }
             } catch (\Exception $e) {

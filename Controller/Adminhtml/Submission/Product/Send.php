@@ -74,7 +74,8 @@ class Send extends BaseSubmission
                 'origin_store_id' => $data['submission']['store'],
                 'items' => $data['submission']['items'],
                 'localizations' => $data['submission']['localize'],
-                'confirmation_email' => $data['submission']['confirmation_email']
+                'confirmation_email' => $data['submission']['confirmation_email'],
+                'refresh_nontranslatable_fields' => $data['submission']['refresh_nontranslatable_fields']
             ];
             if (isset($data['submission']['attribute_text'][$project])) {
                 $queueData['attribute_text'] = $data['submission']['attribute_text'][$project];

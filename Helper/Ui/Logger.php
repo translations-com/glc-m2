@@ -87,7 +87,7 @@ class Logger extends AbstractHelper
         $this->auth = $auth;
         parent::__construct($context);
         $this->_logger = $logger;
-        $this->enabledLevels = $this->scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE);
+        $this->enabledLevels = $this->scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE) == null ? '' : $this->scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE);
     }
 
     /**

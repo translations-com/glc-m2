@@ -394,7 +394,7 @@ class Item extends AbstractModel
                     $this->applyTranslationCmsPage();
             break;
             case Helper::CATALOG_PRODUCT_TYPE_ID:
-                    $this->applyTranslationCatalogProduct();
+                    $this->applyTranslationCatalogProduct($queue->getData('refresh_nontranslatable_fields'));
             break;
             case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationProductAttribute($queue->getData('include_options'));
@@ -911,16 +911,29 @@ class Item extends AbstractModel
      * @return void
      * @throws \Exception
      */
-    protected function applyTranslationCatalogProduct()
+    protected function applyTranslationCatalogProduct($resetFromSource = false)
     {
         $entityId = $this->getEntityId();
         $targetStoreIds = $this->getTargetStoreIds();
         $sourceStoreId = $this->getSourceStoreId();
         $translatedData = $this->getTranslatedData();
         $imageFields = ['image_label', 'thumbnail_label', 'small_image_label', 'swatch_image'];
+        $nonupdatingFields = ['store_id', 'entity_id', 'attribute_set_id', 'sku', 'created_at', 'updated_at', 'row_id', 'created_in', 'updated_in'];
+        if($resetFromSource){
+            $sourceProduct = $this->productRepository->getById($entityId, false, $sourceStoreId);
+        }
         foreach ($targetStoreIds as $targetStoreId) {
             $product = $this->productRepository->getById($entityId, false, $targetStoreId);
-
+            if($resetFromSource){
+                foreach($sourceProduct->storedData as $key => $value){
+                    if(in_array($key, $nonupdatingFields)){
+                        //DO NOTHING
+                    } else{
+                        $product->setData($key, $value);
+                    }
+                }
+                $product->save();
+            }
             $store = $this->storeManager->getStore($targetStoreId);
             $this->storeManager->setCurrentStore($store->getCode());
             $mediaGallery = $product->getMediaGalleryEntries();

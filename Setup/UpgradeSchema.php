@@ -186,6 +186,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $this->upgradeToVersion('1.8.4');
         $this->upgradeToVersion('1.8.5');
         $this->upgradeToVersion('1.8.7');
+        $this->upgradeToVersion('1.8.8');
         $this->installer->endSetup();
     }
 
@@ -626,6 +627,19 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'length' => 1,
                 'nullable' => true,
                 'comment' => 'Include in Translation'
+            ]
+        );
+    }
+    protected function upgradeTo_188()
+    {
+        $this->installer->getConnection()->addColumn(
+            $this->installer->getTable('globallink_job_queue'),
+            'refresh_nontranslatable_fields',
+            [
+                'type' => \Magento\Framework\DB\Ddl\Table::TYPE_BOOLEAN,
+                'length' => 1,
+                'nullable' => true,
+                'comment' => 'Only applicable to the product entity type.'
             ]
         );
     }

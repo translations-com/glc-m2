@@ -79,6 +79,20 @@ class Form extends BaseForm
         );
 
         $fieldset->addField(
+            'refresh_nontranslatable_fields',
+            'select',
+            [
+                'label' => __('Refresh Nontranslatable Fields From Source'),
+                'name' => 'submission[refresh_nontranslatable_fields]',
+                'values' => [
+                    ['label' => 'No', 'value' => '0'],
+                    ['label' => 'Yes', 'value' => '1'],
+                ],
+                'default' => '0'
+            ]
+        );
+
+        $fieldset->addField(
             'store',
             'hidden',
             [
