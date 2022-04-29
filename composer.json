@@ -2,7 +2,11 @@
     "name": "transperfect/module-globallink",
     "type": "magento2-module",
     "description": "TransPerfect GlobalLink",
+<<<<<<< Updated upstream
     "version": "1.8.8",
+=======
+    "version": "1.8.8_RC3",
+>>>>>>> Stashed changes
     "homepage": "http://www.translations.com/products/globallink-magento-adaptor",
     "authors": [
         {

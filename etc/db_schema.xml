@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+  <table name="globallink_job_queue" resource="default" engine="innodb" comment="globallink_job_queue">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+    <column xsi:type="varchar" name="name" nullable="false" length="128" default="" comment="Job name is auto-populated eg. CAT-CSO-yyyymmddHHmmss"/>
+    <column xsi:type="int" name="magento_admin_user_requested_by" padding="10" unsigned="true" nullable="false" identity="false" comment="User who requested"/>
+    <column xsi:type="timestamp" name="request_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Time when request was sent"/>
+    <column xsi:type="datetime" name="due_date" on_update="false" nullable="false" comment="Time when the request is due"/>
+    <column xsi:type="varchar" name="project_shortcode" nullable="true" length="32" comment="Project Shortcode"/>
+    <column xsi:type="text" name="origin_store_id" nullable="false" comment="FK to store table's store_id field"/>
+    <column xsi:type="text" name="priority" nullable="false" comment="Priority: High, Medium, Low"/>
+    <column xsi:type="int" name="progress" padding="10" unsigned="true" nullable="false" identity="false" comment="Indicator (0-100)"/>
+    <column xsi:type="boolean" name="status" nullable="false" comment="0 = Archived, 1 = Active"/>
+    <column xsi:type="boolean" name="include_subcategories" nullable="true" comment="Only applicable to the category entity type."/>
+    <column xsi:type="boolean" name="include_associated_and_parent_categories" nullable="true" comment="Only applicable to the category entity type."/>
+    <column xsi:type="text" name="confirmation_email" nullable="false" comment="List of emails that will be alerted when the translation is completed"/>
+    <column xsi:type="text" name="submission_instructions" nullable="false" comment="Additional Instructions"/>
+    <column xsi:type="varchar" name="attribute_text" nullable="true" length="64" comment="Custom Text Attribute"/>
+    <column xsi:type="varchar" name="attribute_combo" nullable="true" length="64" comment="Custom Combo Attribute"/>
+    <column xsi:type="boolean" name="include_cms_block_widgets" nullable="true" comment="Only applicable to the CMS Page entity type."/>
+    <column xsi:type="boolean" name="include_options" nullable="true" comment="Only applicable to the product attribute entity type."/>
+    <column xsi:type="boolean" name="refresh_nontranslatable_fields" nullable="true" comment="Only applicable to the product entity type."/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_JOB_QUEUE_ID" indexType="btree">
+      <column name="id"/>
+    </index>
+  </table>
+  <table name="globallink_job_items" resource="default" engine="innodb" comment="globallink_job_items">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+    <column xsi:type="int" name="queue_id" padding="10" unsigned="true" nullable="false" identity="false" comment="FK to id column in globallink_job_queue"/>
+    <column xsi:type="smallint" name="status_id" padding="5" unsigned="true" nullable="false" identity="false" comment="FK to id column in globallink_job_item_status table"/>
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity ID"/>
+    <column xsi:type="text" name="entity_name" nullable="true" comment="Entity Name"/>
+    <column xsi:type="int" name="entity_type_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Type ID"/>
+    <column xsi:type="varchar" name="pd_locale_iso_code" padding="10" unsigned="true" nullable="true" identity="false" length="64"/>
+    <column xsi:type="varchar" name="target_stores" nullable="true" length="64" comment="Target Store Ids"/>
+    <column xsi:type="varchar" name="submission_ticket" nullable="true" length="64" comment="Submission Ticket"/>
+    <column xsi:type="varchar" name="document_ticket" nullable="true" length="64" comment="Document Ticket"/>
+    <column xsi:type="varchar" name="target_ticket" nullable="true" length="64" comment="Target Ticket"/>
+    <column xsi:type="int" name="new_entity_id" padding="10" unsigned="true" nullable="true" identity="false" comment="New Entity Object ID"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_JOB_ITEMS_ID" indexType="btree">
+      <column name="id"/>
+    </index>
+  </table>
+  <table name="globallink_job_item_status" resource="default" engine="innodb" comment="globallink_job_item_status">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+    <column xsi:type="int" name="name" padding="10" unsigned="true" nullable="false" identity="false" comment="Status Name"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_JOB_ITEM_STATUS_ID" indexType="btree">
+      <column name="id"/>
+    </index>
+  </table>
+  <table name="globallink_field" resource="default" engine="innodb" comment="globallink_field">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="GlobalLink Field ID"/>
+    <column xsi:type="smallint" name="object_type" nullable="false" length="255" comment="Object Type" padding="5" unsigned="true" identity="false"/>
+    <column xsi:type="varchar" name="field_name" nullable="false" length="255" comment="Field Name"/>
+    <column xsi:type="varchar" name="field_label" nullable="true" length="255" comment="Field Label"/>
+    <column xsi:type="boolean" name="include_in_translation" nullable="false" comment="Include in Translation"/>
+    <column xsi:type="boolean" name="user_submitted" nullable="false" comment="User Submitted"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_FIELD_ID" indexType="btree">
+      <column name="id"/>
+    </index>
+  </table>
+  <table name="store" resource="default">
+    <column xsi:type="varchar" name="locale" nullable="true" length="255" comment="Locale"/>
+  </table>
+  <table name="eav_entity_attribute" resource="default">
+    <column xsi:type="boolean" name="include_in_translation" nullable="true" comment="Include in Translation"/>
+  </table>
+  <table name="globallink_entity_translation_status" resource="default" engine="innodb" comment="globallink_entity_translation_status">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+    <column xsi:type="int" name="entity_type_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Type Id"/>
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Id"/>
+    <column xsi:type="int" name="store_view_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Store View Id"/>
+    <column xsi:type="int" name="translation_status" padding="10" unsigned="true" nullable="false" identity="false" comment="Translation Status"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_ENTITY_TRANSLATION_STATUS_ENTITY_TYPE_ID" indexType="btree">
+      <column name="entity_type_id"/>
+    </index>
+    <index referenceId="GLOBALLINK_ENTITY_TRANSLATION_STATUS_ENTITY_ID" indexType="btree">
+      <column name="entity_id"/>
+    </index>
+  </table>
+  <table name="globallink_job_item_status_history" resource="default" engine="innodb" comment="globallink_job_item_status_history">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+    <column xsi:type="int" name="entity_type_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Type Id"/>
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Id"/>
+    <column xsi:type="int" name="source_store_view_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Source store View Id"/>
+    <column xsi:type="int" name="target_store_view_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Target store View Id"/>
+    <column xsi:type="varchar" name="changed_by" nullable="false" length="128" default="" comment="User/System responsible for changing the status"/>
+    <column xsi:type="timestamp" name="status_change_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Date and time of change"/>
+    <column xsi:type="int" name="status_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Status Id"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="GLOBALLINK_JOB_ITEM_STATUS_HISTORY_ENTITY_TYPE_ID" indexType="btree">
+      <column name="entity_type_id"/>
+    </index>
+    <index referenceId="GLOBALLINK_JOB_ITEM_STATUS_HISTORY_ENTITY_ID" indexType="btree">
+      <column name="entity_id"/>
+    </index>
+  </table>
+  <table name="globallink_field_product_category" resource="default" engine="innodb" comment="globallink_field_product_category">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Entity Attribute ID"/>
+    <column xsi:type="int" name="entity_attribute_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Attribute ID"/>
+    <column xsi:type="smallint" name="entity_type_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Entity Type Id"/>
+    <column xsi:type="smallint" name="attribute_set_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Attribute Set Id"/>
+    <column xsi:type="smallint" name="attribute_group_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Attribute Group Id"/>
+    <column xsi:type="smallint" name="attribute_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Attribute Id"/>
+    <column xsi:type="boolean" name="include_in_translation" nullable="true" comment="Include_in_translation"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+  </table>
+</schema>
