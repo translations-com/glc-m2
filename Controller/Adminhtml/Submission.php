@@ -17,6 +17,9 @@ class Submission extends BackendAction
 {
     protected $viewFactory;
 
+    protected $scopeConfig;
+
+
     /**
      * Item collection factory
      *
@@ -77,6 +80,7 @@ class Submission extends BackendAction
         $this->registry = $registry;
         $this->helper = $helper;
         $this->bgLogger = $bgLogger;
+        $this->scopeConfig = $scopeConfig;
         $this->receiveTranslations = $receiveTranslations;
         $this->cancelTranslations = $cancelTranslations;
         if ($scopeConfig->getValue('globallink/general/automation') == 1) {

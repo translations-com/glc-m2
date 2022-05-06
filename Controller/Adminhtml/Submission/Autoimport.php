@@ -60,7 +60,7 @@ class Autoimport extends Submission
         $start = microtime(true);
         $this->helper->reIndexing();
         $this->_eventManager->dispatch('transperfect_globallink_apply_translation_after', ['queues' => $this->registry->registry('queues')]);
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && $this->scopeConfig->getValue('globallink/general/reindexing', \Magento\Store\Model\ScopeInterface::SCOPE_STORE) == 1) {
             $logData = [
                 'message' => "Reindex and redirect duration: " . (microtime(true) - $start) . " seconds",
             ];
