@@ -126,7 +126,7 @@ class Item extends AbstractDb
         $queueId = (int) $queueId;
         $select = $this->getConnection()->select()
             ->from(['main_table' => $this->getTable('globallink_job_items')])
-            ->reset(\Zend_Db_Select::COLUMNS)
+            ->reset(\Magento\Framework\DB\Select::COLUMNS)
             ->columns('submission_ticket')
             ->distinct(true)
             ->where('main_table.queue_id IN (?)', [$queueId]);
@@ -151,7 +151,7 @@ class Item extends AbstractDb
         $queueId = (int) $queueId;
         $select = $this->getConnection()->select()
             ->from(['main_table' => $this->getTable('globallink_job_items')])
-            ->reset(\Zend_Db_Select::COLUMNS)
+            ->reset(\Magento\Framework\DB\Select::COLUMNS)
             ->columns('document_ticket')
             ->distinct(true)
             ->where('main_table.queue_id IN (?)', [$queueId]);
@@ -199,7 +199,7 @@ class Item extends AbstractDb
 
         $select = $connection->select()
             ->from(['main_table' => $this->getTable('information_schema.columns')])
-            ->reset(\Zend_Db_Select::COLUMNS)
+            ->reset(\Magento\Framework\DB\Select::COLUMNS)
             ->columns(['column_name', 'character_maximum_length'])
             ->where('table_schema = ?', $dbName)
             ->where('table_name = ?', $tableName)
@@ -227,7 +227,7 @@ class Item extends AbstractDb
         $connection = $this->getConnection();
         $select = $connection->select()
             ->from(['main_table' => $this->getTable('ui_bookmark')])
-            ->reset(\Zend_Db_Select::COLUMNS)
+            ->reset(\Magento\Framework\DB\Select::COLUMNS)
             ->columns(['identifier', 'config'])
             ->where('identifier = current')
             ->where('namespace = ?', $namespace)
