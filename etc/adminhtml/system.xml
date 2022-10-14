@@ -64,7 +64,7 @@
                 </field>
                 <field id="max_target_count" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Max Target Count</label>
-                    <validate>validate-greater-than-zero validate-number required-entry</validate>
+                    <validate>validate-greater-than-zero validate-number required-entry validate-digits-range digits-range-1-1000</validate>
                 </field>
                 <field id="allow_duplicate_submissions" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Allow Duplicate Submissions</label>

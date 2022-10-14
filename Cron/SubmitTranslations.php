@@ -750,12 +750,19 @@ class SubmitTranslations extends Translations
     protected function getCmsBlockData($entityId, $storeId)
     {
         $data = [];
-
         $fieldNames = $this->getFieldsToTranslate(HelperData::CMS_BLOCK_TYPE_ID);
-
-        $block = $this->blockFactory->create();
-        $block->setStoreId($storeId)->load($entityId);
-
+        $block = null;
+        $blockCollection = $this->blockCollectionFactory->create();
+        $blockCollection->addStoreFilter($storeId);
+        $blockCollection->addFieldToFilter('block_id', $entityId);
+        if($blockCollection->count() == 1) {
+            foreach ($blockCollection as $currentBlock) {
+                $block = $currentBlock;
+            }
+        } else {
+            $block = $this->blockFactory->create();
+            $block->setStoreId($storeId)->load($entityId);
+        }
         $attrArr = [];
         foreach ($fieldNames as $fieldNameData) {
             $fieldName = $fieldNameData['name'];
@@ -790,13 +797,20 @@ class SubmitTranslations extends Translations
      */
     protected function getCmsPageData($entityId, $storeId)
     {
-        $data = [];
-
         $fieldNames = $this->getFieldsToTranslate(HelperData::CMS_PAGE_TYPE_ID);
-
-        $page = $this->pageFactory->create();
-        $page->setStoreId($storeId)->load($entityId);
-
+        $data = [];
+        $page = null;
+        $pageCollection = $this->pageCollectionFactory->create();
+        $pageCollection->addStoreFilter($storeId);
+        $pageCollection->addFieldToFilter('page_id', $entityId);
+        if($pageCollection->count() == 1) {
+            foreach ($pageCollection as $currentPage) {
+                $page = $currentPage;
+            }
+        } else{
+            $page = $this->pageFactory->create();
+            $page->setStoreId($storeId)->load($entityId);
+        }
         $attrArr = [];
         foreach ($fieldNames as $fieldNameData) {
             $fieldName = $fieldNameData['name'];

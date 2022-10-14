@@ -93,7 +93,10 @@ abstract class Translations
      * @var \Magento\Cms\Model\ResourceModel\Page\CollectionFactory
      */
     protected $pageCollectionFactory;
-
+    /**
+     * @var \Magento\Cms\Model\ResourceModel\Block\CollectionFactory
+     */
+    protected $blockCollectionFactory;
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
@@ -226,6 +229,8 @@ abstract class Translations
      * @param \Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator                                $productUrlPathGenerator
      * @param \Magento\Framework\Registry                                                             $registry
      * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory                    $reviewCollectionFactory
+     * @param \Magento\Cms\Model\ResourceModel\Page\CollectionFactory                                 $pageCollectionFactory
+     * @param \Magento\Cms\Model\ResourceModel\Block\CollectionFactory                                $blockCollectionFactory
      */
     public function __construct(
         QueueCollectionFactory $queueCollectionFactory,
@@ -256,8 +261,12 @@ abstract class Translations
         EventManagerInterface $eventManager,
         ProductUrlPathGenerator $productUrlPathGenerator,
         \Magento\Framework\Registry $registry,
-        ReviewCollectionFactory $reviewCollectionFactory
+        ReviewCollectionFactory $reviewCollectionFactory,
+        \Magento\Cms\Model\ResourceModel\Page\CollectionFactory $pageCollectionFactory,
+        \Magento\Cms\Model\ResourceModel\Block\CollectionFactory $blockCollectionFactory
     ) {
+        $this->blockCollectionFactory = $blockCollectionFactory;
+        $this->pageCollectionFactory = $pageCollectionFactory;
         $this->queueCollectionFactory = $queueCollectionFactory;
         $this->itemCollectionFactory = $itemCollectionFactory;
         $this->itemResourceFactory = $itemResourceFactory;
