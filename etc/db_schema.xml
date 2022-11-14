@@ -34,7 +34,7 @@
     <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity ID"/>
     <column xsi:type="text" name="entity_name" nullable="true" comment="Entity Name"/>
     <column xsi:type="int" name="entity_type_id" padding="10" unsigned="true" nullable="false" identity="false" comment="Entity Type ID"/>
-    <column xsi:type="varchar" name="pd_locale_iso_code" padding="10" unsigned="true" nullable="true" identity="false" length="64"/>
+    <column xsi:type="varchar" name="pd_locale_iso_code" nullable="true" length="64"/>
     <column xsi:type="varchar" name="target_stores" nullable="true" length="64" comment="Target Store Ids"/>
     <column xsi:type="varchar" name="submission_ticket" nullable="true" length="64" comment="Submission Ticket"/>
     <column xsi:type="varchar" name="document_ticket" nullable="true" length="64" comment="Document Ticket"/>
@@ -59,7 +59,7 @@
   </table>
   <table name="globallink_field" resource="default" engine="innodb" comment="globallink_field">
     <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="GlobalLink Field ID"/>
-    <column xsi:type="smallint" name="object_type" nullable="false" length="255" comment="Object Type" padding="5" unsigned="true" identity="false"/>
+    <column xsi:type="smallint" name="object_type" nullable="false" comment="Object Type" padding="5" unsigned="true" identity="false"/>
     <column xsi:type="varchar" name="field_name" nullable="false" length="255" comment="Field Name"/>
     <column xsi:type="varchar" name="field_label" nullable="true" length="255" comment="Field Label"/>
     <column xsi:type="boolean" name="include_in_translation" nullable="false" comment="Include in Translation"/>
