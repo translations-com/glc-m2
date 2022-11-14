@@ -112,6 +112,10 @@ class EntityLinker extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Ab
                         ['id' => $newEntityId
                         ])}' style=\"font-weight:bold\">" . $outputValue . "</a>";
                     }
+                case $this->helper::BANNER_ID:
+                    return "<a href='{$this->backendHelper->getUrl('adminhtml/banner/edit',
+                    ['id' => $originalEntityId, 'store' => $storeId
+                    ])}' style=\"font-weight:bold\">" . $outputValue . "</a>";
             }
         }
     }

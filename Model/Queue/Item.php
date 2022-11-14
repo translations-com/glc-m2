@@ -73,7 +73,10 @@ class Item extends AbstractModel
      * @var \Magento\Framework\Message\Manager
      */
     protected $messageManager;
-
+    /**
+     * @var \Magento\Banner\Model\ResourceModel\Banner
+     */
+    protected $bannerContents;
     /**
      * @var \Magento\Cms\Model\BlockFactory
      */
@@ -241,6 +244,7 @@ class Item extends AbstractModel
      * @param \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory          $frontendLabelFactory
      * @param \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory            $optionLabelFactory
      * @param \Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection     $ratingCollectionFactory
+     * @param \Magento\Banner\Model\ResourceModel\Banner                            $bannerContents
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -271,12 +275,14 @@ class Item extends AbstractModel
         \Magento\Review\Model\ReviewFactory $reviewFactory,
         \Magento\Eav\Api\Data\AttributeFrontendLabelInterfaceFactory $frontendLabelFactory,
         \Magento\Eav\Api\Data\AttributeOptionLabelInterfaceFactory $optionLabelFactory,
-        \Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection $ratingCollectionFactory
+        \Magento\Review\Model\ResourceModel\Rating\Option\Vote\Collection $ratingCollectionFactory,
+        \Magento\Banner\Model\ResourceModel\Banner $bannerContents
     ) {
         parent::__construct($context, $registry);
         $this->messageManager = $messageManager;
         $this->blockFactory = $blockFactory;
         $this->pageFactory = $pageFactory;
+        $this->bannerContents = $bannerContents;
         $this->categoryRepository = $categoryRepository;
         $this->translationService = $translationService;
         $this->domDocumentFactory = $domDocumentFactory;
@@ -404,6 +410,9 @@ class Item extends AbstractModel
             break;
             case Helper::PRODUCT_REVIEW_ID:
                     $this->applyTranslationReview();
+            break;
+            case Helper::BANNER_ID:
+                $this->applyTranslationBanner();
             break;
             default:
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
@@ -641,6 +650,29 @@ class Item extends AbstractModel
                 $newEntity->save();
                 $this->setData('new_entity_id', $newEntity->getReviewId());
             }
+        }
+        // if we're here all ok. Update item status, set success message
+        $this->setStatusId(self::STATUS_APPLIED);
+        $this->save();
+        $this->messageManager->addSuccess(__('Translation of Item %1 (%2) successfully applied to all target stores', $this->getId(), $this->getEntityName()));
+        $this->updateEntitySubmissionStatus($targetStoreIds);
+        $this->removeXml();
+    }
+    /**
+     *
+     * Apply translation to dynamic block
+     * @return void
+     *
+     * @throws \Exception
+     */
+    protected function applyTranslationBanner()
+    {
+        $entityId = $this->getEntityId();
+        $targetStoreIds = $this->getTargetStoreIds();
+        $translatedData = $this->getTranslatedData();
+        foreach ($targetStoreIds as $targetStoreId) {
+            $contents = [$targetStoreId => $translatedData['attributes']['banner_content']];
+            $this->bannerContents->saveStoreContents($entityId, $contents);
         }
         // if we're here all ok. Update item status, set success message
         $this->setStatusId(self::STATUS_APPLIED);
@@ -972,6 +1004,7 @@ class Item extends AbstractModel
                         $optionId = $option->getData('option_id');
                         $translatedOptions = $translatedData['options'];
                         if ($translatedOptions['entity_' . $entityId][$optionId] != null) {
+                            $option->setData('store_id', $targetStoreId);
                             $option->setTitle($translatedOptions['entity_' . $entityId][$optionId]);
                             $option->setDefaultTitle($translatedOptions['entity_' . $entityId][$optionId]);
                             $option->setStoreTitle($translatedOptions['entity_' . $entityId][$optionId]);
@@ -981,20 +1014,23 @@ class Item extends AbstractModel
                                 if ($option->getValueById($valueId) != null) {
                                     $value = $option->getValueById($valueId);
                                     $value->setTitle($translatedValue);
+                                    $value->setData('store_id', $targetStoreId);
                                     $option->addValue($value);
                                 }
                             }
                         }
-                        $option->setStoreId($product->getStoreId());
                         $option->save();
+                        $product->addOption($option);
                         $newCustomOptions[] = $option;
                         $hasOptions = true;
                     }
-                    $product->setCustomOptions($newCustomOptions);
+
+                    //$product->setCustomOptions($newCustomOptions);
                     // M2 currently doesn't allow to save custom option titles for storeviews
                     // Also it has a bug #5931
                 }
             }
+            $product = $this->productRepository->getById($entityId, false, $targetStoreId);
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
             foreach ($translatedData['attributes'] as $attributeName => $attributeValue) {

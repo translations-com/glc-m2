@@ -52,6 +52,7 @@
     <!--<preference for="Magento\Backend\Block\System\Store\Edit\Form\Store" type="TransPerfect\GlobalLink\Block\System\Store\Edit\Form\Store" />-->
     <preference for="Magento\Catalog\Block\Adminhtml\Product\Attribute\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Product\Attribute\Grid" />
     <preference for="Magento\Review\Block\Adminhtml\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Review\Grid" />
+    <preference for="Magento\Banner\Block\Adminhtml\Banner\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Banner\Grid" />
     <preference for="Magento\CustomerCustomAttributes\Block\Adminhtml\Customer\Attribute\Grid" type="TransPerfect\GlobalLink\Block\Adminhtml\Customer\Attribute\Grid" />
     <type name="TransPerfect\GlobalLink\Logger\Handler">
         <arguments>

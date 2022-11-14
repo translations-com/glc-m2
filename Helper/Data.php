@@ -133,6 +133,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const CMS_BLOCK_TYPE_ID = 13;
     const CUSTOMER_ATTRIBUTE_TYPE_ID = 14;
     const PRODUCT_REVIEW_ID = 15;
+    const BANNER_ID = 16;
 
 
     public function __construct(
@@ -542,6 +543,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             self::CMS_PAGE_TYPE_ID => __('CMS Page'),
             self::CMS_BLOCK_TYPE_ID => __('CMS Block'),
             self::PRODUCT_REVIEW_ID => __('Product Review'),
+            self::BANNER_ID => __('Dynamic Block'),
         ];
         if ($this->isEnterprise()) {
             $options[self::CUSTOMER_ATTRIBUTE_TYPE_ID] = __('Customer Attribute');

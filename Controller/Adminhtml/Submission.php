@@ -16,9 +16,7 @@ use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as 
 class Submission extends BackendAction
 {
     protected $viewFactory;
-
     protected $scopeConfig;
-
 
     /**
      * Item collection factory
@@ -74,13 +72,13 @@ class Submission extends BackendAction
         \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
+        $this->scopeConfig = $scopeConfig;
         $this->viewFactory = $context->getResultFactory();
         $this->resultRedirect = $context->getResultRedirectFactory()->create();
         $this->itemCollectionFactory = $itemCollectionFactory;
         $this->registry = $registry;
         $this->helper = $helper;
         $this->bgLogger = $bgLogger;
-        $this->scopeConfig = $scopeConfig;
         $this->receiveTranslations = $receiveTranslations;
         $this->cancelTranslations = $cancelTranslations;
         if ($scopeConfig->getValue('globallink/general/automation') == 1) {

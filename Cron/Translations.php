@@ -8,7 +8,7 @@ use Magento\Catalog\Model\Product\Option as ProductOption;
 use Magento\CatalogUrlRewrite\Model\ProductUrlPathGenerator as ProductUrlPathGenerator;
 use Magento\Cms\Model\BlockFactory;
 use Magento\Cms\Model\PageFactory;
-
+use Magento\Banner\Model\ResourceModel\Banner;
 use Magento\Eav\Api\AttributeRepositoryInterface;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -36,6 +36,14 @@ use TransPerfect\GlobalLink\Model\TranslationService;
  */
 abstract class Translations
 {
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $dateTime;
+    /**
+     * @var \Magento\Banner\Model\ResourceModel\Banner
+     */
+    protected $bannerContents;
     /**
      * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
      */
@@ -231,6 +239,8 @@ abstract class Translations
      * @param \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory                    $reviewCollectionFactory
      * @param \Magento\Cms\Model\ResourceModel\Page\CollectionFactory                                 $pageCollectionFactory
      * @param \Magento\Cms\Model\ResourceModel\Block\CollectionFactory                                $blockCollectionFactory
+     * @param \Magento\Banner\Model\ResourceModel\Banner                                              $bannerContents
+     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface                                    $localeDate
      */
     public function __construct(
         QueueCollectionFactory $queueCollectionFactory,
@@ -263,8 +273,12 @@ abstract class Translations
         \Magento\Framework\Registry $registry,
         ReviewCollectionFactory $reviewCollectionFactory,
         \Magento\Cms\Model\ResourceModel\Page\CollectionFactory $pageCollectionFactory,
-        \Magento\Cms\Model\ResourceModel\Block\CollectionFactory $blockCollectionFactory
+        \Magento\Cms\Model\ResourceModel\Block\CollectionFactory $blockCollectionFactory,
+        \Magento\Banner\Model\ResourceModel\Banner $bannerContents,
+        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime
     ) {
+        $this->dateTime = $dateTime;
+        $this->bannerContents = $bannerContents;
         $this->blockCollectionFactory = $blockCollectionFactory;
         $this->pageCollectionFactory = $pageCollectionFactory;
         $this->queueCollectionFactory = $queueCollectionFactory;

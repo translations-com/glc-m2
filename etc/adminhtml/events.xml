@@ -41,4 +41,10 @@
                 instance="TransPerfect\GlobalLink\Model\Observer\AddLocaleField"
                 disabled="false" />
     </event>
+    <event name="catalog_product_save_after">
+        <observer
+            name="transperfect_globallink_catalog_product_save_after"
+            instance="TransPerfect\GlobalLink\Model\Observer\TranslateNewProducts"
+            disabled="false" />
+    </event>
 </config>

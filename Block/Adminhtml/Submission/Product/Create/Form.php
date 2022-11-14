@@ -63,7 +63,19 @@ class Form extends BaseForm
                 ]
             );
         }
-
+        $fieldset->addField(
+            'include_options',
+            'select',
+            [
+                'label' => __('Also Translate Customizable Options'),
+                'name' => 'submission[include_options]',
+                'values' => [
+                    ['label' => 'Yes', 'value' => '1'],
+                    ['label' => 'No', 'value' => '0'],
+                ],
+                'default' => '0'
+            ]
+        );
         $fieldset->addField(
             'include_associated_and_parent_categories',
             'select',

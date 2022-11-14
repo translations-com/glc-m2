@@ -8,19 +8,24 @@ use TransPerfect\GlobalLink\Helper\Data as HelperData;
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
 
+
 /**
  * Class SubmitTranslations
  */
 class SubmitTranslations extends Translations
 {
     /**
-     * @var bool includeOptions
+     * @var boolean includeOptions
      */
     private $includeOptions;
     /**
      * @var string current run mode cron|cli
      */
     protected $mode;
+    /**
+     * @var boolean due-date override
+     */
+    protected $ddOverride;
 
     /**
      * @var int Limit uploaded xmls per one cronjob execution
@@ -59,8 +64,9 @@ class SubmitTranslations extends Translations
     /**
      * Console command execute method
      */
-    public function executeCli()
+    public function executeCli($ddOverride = null)
     {
+        $this->ddOverride = $ddOverride;
         $this->mode = 'cli';
         $this->execute();
     }
@@ -135,6 +141,21 @@ class SubmitTranslations extends Translations
                     $queue->setStatus(Queue::STATUS_SENT);
                     $queue->save();
                     continue;
+                }
+                if($this->mode == 'cli' && isset($this->ddOverride) && $this->ddOverride != null && $this->ddOverride > 0){
+                    $dueDate = $this->dateTime->date('Y-m-d H:i:s', $queue->getData('due_date'));
+                    $now = $this->dateTime->date('Y-m-d H:i:s');
+                    if($now > $dueDate){
+                        $newDate = $this->dateTime->date('Y-m-d H:i:s', strtotime($now." +".$this->ddOverride." days"));
+                        $queue->setData('due_date', $newDate);
+                        $queue->save();
+                        $logData = [
+                            'message' => 'Due-date of submission with ID ' . $queue->getId().' found to be in the past. Adjusting due-date by '.$this->ddOverride.' day(s)',
+                        ];
+                        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                        }
+                    }
                 }
                 while ($this->qItemsToPass > 0) {
                     $this->proceedQueue($queue);
@@ -486,6 +507,13 @@ class SubmitTranslations extends Translations
             case HelperData::PRODUCT_ATTRIBUTE_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
                     'globallink_classifiers/classifiers/productattributeclassifier',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $sourceStore->getId()
+                );
+                break;
+            case HelperData::BANNER_ID:
+                $fileFormatType = $this->scopeConfig->getValue(
+                    'globallink_classifiers/classifiers/bannerclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
@@ -962,7 +990,10 @@ class SubmitTranslations extends Translations
         $data = [];
 
         $fieldNames = $this->getFieldsToTranslate(HelperData::CATALOG_PRODUCT_TYPE_ID, $entityId);
-
+        $logData = ['message' => "Product fields selected for translation: ".json_encode($fieldNames)];
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+        }
         $product = $this->productRepository->getById($entityId, false, $storeId);
 
         $attrArr = [];
@@ -975,6 +1006,10 @@ class SubmitTranslations extends Translations
                 $attrArr[$fieldName] = $fieldValue;
                 $lengthArr[$fieldName] = $maxLength;
             }
+            $logData = ['message' => "Field name: {$fieldName}, max length: {$maxLength}, field value: {$fieldValue}" ];
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+            }
         }
 
         if (empty($attrArr)) {
@@ -985,7 +1020,7 @@ class SubmitTranslations extends Translations
         //M2 currently doesn't allow to save custom option titles for storeviews
         $customOptions = $this->productOption->getProductOptionCollection($product);
         $optionsTotal = count($customOptions);
-        if (!empty($customOptions) && $optionsTotal) {
+        if (!empty($customOptions) && $optionsTotal && $this->includeOptions == '1') {
             $optArr = $this->getProductDataCustomOptions($customOptions, $entityId);
         }
 
@@ -1131,6 +1166,49 @@ class SubmitTranslations extends Translations
         return $data;
     }
     /**
+     * Get data of dynamic block
+     *
+     * @param int $entityId
+     * @param int $storeId
+     *
+     * @return array
+     */
+    protected function getBannerData($entityId, $storeId)
+    {
+        $data = [];
+
+        $fieldNames[] = [
+            'name' => 'banner_content',
+            'max_length' => 16777215,
+        ];
+        $bannerData = $this->bannerContents->getStoreContent($entityId, $storeId);
+
+        $attrArr = [];
+        $optArr = [];
+        foreach ($fieldNames as $fieldNameData) {
+            $fieldName = $fieldNameData['name'];
+            $maxLength = $fieldNameData['max_length'];
+            $fieldValue = $bannerData;
+            if (!empty($fieldValue) && !is_array($fieldValue)) {
+                $attrArr[$fieldName] = $fieldValue;
+                $lengthArr[$fieldName] = $maxLength;
+            }
+        }
+
+        if (empty($attrArr)) {
+            return [];
+        }
+
+        $data['object_id'] = $entityId;
+        $data['object_type_id'] = HelperData::BANNER_ID;
+
+        $data['attributes'] = $attrArr;
+        $data['options'] = $optArr;
+        $data['max_length'] = $lengthArr;
+
+        return $data;
+    }
+    /**
      * Create xml file with data for translation
      *
      * @param string $filePath
@@ -1156,6 +1234,8 @@ class SubmitTranslations extends Translations
             $data = $this->getCustomerAttributeData($itemEntityId, $originStoreId);
         } elseif ($itemEntityTypeId == HelperData::PRODUCT_REVIEW_ID) {
             $data = $this->getReviewData($itemEntityId, $originStoreId);
+        } elseif ($itemEntityTypeId == HelperData::BANNER_ID) {
+            $data = $this->getBannerData($itemEntityId, $originStoreId);
         }
 
         if (empty($data)) {

@@ -5,9 +5,11 @@ namespace TransPerfect\GlobalLink\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class SubmitTranslationsCommand extends Command
 {
+    const ddOverride = 'ddOverride';
     /**
      * @var \TransPerfect\GlobalLink\Cron\SubmitTranslations
      */
@@ -25,17 +27,26 @@ class SubmitTranslationsCommand extends Command
         $this->setName('globallink:translations:submit')
             ->setDescription('Submit Translations')
             ->setHelp("Send all unsent items from all new and unfinished queues to translation service");
-
+        $this->addOption(
+            self::ddOverride,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Due-date override for past due-dates',
+            5
+        );
         parent::configure();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('');
-
-            $output->writeln('Submitting all queues to service...');
+        $output->writeln('Submitting all queues to service...');
         try {
-            $this->submitTranslations->executeCli();
+            if($ddOverride = $input->getOption('ddOverride')){
+                $this->submitTranslations->executeCli($ddOverride);
+            } else {
+                $this->submitTranslations->executeCli();
+            }
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
         }
