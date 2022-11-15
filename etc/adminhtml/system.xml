@@ -135,12 +135,12 @@
                 </field>
             </group>
         </section>
-        <section id="globallink_translate_new_products" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+        <section id="globallink_translate_new_entities" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
             <label>GlobalLink New Entity Automation Settings</label>
             <tab>transperfect</tab>
-            <resource>TransPerfect_GlobalLink::translate_new_products</resource>
+            <resource>TransPerfect_GlobalLink::translate_new_entities</resource>
             <group id="translate_new_products" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>New Entity Translation Automation Settings</label>
+                <label>New Product Translation Automation Settings</label>
                 <field id="translate_new_products" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatically Translate Newly Created Products</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -182,6 +182,91 @@
                     <validate>validate-email-list</validate>
                     <depends>
                         <field id="*/*/translate_new_products">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="translate_new_categories" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>New Category Translation Automation Settings</label>
+                <field id="translate_new_categories" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Automatically Translate Newly Created Categories</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="tnc_project" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Project Used</label>
+                    <comment><![CDATA[Make Sure Connection is Valid First]]></comment>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Project</source_model>
+                    <depends>
+                        <field id="*/*/translate_new_categories">1</field>
+                    </depends>
+                </field>
+                <field id="tnc_source_locale" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Source Locale</label>
+                    <comment><![CDATA[Make Sure Connection is Valid First]]></comment>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Locale</source_model>
+                    <depends>
+                        <field id="*/*/translate_new_categories">1</field>
+                    </depends>
+                </field>
+                <field id="tnc_number_of_days" translate="label" type="text" sortOrder="32" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Due-Date (Days from Now)</label>
+                    <comment><![CDATA[Number of days from today the due-date should be]]></comment>
+                    <validate>validate-greater-than-zero validate-number required-entry validate-digits-range digits-range-2-50</validate>
+                    <depends>
+                        <field id="*/*/translate_new_categories">1</field>
+                    </depends>
+                </field>
+                <field id="tnc_confirmation_email" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Confirmation Email</label>
+                    <comment><![CDATA[Separate addresses with comma]]></comment>
+                    <validate>validate-email-list</validate>
+                    <depends>
+                        <field id="*/*/translate_new_categories">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="translate_new_product_attributes" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>New Product Attribute Translation Automation Settings</label>
+                <field id="translate_new_product_attributes" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Automatically Translate Newly Created Product Attributes</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="tnpa_project" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Project Used</label>
+                    <comment><![CDATA[Make Sure Connection is Valid First]]></comment>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Project</source_model>
+                    <depends>
+                        <field id="*/*/translate_new_product_attributes">1</field>
+                    </depends>
+                </field>
+                <field id="tnpa_source_locale" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Source Locale</label>
+                    <comment><![CDATA[Make Sure Connection is Valid First]]></comment>
+                    <source_model>TransPerfect\GlobalLink\Model\Config\Source\Locale</source_model>
+                    <depends>
+                        <field id="*/*/translate_new_product_attributes">1</field>
+                    </depends>
+                </field>
+                <field id="tnpa_number_of_days" translate="label" type="text" sortOrder="32" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Due-Date (Days from Now)</label>
+                    <comment><![CDATA[Number of days from today the due-date should be]]></comment>
+                    <validate>validate-greater-than-zero validate-number required-entry validate-digits-range digits-range-2-50</validate>
+                    <depends>
+                        <field id="*/*/translate_new_product_attributes">1</field>
+                    </depends>
+                </field>
+                <field id="tnpa_include_options" translate="label" type="select" sortOrder="35" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Include Attribute Options</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="*/*/translate_new_product_attributes">1</field>
+                    </depends>
+                </field>
+                <field id="tnpa_confirmation_email" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Confirmation Email</label>
+                    <comment><![CDATA[Separate addresses with comma]]></comment>
+                    <validate>validate-email-list</validate>
+                    <depends>
+                        <field id="*/*/translate_new_product_attributes">1</field>
                     </depends>
                 </field>
             </group>

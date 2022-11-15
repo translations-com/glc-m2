@@ -47,4 +47,16 @@
             instance="TransPerfect\GlobalLink\Model\Observer\TranslateNewProducts"
             disabled="false" />
     </event>
+    <event name="catalog_category_save_after">
+        <observer
+            name="transperfect_globallink_catalog_category_save_after"
+            instance="TransPerfect\GlobalLink\Model\Observer\TranslateNewCategories"
+            disabled="false" />
+    </event>
+    <event name="catalog_entity_attribute_save_after">
+        <observer
+            name="transperfect_globallink_catalog_entity_attribute_save_after"
+            instance="TransPerfect\GlobalLink\Model\Observer\TranslateNewAttributes"
+            disabled="false" />
+    </event>
 </config>
