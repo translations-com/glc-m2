@@ -113,7 +113,7 @@ class Form extends BaseForm
     {
         $names = [];
         $collection = $this->collectionFactory->create();
-        $bannersToTranslate = explode(',', $this->bannersToTranslate);
+        $bannersToTranslate = (is_array($this->bannersToTranslate)) ? explode(',', $this->bannersToTranslate) : $this->bannersToTranslate;
         foreach ($bannersToTranslate as $id) {
             $currentRecord = $collection->getItemById($id);
             $names[$id] = $currentRecord->getData('name');
