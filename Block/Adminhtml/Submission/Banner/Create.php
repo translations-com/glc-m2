@@ -19,7 +19,7 @@ class Create extends FormContainer
     {
         $this->_mode = 'banner_create';
         parent::_construct();
-        $this->updateButton('back', 'onclick', 'setLocation(\'' . $this->getUrl('adminhtml/banner/grid') . '\')');
+        $this->updateButton('back', 'onclick', 'setLocation(\'' . $this->getUrl('adminhtml/banner/index') . '\')');
     }
 
     /**
