@@ -31,8 +31,7 @@ class SubmitTranslationsCommand extends Command
             self::ddOverride,
             null,
             InputOption::VALUE_OPTIONAL,
-            'Due-date override for past due-dates',
-            5
+            'Due-date override for past due-dates'
         );
         parent::configure();
     }
