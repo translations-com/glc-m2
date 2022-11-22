@@ -102,10 +102,11 @@ class Email extends BaseEmail
                             ])
                             ->setTemplateVars(['messages' => $messages, 'queue' => $queue, 'submission_ticket' => $submission_ticket,  'username' => $username, 'document_tickets' => $document_tickets, 'source_locale' => $source_locale, 'target_locale' => $target_locale, 'request_date' => $request_date, 'receive_date' => $receive_date])
                             ->addAttachment($exception_file, 'transperfect_globallink_'.date('m-d-Y').'.log', 'log')
-                            ->setFrom($sender)
-                            ->addTo($firstRecipient)
-                            ->getTransport()
-                            ->sendMessage();
+                            ->setFrom($sender);
+                        foreach($recipient as $currentRecipient){
+                            $this->transportBuilder->addTo($currentRecipient);
+                        }
+                        $this->transportBuilder->getTransport()->sendMessage();
                         $this->messageManager->addErrorMessage(('An error has occurred somewhere in the process. Please check the globallink log or your email if you have error emails configured.'));
                     } catch (\Exception $e) {
                         $this->bgLogger->error($e->getMessage());
