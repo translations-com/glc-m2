@@ -30,6 +30,7 @@
                 </field>
                 <field id="automation" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatic Submission and Retrieval of Translations</label>
+                    <comment>Does not affect new entity automation.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="auto_import" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">

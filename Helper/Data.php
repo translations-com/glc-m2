@@ -606,6 +606,42 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         return $targetLocales;
     }
+    /**
+     * Get all locales for a given project
+     * @param $shortcode
+     * @return array
+     */
+    public function getConfiguredTargetLanguagesBySource($shortCode, $source){
+        $locales = $this->getLocales(true, true, true);
+        try {
+            $response = $this->translationService->requestGLExchange(
+                '/services/ProjectService',
+                'getUserProjects',
+                [
+                    'isSubProjectIncluded' => true,
+                ]
+            );
+            $targetLocales = [];
+            foreach ($response as $project){
+                if($project->projectInfo->shortCode == $shortCode){
+                    if(is_array($project->projectLanguageDirections)) {
+                        foreach ($project->projectLanguageDirections as $languageDirection) {
+                            if ($source == $languageDirection->sourceLanguage->locale && array_key_exists($languageDirection->targetLanguage->locale, $locales)) {
+                                $targetLocales[] = $languageDirection->targetLanguage->locale;
+                            }
+                        }
+                    } elseif(isset($project->projectLanguageDirections)){
+                        if($project->projectLanguageDirections->sourceLanguage->locale == $source){
+                            $targetLocales[] = $project->projectLanguageDirections->targetLanguage->locale;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $targetLocales = [];
+        }
+        return $targetLocales;
+    }
 
     /**
      * Get all target locales for all projects. merge them all in one array

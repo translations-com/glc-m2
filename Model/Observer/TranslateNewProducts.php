@@ -55,15 +55,16 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
             $stores = $this->storeRepository->getList();
             $targetStores = [];
             $sourceLocale = $this->helper->getStoreIdFromLocale($this->scopeConfig->getValue('globallink_translate_new_entities/translate_new_products/tnp_source_locale', \Magento\Store\Model\ScopeInterface::SCOPE_STORE))[0];
-            foreach ($stores as $store) {
-                if ($store->getData("store_id") != $sourceLocale && $store->getData('locale') != '') {
-                    $targetStores[] = $store->getId();
-                }
-            }
             $shortCode = $this->scopeConfig->getValue('globallink_translate_new_entities/translate_new_products/tnp_project', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $confirmationEmail = $this->scopeConfig->getValue('globallink_translate_new_entities/translate_new_products/tnp_confirmation_email', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $includeOptions = $this->scopeConfig->getValue('globallink_translate_new_entities/translate_new_products/tnp_include_options', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $numberOfDays = $this->scopeConfig->getValue('globallink_translate_new_entities/translate_new_products/tnp_number_of_days', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+            $targetLocales = $this->helper->getConfiguredTargetLanguagesBySource($shortCode, $this->helper->getPdLocaleIsoCodeByStoreId($sourceLocale)[0]);
+            foreach ($stores as $store) {
+                if ($store->getData("store_id") != $sourceLocale && in_array($store->getData('locale'), $targetLocales)) {
+                    $targetStores[] = $store->getId();
+                }
+            }
             $queue = $this->queueFactory->create();
             $queueData = [
                 'name' => 'Auto Submission: ' .  $product->getName(),
@@ -83,16 +84,24 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
                 'include_options' => $includeOptions
             ];
             $queue->setData($queueData);
-            try {
-                $queue->getResource()->save($queue);
-                $this->messageManager->addSuccessMessage(__('Product has been saved to the translate queue'));
-                if ($this->logger->isDebugEnabled()) {
-                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
-                }
-            } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+            if(empty($targetLocales)){
+                $message = 'Cannot create translation job, no language directions are configured for this source locale.';
+                $this->messageManager->addErrorMessage($message);
                 if ($this->logger->isErrorEnabled()) {
-                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                    $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $message);
+                }
+            } else {
+                try {
+                    $queue->getResource()->save($queue);
+                    $this->messageManager->addSuccessMessage(__('Product has been saved to the translate queue'));
+                    if ($this->logger->isDebugEnabled()) {
+                        $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                    }
+                } catch (\Exception $e) {
+                    $this->messageManager->addErrorMessage($e->getMessage());
+                    if ($this->logger->isErrorEnabled()) {
+                        $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $e->getMessage());
+                    }
                 }
             }
         }
