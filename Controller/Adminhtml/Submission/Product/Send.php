@@ -47,13 +47,13 @@ class Send extends BaseSubmission
             $customAttributes = $this->helper->getCustomAttributes($formData['project']);
             foreach ($customAttributes as $attribute) {
                 if ($attribute->type == 'TEXT') {
-                    if ($attribute->mandatory && $formData['attribute_text'] == "") {
+                    if ($attribute->mandatory && ($formData['attribute_text'][$project] == "" || empty($formData['attribute_text'][$project]))) {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
                         return $resultRedirect->setPath('catalog/product');
                     }
                 }
                 if ($attribute->type == 'COMBO') {
-                    if ($attribute->mandatory && !isset($formData['attribute_combo'])) {
+                    if ($attribute->mandatory && !isset($formData['attribute_combo'][$project])) {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
                         return $resultRedirect->setPath('catalog/product');
                     }

@@ -29,6 +29,7 @@ class Send extends BaseSubmission
             $dueDate = $data['submission']['due_date'];
             $dueDate = $this->_dateTime->gmtTimestamp($dueDate);
             $dueDate = $dueDate + (24*60*60) - 1;
+            $project = $data['submission']['project'];
 
             $formData = $this->getRequest()->getParam('submission');
             foreach ($data['submission']['items'] as $itemId => $itemName) {
@@ -42,7 +43,7 @@ class Send extends BaseSubmission
             $customAttributes = $this->helper->getCustomAttributes($formData['project']);
             foreach ($customAttributes as $attribute) {
                 if ($attribute->type == 'TEXT') {
-                    if ($attribute->mandatory && $formData['attribute_text'] == "") {
+                    if ($attribute->mandatory && ($formData['attribute_text'][$project] == "" || empty($formData['attribute_text'][$project]))) {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));
                         return $resultRedirect->setPath('cms/page');
                     }

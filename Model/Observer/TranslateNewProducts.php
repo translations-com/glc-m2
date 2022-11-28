@@ -23,6 +23,8 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
     private $_dateTime;
     protected $scopeConfig;
     protected $messageManager;
+    protected $isAutomaticMode;
+    protected $submitTranslations;
 
     public function __construct(
         \TransPerfect\GlobalLink\Helper\Ui\Logger $logger,
@@ -33,7 +35,8 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
         \Magento\Backend\Model\Auth\Session $authSession,
         \Magento\Framework\Stdlib\DateTime\DateTime $dateTime,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \TransPerfect\GlobalLink\Cron\SubmitTranslations $submitTranslations
     ) {
         $this->logger = $logger;
         $this->productRepository = $productRepository;
@@ -44,6 +47,12 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
         $this->_dateTime = $dateTime;
         $this->scopeConfig = $scopeConfig;
         $this->messageManager = $messageManager;
+        $this->submitTranslations = $submitTranslations;
+        if ($this->scopeConfig->getValue('globallink/general/automation') == 1) {
+            $this->isAutomaticMode = true;
+        } else {
+            $this->isAutomaticMode = false;
+        }
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -93,9 +102,20 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
             } else {
                 try {
                     $queue->getResource()->save($queue);
-                    $this->messageManager->addSuccessMessage(__('Product has been saved to the translate queue'));
                     if ($this->logger->isDebugEnabled()) {
                         $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData);
+                    }
+                    if ($this->submitTranslations->isJobLocked() && $this->isAutomaticMode) {
+                        $message = "Items saved to translate queue, but could not send to PD. Please run the unlock command and then submit through the CLI.";
+                        $this->messageManager->addErrorMessage($message);
+                        if ($this->logger->isErrorEnabled()) {
+                            $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::SEND_ACTION_TYPE, $queueData, Logger::CRITICAL, $message);
+                        }
+                    } elseif ($this->isAutomaticMode) {
+                        $this->messageManager->addSuccessMessage(__('Product has been sent for translation.'));
+                        $this->submitTranslations->executeAutomatic($queue);
+                    } else{
+                        $this->messageManager->addSuccessMessage(__('Product has been saved to the translate queue'));
                     }
                 } catch (\Exception $e) {
                     $this->messageManager->addErrorMessage($e->getMessage());
