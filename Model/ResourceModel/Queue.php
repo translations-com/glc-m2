@@ -11,6 +11,7 @@ use TransPerfect\GlobalLink\Helper\Product;
 use TransPerfect\GlobalLink\Model\Queue\ItemFactory;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
+use Magento\Banner\Model\ResourceModel\Banner\CollectionFactory as BannerCollectionFactory;
 
 /**
  * Class Queue
@@ -68,7 +69,12 @@ class Queue extends AbstractDb
      * \TransPerfect\GlobalLink\Model\Queue\ItemFactory
      */
     protected $itemFactory;
+    /**
+     * @var \Magento\Banner\Model\ResourceModel\Banner\CollectionFactory
+     */
+    protected $bannerContents;
 
+    private $includedBannerIds = [];
     /**
      * Queue constructor.
      *
@@ -80,6 +86,7 @@ class Queue extends AbstractDb
      * @param \TransPerfect\GlobalLink\Helper\Product                         $productHelper
      * @param \Magento\Framework\Event\ManagerInterface                       $eventManager
      * @param \TransPerfect\GlobalLink\Model\Queue\ItemFactory                $itemFactory
+     * @param \Magento\Banner\Model\ResourceModel\Banner\CollectionFactory    $bannerContents
      * @param null                                                            $connectionName
      */
     public function __construct(
@@ -92,6 +99,7 @@ class Queue extends AbstractDb
         ManagerInterface $eventManager,
         StoreCollectionFactory $storeCollectionFactory,
         ItemFactory $itemFactory,
+        BannerCollectionFactory $bannerCollectionFactory,
         $connectionName = null
     ) {
         $this->eventManager = $eventManager;
@@ -102,6 +110,7 @@ class Queue extends AbstractDb
         $this->productHelper = $productHelper;
         $this->storeCollectionFactory = $storeCollectionFactory;
         $this->itemFactory = $itemFactory;
+        $this->bannerCollectionFactory = $bannerCollectionFactory;
         parent::__construct($context, $connectionName);
     }
 
@@ -174,6 +183,7 @@ class Queue extends AbstractDb
                         'entity_type_id' => (int) $object->getEntityTypeId(),
                         'pd_locale_iso_code' => $localization,
                         'target_stores' => ','.implode(',', $targetStores).',',  /*need commas here for LIKE condition*/
+                        'parent_id' => null,
                     ];
                 }
             }
@@ -181,7 +191,9 @@ class Queue extends AbstractDb
             // Add included widgets - Only for CMS Pages
             if ($object->getIncludeCmsBlockWidgets()) {
                 $this->_findCmsBlocks($object);
-                $this->_includeAssociatedEntities($object, $this->includedCmsBlockIds, \TransPerfect\GlobalLink\Helper\Data::CMS_BLOCK_TYPE_ID, $data);
+                //$this->_findBanners($object);
+                //$this->_includeAssociatedEntities($object, $this->includedBannerIds, \TransPerfect\GlobalLink\Helper\Data::BANNER_ID, $data, true);
+                $this->_includeAssociatedEntities($object, $this->includedCmsBlockIds, \TransPerfect\GlobalLink\Helper\Data::CMS_BLOCK_TYPE_ID, $data, true);
             }
 
             // Add associated and parent categories to queue - Only for products
@@ -248,40 +260,59 @@ class Queue extends AbstractDb
         $cmsPageCollection = $this->cmsPageCollectionFactory->create();
         $cmsPageCollection->addFieldToFilter('page_id', ['in' => array_keys($object->getItems())]);
         foreach ($cmsPageCollection as $cmsPage) {
-            $matchesBlock = [];
+            $blockIDs = [];
             $matches = [];
-            preg_match_all('/{{widget.+block_id="([^\s]+)"}}/', $cmsPage->getContent(), $matches);
-            preg_match_all('/{{block.+block_id="([^\s]+)"}}/', $cmsPage->getContent(), $matchesBlock);
-            if (!empty($matches) && isset($matches[1])) {
-                $cmsBlockCollection = $this->cmsBlockCollectionFactory->create();
-                foreach ($matches[1] as $match) {
-                    $cmsBlockCollection->addFieldToFilter('block_id', $match);
+            preg_match_all('/{{widget type="(.{0,100})" template="(.{0,100})" block_id="(.{0,10})" type_name="(.{0,100})"}}/', $cmsPage->getContent(), $matches);
+            //preg_match_all('/{{widget.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matches);
+            //preg_match_all('/{{block.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matchesBlock);
+            if (!empty($matches) && isset($matches[3])) {
+                $blockIDs = array_unique($matches[3]);
+                foreach($blockIDs as $blockID){
+                    $cmsBlockCollection = $this->cmsBlockCollectionFactory->create();
+                    $cmsBlockCollection->addFieldToFilter('block_id', $blockID);
                     if ($cmsBlockCollection->getSize() > 0) {
                         $blockName = $cmsBlockCollection->getFirstItem()->getTitle();
-                        $this->includedCmsBlockIds[$match] = $blockName;
-                    }
-                    $cmsBlockCollection->clear();
-                }
-            }
-
-            if (!empty($matchesBlock) && isset($matchesBlock[1])) {
-                $cmsBlockCollection = $this->cmsBlockCollectionFactory->create();
-                foreach ($matchesBlock[1] as $matchBlock) {
-                    $cmsBlockCollection->addFieldToFilter('identifier', $matchBlock);
-                    if ($cmsBlockCollection->getSize() > 0) {
-                        $blockId = $cmsBlockCollection->getFirstItem()->getId();
-                        $blockName = $cmsBlockCollection->getFirstItem()->getTitle();
-                        $this->includedCmsBlockIds[$blockId] = $blockName;
+                        $this->includedCmsBlockIds[$blockID]['name'] = $blockName;
+                        $this->includedCmsBlockIds[$blockID]['parent'] = $cmsPage->getData('page_id');
                     }
                     $cmsBlockCollection->clear();
                 }
             }
         }
-        $this->includedCmsBlockIds = array_unique($this->includedCmsBlockIds);
-
         return $this;
     }
+    /**
+     * Find CMS block widgets in CMS page content
+     *
+     * @param $object
+     *
+     * @return $this
+     */
+    protected function _findBanners($object)
+    {
+        $cmsPageCollection = $this->cmsPageCollectionFactory->create();
+        $cmsPageCollection->addFieldToFilter('page_id', ['in' => array_keys($object->getItems())]);
+        foreach ($cmsPageCollection as $cmsPage) {
+            $bannerIDs = [];
+            $matches = [];
+            preg_match_all('/{{widget type="(.{0,100})" .{0,150} banner_ids="(.{0,10})" .{0,150}}}/', $cmsPage->getContent(), $matches);
+            if (!empty($matches) && isset($matches[2])) {
+                $bannerIDs = array_unique($matches[2]);
+                foreach($bannerIDs as $bannerID){
+                    $bannerCollection = $this->bannerCollectionFactory->create();
+                    $bannerCollection->addFieldToFilter('banner_id', $bannerID);
+                    if ($bannerCollection->getSize() > 0) {
+                        foreach($bannerCollection as $banner){
+                            $this->includedBannerIds[$bannerID]['name'] = $banner->getName();
+                            $this->includedBannerIds[$bannerID]['parent'] = $cmsPage->getData('page_id');
+                        }
 
+                    }
+                }
+            }
+        }
+        return $this;
+    }
     /**
      * Fetch all product categories
      *
@@ -305,20 +336,35 @@ class Queue extends AbstractDb
      *
      * @return $this
      */
-    protected function _includeAssociatedEntities($object, $includedEntities, $entityTypeId, &$data)
+    protected function _includeAssociatedEntities($object, $includedEntities, $entityTypeId, &$data, $isBlock = false)
     {
         $localizations = (array) $object->getLocalizations();
 
         foreach ($localizations as $localization => $targetStores) {
-            foreach ($includedEntities as $itemId => $itemName) {
-                $data[] = [
-                    'queue_id' => (int) $object->getId(),
-                    'entity_id' => (int) $itemId,
-                    'entity_name' => $itemName,
-                    'entity_type_id' => $entityTypeId,
-                    'pd_locale_iso_code' => $localization,
-                    'target_stores' => ','.implode(',', $targetStores).',',  /*need commas here for LIKE condition*/
-                ];
+            if($isBlock){
+                foreach ($includedEntities as $itemId => $item) {
+                    $data[] = [
+                        'queue_id' => (int)$object->getId(),
+                        'entity_id' => (int)$itemId,
+                        'entity_name' => $item['name'],
+                        'entity_type_id' => $entityTypeId,
+                        'pd_locale_iso_code' => $localization,
+                        'parent_id' => (int)$item['parent'],
+                        'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
+                    ];
+                }
+            } else {
+                foreach ($includedEntities as $itemId => $itemName) {
+                    $data[] = [
+                        'queue_id' => (int)$object->getId(),
+                        'entity_id' => (int)$itemId,
+                        'entity_name' => $itemName,
+                        'entity_type_id' => $entityTypeId,
+                        'pd_locale_iso_code' => $localization,
+                        'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
+                        'parent_id' => null,
+                    ];
+                }
             }
         }
 

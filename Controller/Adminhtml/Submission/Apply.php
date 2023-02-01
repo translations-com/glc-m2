@@ -29,6 +29,35 @@ class Apply extends Submission
         }
 
         $itemIds = $postData['ids'];
+        //We need to check for any pages that have been selected that are finished
+        $selectedCmsPageRecords = $this->itemCollectionFactory->create();
+        $selectedCmsPageRecords->addFieldToFilter(
+            'id',
+            ['in' => $itemIds]
+        );
+        $selectedCmsPageRecords->addFieldToFilter('entity_type_id', $this->helper::CMS_PAGE_TYPE_ID);
+        $selectedCmsPageRecords->addFieldToFilter('status_id', Item::STATUS_FINISHED);
+        if(count($selectedCmsPageRecords) > 0){
+            //For each page that meets that criteria, we then......
+            foreach($selectedCmsPageRecords as $pageItem){
+                //Check to see if there are any cms blocks that have it as a parent and are a part of the same submission
+                //That weren't selected as a part of this action.
+                $blockChildrenRecords = $this->itemCollectionFactory->create();
+                $blockChildrenRecords->addFieldToFilter('entity_type_id', $this->helper::CMS_BLOCK_TYPE_ID);
+                $blockChildrenRecords->addFieldToFilter('parent_id', $pageItem->getData('entity_id'));
+                $blockChildrenRecords->addFieldToFilter('queue_id', $pageItem->getData('queue_id'));
+                $blockChildrenRecords->addFieldToFilter('status_id', ['nin' => [Item::STATUS_APPLIED]]);
+                $blockChildrenRecords->addFieldToFilter(
+                    'id',
+                    ['nin' => $itemIds]
+                );
+                $missingChildBlocks = count($blockChildrenRecords);
+                if($missingChildBlocks > 0){
+                    $this->messageManager->addError(__('Cannot Import, Child Blocks Must Also Be Imported or be Imported at the Same Time'));
+                    return $this->resultRedirect->setPath('*/*/index');
+                }
+            }
+        }
 
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
@@ -39,6 +68,7 @@ class Apply extends Submission
             'status_id',
             ['in' => [Item::STATUS_FINISHED]]
         );
+        $items->setOrder('entity_type_id', 'DESC');
         $itemsTotal = count($items);
 
         if (!$itemsTotal) {

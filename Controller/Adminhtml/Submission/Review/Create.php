@@ -22,17 +22,50 @@ class Create extends BackendAction
      * @var \TransPerfect\GlobalLink\Helper\Ui\Logger
      */
     protected $logger;
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $registry;
+    /**
+     * @var \TransPerfect\GlobalLink\Helper\Data
+     */
+    protected $helper;
+    /**
+     * @var \Magento\Backend\Model\Session
+     */
+    protected $session;
+    /**
+     * @var \Magento\Ui\Component\MassAction\Filter
+     */
+    protected $filter;
+
+    /**
+     * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
+     */
+    protected $collectionFactory;
 
     protected $resultPageFactory = false;
+
+    protected $resultRedirect;
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        Logger $logger
+        Logger $logger,
+        \Magento\Framework\Registry $registry,
+        \TransPerfect\GlobalLink\Helper\Data $helper,
+        \Magento\Ui\Component\MassAction\Filter $filter,
+        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $collectionFactory
     ) {
         parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
         $this->logger = $logger;
+        $this->registry = $registry;
+        $this->helper = $helper;
+        $this->filter = $filter;
+        $this->session = $context->getSession();
+        $this->collectionFactory = $collectionFactory;
+        $this->resultRedirect = $context->getResultRedirectFactory()->create();
     }
 
     /**
@@ -40,6 +73,23 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        $differentStoresSelected = false;
+        $reviewStoreId = null;
+        $sessionData = $this->session->getFormData();
+        $reviewsToTranslate = explode(",", $this->getRequest()->getParam('reviews'));
+        if(count($reviewsToTranslate) > 1 && $this->helper->hasDifferentStores(Data::PRODUCT_REVIEW_ID, $reviewsToTranslate)){
+            $differentStoresSelected = true;
+        }
+        else{
+            $reviewStoreId = $this->helper->getStoreId(Data::PRODUCT_REVIEW_ID, $reviewsToTranslate[0]);
+        }
+        if($differentStoresSelected){
+            $completedItemsString = "Cannot create submission as multiple source stores are selected. Please select only one source language.";
+            $this->messageManager->addErrorMessage($completedItemsString);
+            return $this->resultRedirect->setPath($this->_redirect->getRefererUrl());
+        }
+        $this->registry->register('differentStoresSelected', $differentStoresSelected);
+        $this->registry->register('objectStoreId', $reviewStoreId);
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

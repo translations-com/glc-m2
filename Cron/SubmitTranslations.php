@@ -1011,6 +1011,9 @@ class SubmitTranslations extends Translations
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
         }
+        foreach($product->getMediaGalleryEntries() as $image){
+            $attrArr[$image->getTypes()[0]."_label"] = $image->getData('label');
+        }
 
         if (empty($attrArr)) {
             return [];

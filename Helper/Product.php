@@ -102,7 +102,8 @@ class Product extends Data
         BlockCollectionFactory $blockCollectionFactory,
         StoreCollectionFactory $storeCollectionFactory,
         FieldProductCategoryFactory $fieldProductCategoryFactory,
-        \TransPerfect\GlobalLink\Helper\Ui\Logger $logger
+        \TransPerfect\GlobalLink\Helper\Ui\Logger $logger,
+        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -136,7 +137,8 @@ class Product extends Data
             $blockCollectionFactory,
             $storeCollectionFactory,
             $fieldProductCategoryFactory,
-            $logger
+            $logger,
+            $reviewCollectionFactory
         );
     }
 

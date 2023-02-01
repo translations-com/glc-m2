@@ -25,7 +25,7 @@ class Create extends FormContainer
     {
         $this->_mode = 'review_create';
         parent::_construct();
-        $this->updateButton('back', 'onclick', 'setLocation(\'' . $this->getUrl('adminhtml/review_product_index') . '\')');
+        $this->updateButton('back', 'onclick', 'setLocation(\'' . $this->getUrl('review/product/index') . '\')');
     }
 
     /**

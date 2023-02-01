@@ -108,7 +108,9 @@ class Item extends AbstractDb
             'document_ticket' => 'main_table.document_ticket',
             'target_stores' => 'main_table.target_stores',
             'request_date' => 'queue.request_date',
-            'due_date'  => 'queue.due_date'
+            'due_date'  => 'queue.due_date',
+            'parent_id' => 'main_table.parent_id',
+            'queue_id' => 'main_table.queue_id'
         ];
         return $aliasesMap[$alias];
     }

@@ -20,6 +20,7 @@ class CustomRenderer extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
     const STATUS_ERROR_UPLOAD = 8;      // something went wrong while documend uploading (item has not been sent)
     const STATUS_CANCELLED = 9;         // item is cancelled
     const STATUS_MAXLENGTH = 10;        // item has one or more fields that failed the max length test and cannot be imported
+    const STATUS_WAIT_FOR_BLOCKS = 11;  // a cms page has blocks inside that are not yet ready for import
     /**
      * @var \Magento\Catalog\Model\CategoryFactory
      */
@@ -79,6 +80,9 @@ class CustomRenderer extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\
                 return '<span class="admin__grid-control-value" style="background-color: #FF0000; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Max Length Error</span>';
             case $this::STATUS_NEW:
                 return '<span class="admin__grid-control-value" style="background-color: #ff9933; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Queued</span>';
+            case $this::STATUS_WAIT_FOR_BLOCKS:
+                return '<span class="admin__grid-control-value" style="background-color: #A9A9A9; border-style: solid; color: #ffffff; border-color: black; font-size: 14px; float:left; width:125px; text-align: center; font-family:Verdana, Arial, sans-serif; font-weight: bold; border-radius: 5px;">Waiting for Child Blocks</span>';
+
         }
     }
 }

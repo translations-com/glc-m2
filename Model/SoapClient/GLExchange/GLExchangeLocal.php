@@ -64,7 +64,7 @@ class GLExchangeLocal extends GLExchange
         parent::__construct($connectionConfig);
         $version = $productMetadata->getVersion();
         //$reflection = new ReflectionClass($this);
-        if($version == '2.4.4' || $version == '2.4.5' || $version == '2.4.6' || $version == '2.4.7' || $version == '2.4.8') {
+        if(substr($version, 0, 5) === '2.4.4' || substr($version, 0, 5) === '2.4.5' || substr($version, 0, 5) === '2.4.6' || substr($version, 0, 3) === '2.5') {
             $reflection = $reflectionFactory->create(['objectOrClass' => $this]);
         } else{
             $reflection = $reflectionFactory->create(['argument' => $this]);

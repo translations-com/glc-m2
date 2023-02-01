@@ -50,6 +50,7 @@ class Item extends AbstractModel
     const STATUS_ERROR_UPLOAD = 8;      // something went wrong while documend uploading (item has not been sent)
     const STATUS_CANCELLED = 9;         // item is cancelled
     const STATUS_MAXLENGTH = 10;        // item has one or more fields that failed the max length test and cannot be imported
+    const STATUS_WAIT_FOR_BLOCKS = 11;  // a cms page has blocks inside that are not yet ready for import
 
     /**
      * Prefix of model events names
@@ -132,7 +133,7 @@ class Item extends AbstractModel
      */
     protected $attributeRepository;
 
-    /**
+    /**w
      * @var \Magento\Eav\Api\AttributeOptionManagementInterface
      */
     protected $attributeOptionManagement;
@@ -353,7 +354,8 @@ class Item extends AbstractModel
             self::STATUS_FOR_DELETE => 'Cancelled',
             self::STATUS_CANCEL_FAILED => 'Cancel Failed Once, Will Retry',
             self::STATUS_ERROR_UPLOAD => 'Uploading failed',
-            self::STATUS_MAXLENGTH => 'Max Length Error'
+            self::STATUS_MAXLENGTH => 'Max Length Error',
+            self::STATUS_WAIT_FOR_BLOCKS => 'Waiting for Child Blocks'
         ];
     }
 
@@ -814,11 +816,34 @@ class Item extends AbstractModel
         $translatedData = $this->getTranslatedData();
 
         foreach ($targetStoreIds as $targetStoreId) {
+            $matches = [];
+            $matchesBlock = [];
+            $translatedContentWithBlocks = null;
             $oldEntity = $this->pageFactory->create();
             $oldEntity->load($entityId);
             $underVersionControl = (bool)$oldEntity->getUnderVersionControl();
             $identifier = $oldEntity->getIdentifier();
 
+            if(array_key_exists('content', $translatedData['attributes'])){
+                preg_match_all('/{{widget type="(.{0,100})" template="(.{0,100})" block_id="(.{0,10})" type_name="(.{0,100})"}}/', $translatedData['attributes']['content'], $matches);
+                if (!empty($matches) && isset($matches[0]) && isset($matches[3])) {
+                    for($i=0; $i < count($matches[0]); $i++){
+                        $items = $this->getCollection();
+                        $items->addFieldToFilter('entity_type_id', Helper::CMS_BLOCK_TYPE_ID);
+                        $items->addFieldToFilter('parent_id', $this->getData('entity_id'));
+                        $items->addFieldToFilter('queue_id', $this->getData('queue_id'));
+                        $items->addFieldToFilter('status_id', $this::STATUS_APPLIED);
+                        $items->addFieldToFilter('entity_id', $matches[3][$i]);
+                        if(count($items) > 0){
+                            $foundItem = $items->getFirstItem();
+                            $translatedBlockID = $foundItem->getData('new_entity_id');
+                            $newMatch = str_replace('block_id="'.$matches[3][$i],'block_id="'.$translatedBlockID, $matches[0][$i]);
+                            $translatedData['attributes']['content'] = str_replace($matches[0][$i], $newMatch, $translatedData['attributes']['content']);
+                        }
+                    }
+
+                }
+            }
             // try to find page with our identifier where target store set directly
             $needNewEntity = true;
             $pages = $this->pageCollectionFactory->create();
@@ -949,7 +974,7 @@ class Item extends AbstractModel
         $targetStoreIds = $this->getTargetStoreIds();
         $sourceStoreId = $this->getSourceStoreId();
         $translatedData = $this->getTranslatedData();
-        $imageFields = ['image_label', 'thumbnail_label', 'small_image_label', 'swatch_image'];
+        $imageFields = ['image_label', 'thumbnail_label', 'small_image_label', 'swatch_image_label'];
         $nonupdatingFields = ['store_id', 'entity_id', 'attribute_set_id', 'sku', 'created_at', 'updated_at', 'row_id', 'created_in', 'updated_in'];
         if($resetFromSource){
             $sourceProduct = $this->productRepository->getById($entityId, false, $sourceStoreId);
@@ -1034,7 +1059,9 @@ class Item extends AbstractModel
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
             foreach ($translatedData['attributes'] as $attributeName => $attributeValue) {
-                $product->getResource()->saveAttribute($product, $attributeName);
+                if(!in_array($attributeName, $imageFields)){
+                    $product->getResource()->saveAttribute($product, $attributeName);
+                }
             }
             $existingImageFields = array_intersect($imageFields, array_keys($translatedData['attributes']));
             if (count($existingImageFields) > 0) {
