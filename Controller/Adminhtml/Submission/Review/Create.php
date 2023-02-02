@@ -76,7 +76,10 @@ class Create extends BackendAction
         $differentStoresSelected = false;
         $reviewStoreId = null;
         $sessionData = $this->session->getFormData();
-        $reviewsToTranslate = explode(",", $this->getRequest()->getParam('reviews'));
+        $reviewsToTranslate = $this->getRequest()->getParam('reviews');
+        if(!is_array($reviewsToTranslate)){
+            $reviewsToTranslate = explode(",", $this->getRequest()->getParam('reviews'));
+        }
         if(count($reviewsToTranslate) > 1 && $this->helper->hasDifferentStores(Data::PRODUCT_REVIEW_ID, $reviewsToTranslate)){
             $differentStoresSelected = true;
         }
