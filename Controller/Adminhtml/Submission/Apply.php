@@ -27,7 +27,7 @@ class Apply extends Submission
             $this->messageManager->addError(__('Nothing selected'));
             return $this->resultRedirect->setPath('*/*/index');
         }
-
+        $missingBlocksFlag = false;
         $itemIds = $postData['ids'];
         //We need to check for any pages that have been selected that are finished
         $selectedCmsPageRecords = $this->itemCollectionFactory->create();
@@ -36,7 +36,7 @@ class Apply extends Submission
             ['in' => $itemIds]
         );
         $selectedCmsPageRecords->addFieldToFilter('entity_type_id', $this->helper::CMS_PAGE_TYPE_ID);
-        $selectedCmsPageRecords->addFieldToFilter('status_id', Item::STATUS_FINISHED);
+        $selectedCmsPageRecords->addFieldToFilter('status_id', ['in' => [Item::STATUS_FINISHED, Item::STATUS_WAIT_FOR_BLOCKS]]);
         if(count($selectedCmsPageRecords) > 0){
             //For each page that meets that criteria, we then......
             foreach($selectedCmsPageRecords as $pageItem){
@@ -53,12 +53,20 @@ class Apply extends Submission
                 );
                 $missingChildBlocks = count($blockChildrenRecords);
                 if($missingChildBlocks > 0){
-                    $this->messageManager->addError(__('Cannot Import, Child Blocks Must Also Be Imported or be Imported at the Same Time'));
-                    return $this->resultRedirect->setPath('*/*/index');
+                    $pageItem->setData('status_id', Item::STATUS_WAIT_FOR_BLOCKS);
+                    $pageItem->save();
+                    $missingBlocksFlag = true;
+
+                } else if($pageItem->getStatusId() == Item::STATUS_WAIT_FOR_BLOCKS){
+                    $pageItem->setStatusId(Item::STATUS_FINISHED);
+                    $pageItem->save();
                 }
             }
         }
-
+        if($missingBlocksFlag){
+            $this->messageManager->addError(__('Cannot Import, Child Blocks Must Also Be Imported or be Imported at the Same Time'));
+            return $this->resultRedirect->setPath('*/*/index');
+        }
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
             'id',
