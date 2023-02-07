@@ -107,6 +107,7 @@ class Create extends BackendAction
             'ids' => $productsToTranslate,
             'names' => $productNames
         ];
+
         $this->registry->register('itemsToTranslate', $itemsToTranslate);
 
         $resultPage = $this->resultPageFactory->create();

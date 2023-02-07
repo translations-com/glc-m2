@@ -401,7 +401,7 @@ class Form extends GenericForm
             $storeId = $this->getRequest()->getParam('store');
         } else {
             // get current store id
-            $storeId = $this->_storeManager->getStore()->getId();
+            $storeId = $this->_storeManager->getDefaultStoreView()->getId();
         }
 
         return $storeId;

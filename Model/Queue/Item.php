@@ -825,7 +825,7 @@ class Item extends AbstractModel
             $identifier = $oldEntity->getIdentifier();
 
             if(array_key_exists('content', $translatedData['attributes'])){
-                preg_match_all('/{{widget type="(.{0,100})" template="(.{0,100})" block_id="(.{0,10})" type_name="(.{0,100})"}}/', $translatedData['attributes']['content'], $matches);
+                preg_match_all('/{{widget type="(.{0,100})" (.{1,115}) block_id="(.{0,10})" (.{0,115})}}/', $translatedData['attributes']['content'], $matches);
                 if (!empty($matches) && isset($matches[0]) && isset($matches[3])) {
                     for($i=0; $i < count($matches[0]); $i++){
                         $items = $this->getCollection();

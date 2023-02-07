@@ -1012,7 +1012,9 @@ class SubmitTranslations extends Translations
             }
         }
         foreach($product->getMediaGalleryEntries() as $image){
-            $attrArr[$image->getTypes()[0]."_label"] = $image->getData('label');
+            if(array_key_exists(0, $image->getTypes())) {
+                $attrArr[$image->getTypes()[0] . "_label"] = $image->getData('label');
+            }
         }
 
         if (empty($attrArr)) {

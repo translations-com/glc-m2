@@ -51,14 +51,25 @@ class Form extends BaseForm
         parent::_prepareForm();
         $form = $this->getForm();
         $fieldset = $form->getElement('translation_fieldset');
-
-        foreach ($this->attributesToTranslate as $attributeId) {
+        if(is_array($this->attributesToTranslate)) {
+            foreach ($this->attributesToTranslate as $attributeId) {
+                $fieldset->addField(
+                    'id_' . $attributeId,
+                    'hidden',
+                    [
+                        'name' => "submission[items][$attributeId]",
+                        'value' => $this->attributeNames[$attributeId],
+                        'required' => 1,
+                    ]
+                );
+            }
+        } else{
             $fieldset->addField(
-                'id_' . $attributeId,
+                'id_' . $this->attributesToTranslate,
                 'hidden',
                 [
-                    'name' => "submission[items][$attributeId]",
-                    'value' => $this->attributeNames[$attributeId],
+                    'name' => "submission[items][$this->attributesToTranslate]",
+                    'value' => $this->attributeNames[$this->attributesToTranslate],
                     'required' => 1,
                 ]
             );

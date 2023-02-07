@@ -262,7 +262,7 @@ class Queue extends AbstractDb
         foreach ($cmsPageCollection as $cmsPage) {
             $blockIDs = [];
             $matches = [];
-            preg_match_all('/{{widget type="(.{0,100})" template="(.{0,100})" block_id="(.{0,10})" type_name="(.{0,100})"}}/', $cmsPage->getContent(), $matches);
+            preg_match_all('/{{widget type="(.{0,100})" (.{1,115}) block_id="(.{0,10})" (.{0,115})}}/', $cmsPage->getContent(), $matches);
             //preg_match_all('/{{widget.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matches);
             //preg_match_all('/{{block.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matchesBlock);
             if (!empty($matches) && isset($matches[3])) {
