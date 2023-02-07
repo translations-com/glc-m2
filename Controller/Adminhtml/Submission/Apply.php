@@ -53,7 +53,7 @@ class Apply extends Submission
                 );
                 $missingChildBlocks = count($blockChildrenRecords);
                 if($missingChildBlocks > 0){
-                    $pageItem->setData('status_id', Item::STATUS_WAIT_FOR_BLOCKS);
+                    $pageItem->setStatusId(Item::STATUS_WAIT_FOR_BLOCKS);
                     $pageItem->save();
                     $missingBlocksFlag = true;
 
