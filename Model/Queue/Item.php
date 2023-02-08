@@ -1059,23 +1059,19 @@ class Item extends AbstractModel
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
             foreach ($translatedData['attributes'] as $attributeName => $attributeValue) {
-                if(!in_array($attributeName, $imageFields)){
+                if(!str_starts_with($attributeName, 'image_')){
                     $product->getResource()->saveAttribute($product, $attributeName);
                 }
             }
             $existingImageFields = array_intersect($imageFields, array_keys($translatedData['attributes']));
-            if (count($existingImageFields) > 0) {
-                foreach ($mediaGallery as $image) {
-                    foreach ($existingImageFields as $currentField) {
-                        $matchingField = str_replace("_label", "", $currentField);
-                        if (in_array($matchingField, $image->getTypes())) {
-                            $image->setLabel($translatedData['attributes'][$currentField]);
-                        }
-                    }
+            foreach ($mediaGallery as $image) {
+                $attributeLabel = 'image_'.$image->getId();
+                if (array_key_exists($attributeLabel, $translatedData['attributes'])) {
+                    $image->setLabel($translatedData['attributes'][$attributeLabel]);
                 }
-                $product->setMediaGalleryEntries($mediaGallery);
-                $product->save();
             }
+            $product->setMediaGalleryEntries($mediaGallery);
+            $product->save();
             $logData = [
                 'message' => "Save attribute duration: " . (microtime(true) - $start) . " seconds",
             ];

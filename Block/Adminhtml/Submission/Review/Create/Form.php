@@ -102,8 +102,11 @@ class Form extends BaseForm
      */
     protected function _prepareReviews()
     {
-        $this->reviewsToTranslate = explode(",", $this->getRequest()->getParam('reviews'));
-
+        if(is_array($this->getRequest()->getParam('reviews'))){
+            $this->reviewsToTranslate = $this->getRequest()->getParam('reviews');
+        } else{
+            $this->reviewsToTranslate = explode(",", $this->getRequest()->getParam('reviews'));
+        }
         if (empty($this->reviewsToTranslate)) {
             $this->reviewsToTranslate = $this->getItemsFromSession();
         }
