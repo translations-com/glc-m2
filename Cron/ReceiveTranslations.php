@@ -263,7 +263,7 @@ class ReceiveTranslations extends Translations
                     $errorsEncountered = 0;
                     $targetTicket = $target->ticket;
                     $maxLengthError = false;
-                    $item = $this->getItemByDocTicket($target->documentTicket);
+                    $item = $this->getItemByDocTicket($target->documentTicket, $target->targetLocale);
                     try {
                         $translatedText = $this->translationService->downloadTarget($targetTicket);
 
@@ -390,9 +390,7 @@ class ReceiveTranslations extends Translations
                             $queue->save();
                         }
                         $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered/cancelled but completed in PD, resetting queue status to sent.");
-                        $item = $this->getItemByDocTicket($target->documentTicket);
-                        $item->setStatusId(Item::STATUS_INPROGRESS);
-                        $item->save();
+                        $item = $this->resetStatuses($target->documentTicket);
                     }
                 }
             }
@@ -404,6 +402,7 @@ class ReceiveTranslations extends Translations
         $targetArray = [];
         $targetFound = false;
         $targetNotFoundCount = 0;
+
         if($this->targets != null && is_array($this->targets) && count($this->targets) > 0) {
             foreach ($this->targets as $target) {
                 foreach ($ticketArray as $key => $value) {
@@ -445,18 +444,39 @@ class ReceiveTranslations extends Translations
         $items->save();
     }
 
-    protected function getItemByDocTicket($docTicket)
+    protected function getItemByDocTicket($docTicket, $targetLanguage = false)
     {
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
             'document_ticket',
             ['eq' => $docTicket]
         );
+        if($targetLanguage){
+            $items->addFieldToFilter(
+                'pd_locale_iso_code',
+                ['eq' => $targetLanguage]
+            );
+        }
         $item = null;
         if ($items->getSize()) {
             $item = $items->getFirstItem();
         }
         return $item;
+    }
+
+    protected function resetStatuses($docTicket)
+    {
+        $items = $this->itemCollectionFactory->create();
+        $items->addFieldToFilter(
+            'document_ticket',
+            ['eq' => $docTicket]
+        );
+        if ($items->getSize()) {
+            foreach($items as $item){
+                $item->setStatusId(Item::STATUS_INPROGRESS);
+                $item->save();
+            }
+        }
     }
 
     public function getAutomaticItemIds()
