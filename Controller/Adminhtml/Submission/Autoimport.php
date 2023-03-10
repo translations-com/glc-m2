@@ -71,7 +71,7 @@ class Autoimport extends Submission
                 //That weren't selected as a part of this action.
                 $blockChildrenRecords = $this->itemCollectionFactory->create();
                 $blockChildrenRecords->addFieldToFilter('entity_type_id', Data::CMS_BLOCK_TYPE_ID);
-                $blockChildrenRecords->addFieldToFilter('parent_id', $pageItem->getData('entity_id'));
+                $blockChildrenRecords->addFieldToFilter('parent_id', array('finset' => $pageItem->getData('entity_id')));
                 $blockChildrenRecords->addFieldToFilter('queue_id', $pageItem->getData('queue_id'));
                 $blockChildrenRecords->addFieldToFilter('pd_locale_iso_code', $pageItem->getData('pd_locale_iso_code'));
                 $blockChildrenRecords->addFieldToFilter('status_id', ['nin' => [Item::STATUS_APPLIED, Item::STATUS_FINISHED]]);

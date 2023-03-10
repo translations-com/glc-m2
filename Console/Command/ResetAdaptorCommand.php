@@ -58,12 +58,14 @@ class ResetAdaptorCommand extends Command
                 $this->connection->query("UPDATE store SET locale=NULL WHERE 1");
             } catch (\Exception $e) {
                 $output->writeln('<error>' . $e->getMessage() . '</error>');
+                return 1;
             }
             $output->writeln('');
 
             $output->writeln('Adaptor reset successfully.');
 
             $output->writeln('');
+            return 0;
         }
     }
 }

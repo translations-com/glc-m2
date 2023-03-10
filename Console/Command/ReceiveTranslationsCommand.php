@@ -33,8 +33,9 @@ class ReceiveTranslationsCommand extends Command
             $result = $this->receiveTranslations->executeCli();
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
-
         $output->writeln('');
+        return 0;
     }
 }

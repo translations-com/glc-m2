@@ -60,6 +60,7 @@ class UnlockTranslationsCommand extends Command
             $this->submitTranslations->unlockJob();
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
         $output->writeln('');
 
@@ -68,6 +69,7 @@ class UnlockTranslationsCommand extends Command
             $this->receiveTranslations->unlockJob();
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
         $output->writeln('');
 
@@ -76,7 +78,9 @@ class UnlockTranslationsCommand extends Command
             $this->cancelTranslations->unlockJob();
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
         $output->writeln('');
+        return 0;
     }
 }

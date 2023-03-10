@@ -64,12 +64,13 @@ class GLExchangeClientConnectCommand extends Command
                 $output->writeln("<info>Connection successfull</info>");
             } catch (\Exception $e) {
                 $output->writeln('<error>Connection failed. '.$e->getMessage().'</error>');
+                return 1;
             }
         } else {
             if (empty($username) || empty($password) || empty($url)) {
                 $output->writeln('<error>Either all or none options ('.self::KEY_USERNAME.', '.self::KEY_PASSWORD.', '.self::KEY_URL.') have to be given</error>');
                 $output->writeln('');
-                return;
+                return 1;
             }
             $output->writeln('Connect using given data...');
             $error = $this->glExchangeClient->testConnectError($username, $password, $url);
@@ -77,10 +78,12 @@ class GLExchangeClientConnectCommand extends Command
                 $output->writeln("<info>Connection successfull</info>");
             } else {
                 $output->writeln('<error>'.$error.'</error>');
+                return 1;
             }
         }
 
         $output->writeln('');
+        return 0;
     }
 
     /**

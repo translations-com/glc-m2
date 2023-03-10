@@ -272,8 +272,13 @@ class Queue extends AbstractDb
                     $cmsBlockCollection->addFieldToFilter('block_id', $blockID);
                     if ($cmsBlockCollection->getSize() > 0) {
                         $blockName = $cmsBlockCollection->getFirstItem()->getTitle();
-                        $this->includedCmsBlockIds[$blockID]['name'] = $blockName;
-                        $this->includedCmsBlockIds[$blockID]['parent'] = $cmsPage->getData('page_id');
+                        if(!empty($this->includedCmsBlockIds[$blockID])){
+                            $this->includedCmsBlockIds[$blockID]['parent'] = $this->includedCmsBlockIds[$blockID]['parent'] . ','. $cmsPage->getData('page_id');
+                        } else{
+                            $this->includedCmsBlockIds[$blockID]['name'] = $blockName;
+                            $this->includedCmsBlockIds[$blockID]['parent'] = $cmsPage->getData('page_id');
+                        }
+
                     }
                     $cmsBlockCollection->clear();
                 }
@@ -303,8 +308,12 @@ class Queue extends AbstractDb
                     $bannerCollection->addFieldToFilter('banner_id', $bannerID);
                     if ($bannerCollection->getSize() > 0) {
                         foreach($bannerCollection as $banner){
-                            $this->includedBannerIds[$bannerID]['name'] = $banner->getName();
-                            $this->includedBannerIds[$bannerID]['parent'] = $cmsPage->getData('page_id');
+                            if(!empty($this->includedCmsBlockIds[$bannerID])){
+                                $this->includedBannerIds[$bannerID]['parent'] = $this->includedBannerIds[$bannerID]['parent'] . ','. $cmsPage->getData('page_id');
+                            } else{
+                                $this->includedBannerIds[$bannerID]['name'] = $banner->getName();
+                                $this->includedBannerIds[$bannerID]['parent'] = $cmsPage->getData('page_id');
+                            }
                         }
 
                     }
@@ -349,7 +358,7 @@ class Queue extends AbstractDb
                         'entity_name' => $item['name'],
                         'entity_type_id' => $entityTypeId,
                         'pd_locale_iso_code' => $localization,
-                        'parent_id' => (int)$item['parent'],
+                        'parent_id' => $item['parent'],
                         'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
                     ];
                 }

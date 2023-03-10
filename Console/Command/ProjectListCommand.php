@@ -36,5 +36,6 @@ class ProjectListCommand extends Command
     {
         $projects = $this->translationService->getProjects();
         $output->writeIn(var_export($projects, true));
+        return 0;
     }
 }

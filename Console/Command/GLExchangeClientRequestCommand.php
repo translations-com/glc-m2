@@ -62,7 +62,7 @@ class GLExchangeClientRequestCommand extends Command
             $output->writeln('<error>--endpoint and --method options are required</error>');
             $output->writeln(PHP_EOL.'try <comment>globallink:test:glexchangeclient_request --help</comment>'.PHP_EOL.'to read more');
             $output->writeln('');
-            return;
+            return 1;
         }
 
         $parameters = [];
@@ -79,9 +79,11 @@ class GLExchangeClientRequestCommand extends Command
             print_r($response);
         } catch (\Exception $e) {
             $output->writeln('<error>Error: '.$e->getMessage().'</error>');
+            return 1;
         }
 
         $output->writeln('');
+        return 0;
     }
 
     /**

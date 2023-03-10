@@ -74,8 +74,10 @@ class ClearLogsCommand extends Command
             }
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
         $output->writeln('Logs deletion has finished.');
+        return 0;
     }
 
     public function getDirectoryContents($path = '/log/') {

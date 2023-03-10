@@ -830,7 +830,7 @@ class Item extends AbstractModel
                     for($i=0; $i < count($matches[0]); $i++){
                         $items = $this->getCollection();
                         $items->addFieldToFilter('entity_type_id', Helper::CMS_BLOCK_TYPE_ID);
-                        $items->addFieldToFilter('parent_id', $this->getData('entity_id'));
+                        $items->addFieldToFilter('parent_id', array('finset' => $this->getData('entity_id')));
                         $items->addFieldToFilter('queue_id', $this->getData('queue_id'));
                         $items->addFieldToFilter('pd_locale_iso_code', $this->getData('pd_locale_iso_code'));
                         $items->addFieldToFilter('status_id', $this::STATUS_APPLIED);

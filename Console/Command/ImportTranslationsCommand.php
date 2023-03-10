@@ -41,8 +41,10 @@ class ImportTranslationsCommand extends Command
             $result = $this->importTranslations->executeCli();
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
 
         $output->writeln('');
+        return 0;
     }
 }

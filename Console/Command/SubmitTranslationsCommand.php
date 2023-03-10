@@ -48,8 +48,10 @@ class SubmitTranslationsCommand extends Command
             }
         } catch (\Exception $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
+            return 1;
         }
 
         $output->writeln('');
+        return 0;
     }
 }

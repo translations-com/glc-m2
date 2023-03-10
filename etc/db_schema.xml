@@ -39,7 +39,7 @@
     <column xsi:type="varchar" name="submission_ticket" nullable="true" length="64" comment="Submission Ticket"/>
     <column xsi:type="varchar" name="document_ticket" nullable="true" length="64" comment="Document Ticket"/>
     <column xsi:type="varchar" name="target_ticket" nullable="true" length="64" comment="Target Ticket"/>
-    <column xsi:type="int" name="parent_id" unsigned="true" nullable="true" comment="Parent ID"/>
+    <column xsi:type="varchar" name="parent_id" nullable="true" length="64" comment="Parent ID"/>
     <column xsi:type="int" name="new_entity_id" padding="10" unsigned="true" nullable="true" identity="false" comment="New Entity Object ID"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="id"/>
