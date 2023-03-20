@@ -529,6 +529,7 @@ class GLExchangeClient
         $submission->isUrgent = (bool) $data['submissionPriority'];
         $submission->instructions = $data['submissionNotes'];
         $submission->dueDate = strtotime($data['submissionDueDate'])*1000;
+        $submission->customAttributes = [];
         foreach ($customAttributes as $attribute) {
             if ($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
                 $submission->customAttributes[$attribute->name] = $data['attribute_text'];
