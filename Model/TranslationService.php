@@ -61,6 +61,8 @@ class TranslationService
      */
     protected $filesystem;
 
+    protected $enabledLevels;
+
     /**
      * @var \Magento\Framework\Filesystem\Io\File
      */

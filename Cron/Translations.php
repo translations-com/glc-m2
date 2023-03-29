@@ -205,6 +205,7 @@ abstract class Translations
     protected $loggingLevels;
 
     protected $allowDuplicateSubmissions;
+    protected $pageFactory;
     /**
      * Translations constructor.
      *

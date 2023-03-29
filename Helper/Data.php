@@ -127,6 +127,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public $loggingLevels;
 
+    protected $localeLists;
+    protected $attributeSet;
+
     /**
      * Object types
      */

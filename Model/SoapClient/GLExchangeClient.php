@@ -21,6 +21,8 @@ class GLExchangeClient
     protected $userAgent;
     protected $maxTargetCount;
     protected $maxCancelledCount;
+    protected $connectionConfig;
+    protected $glExchangeLocalFactory;
 
     /**
      * default value for max targets

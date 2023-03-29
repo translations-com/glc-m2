@@ -91,6 +91,7 @@ class TranslationRequired implements \Magento\Framework\Event\ObserverInterface
     protected $productStoreId;
     protected $entityId;
     protected $entityTypeId;
+    protected $adminStoreId;
 
     /**
      * Constructor
