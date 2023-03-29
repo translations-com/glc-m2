@@ -8,6 +8,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CancelTranslationsCommand extends Command
 {
+    protected $cancelTranslations;
+
     public function __construct(
         \TransPerfect\GlobalLink\Cron\CancelTranslations $cancelTranslations
     ) {

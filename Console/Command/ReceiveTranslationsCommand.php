@@ -8,6 +8,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ReceiveTranslationsCommand extends Command
 {
+    protected $receiveTranslations;
+
     public function __construct(
         \TransPerfect\GlobalLink\Cron\ReceiveTranslations $receiveTranslations
     ) {
