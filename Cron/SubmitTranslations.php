@@ -25,7 +25,7 @@ class SubmitTranslations extends Translations
     /**
      * @var boolean due-date override
      */
-    protected $ddOverride;
+    protected $ddOverride = null;
 
     /**
      * @var int Limit uploaded xmls per one cronjob execution
@@ -64,9 +64,8 @@ class SubmitTranslations extends Translations
     /**
      * Console command execute method
      */
-    public function executeCli($ddOverride = null)
+    public function executeCli()
     {
-        $this->ddOverride = $ddOverride;
         $this->mode = 'cli';
         $this->execute();
     }
@@ -1391,5 +1390,9 @@ class SubmitTranslations extends Translations
             $item->appendChild($text);
             $root->appendChild($item);
         }
+    }
+
+    protected function setOverride($ddOverride){
+        $this->ddOverride = $ddOverride;
     }
 }

@@ -42,7 +42,8 @@ class SubmitTranslationsCommand extends Command
         $output->writeln('Submitting all queues to service...');
         try {
             if($ddOverride = $input->getOption('ddOverride')){
-                $this->submitTranslations->executeCli($ddOverride);
+                $this->submitTranslations->setOverride($ddOverride);
+                $this->submitTranslations->executeCli();
             } else {
                 $this->submitTranslations->executeCli();
             }
