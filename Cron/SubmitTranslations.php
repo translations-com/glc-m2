@@ -1392,7 +1392,7 @@ class SubmitTranslations extends Translations
         }
     }
 
-    protected function setOverride($ddOverride){
+    public function setOverride($ddOverride){
         $this->ddOverride = $ddOverride;
     }
 }
