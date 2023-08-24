@@ -705,18 +705,22 @@ class SubmitTranslations extends Translations
             //$attributes->addFieldToFilter('globallink_field_product_category.attribute_set_id', $attributeSetId);
             //$attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
             foreach ($attributes as $attribute) {
-                switch ($attribute->getBackendType()) {
-                    case 'varchar':
-                        $maxLength = 255;
-                        break;
-                    case 'text':
-                        $maxLength = 65535;
-                        break;
-                    case 'static':
-                        $maxLength = $this->getStaticLength($attribute->getAttributeCode(), $attribute->getEntityTypeId());
-                        break;
-                    default:
-                        $maxLength = 'none';
+                if($attribute->getAttributeCode() == 'description'){
+                    $maxLength = 16777215;
+                } else {
+                    switch ($attribute->getBackendType()) {
+                        case 'varchar':
+                            $maxLength = 255;
+                            break;
+                        case 'text':
+                            $maxLength = 65535;
+                            break;
+                        case 'static':
+                            $maxLength = $this->getStaticLength($attribute->getAttributeCode(), $attribute->getEntityTypeId());
+                            break;
+                        default:
+                            $maxLength = 'none';
+                    }
                 }
                 $fieldNames[] = [
                     'name' => $attribute->getAttributeCode(),
@@ -1011,7 +1015,7 @@ class SubmitTranslations extends Translations
             }
         }
         foreach($product->getMediaGalleryEntries() as $image){
-            if(!empty($image->getLabel())) {
+            if(!empty($image->getLabel()) && $this->includeOptions == '1') {
                 $attrArr["image_".$image->getId()] = $image->getData('label');
             }
         }
@@ -1392,7 +1396,7 @@ class SubmitTranslations extends Translations
         }
     }
 
-    protected function setOverride($ddOverride){
+    public function setOverride($ddOverride){
         $this->ddOverride = $ddOverride;
     }
 }

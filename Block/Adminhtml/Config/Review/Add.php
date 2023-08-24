@@ -17,6 +17,9 @@ use Magento\Backend\Block\Widget\Form\Container as FormContainer;
  */
 class Add extends FormContainer
 {
+    protected $_blockGroup;
+    protected $_controller;
+    protected $_mode;
     /**
      * Initialize edit block
      *

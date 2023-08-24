@@ -23,6 +23,8 @@ class GLExchangeClient
     protected $maxCancelledCount;
     protected $connectionConfig;
     protected $glExchangeLocalFactory;
+    protected $productMetadata;
+    protected $moduleResource;
 
     /**
      * default value for max targets
@@ -46,6 +48,10 @@ class GLExchangeClient
      * @var \TransPerfect\GlobalLink\Logger\BgTask\Logger
      */
     protected $bgLogger;
+    /**
+     * @var \TransPerfect\GlobalLink\Helper\Data
+     */
+    protected $helper;
 
     /**
      * GlobalLink Logging levels
@@ -59,14 +65,17 @@ class GLExchangeClient
         \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
         \Magento\Framework\App\Request\Http $request,
         PDConfig $pdConfig,
-        GLExchangeLocalFactory $glExchangeLocalFactory
+        GLExchangeLocalFactory $glExchangeLocalFactory,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        \Magento\Framework\Module\ResourceInterface $moduleResource
     ) {
         $this->connectionUrl = $scopeConfig->getValue('globallink/connection/url', ScopeInterface::SCOPE_STORE);
         $this->username = $scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
         $this->password = $scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
         $this->enabledLevels = $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE) == null ? [''] : explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
-
         $this->userAgent = $request->getServerValue('HTTP_USER_AGENT');
+        $this->productMetadata = $productMetadata;
+        $this->moduleResource = $moduleResource;
         if (empty($this->userAgent)) {
             $this->userAgent = 'GLExchangeClient';
         }
@@ -593,6 +602,9 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
 
+        $client->setAdaptorName("Magento");
+        $client->setClientVersion("Commerce " . $this->productMetadata->getVersion());
+        $client->setAdaptorVersion($this->moduleResource->getDbVersion('TransPerfect_GlobalLink'));
         $submissionTicket = $client->startSubmission();
 
         $message = "Submission created. Submission ticket: {$submissionTicket}.";

@@ -24,6 +24,10 @@ class StatusLog implements \Magento\Framework\Event\ObserverInterface
      * @var \Psr\Log\LoggerInterface
      */
     protected $logger;
+    protected $savingItem;
+    protected $itemId;
+
+
 
     /**
      * Constructor

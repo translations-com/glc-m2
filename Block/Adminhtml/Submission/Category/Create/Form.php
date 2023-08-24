@@ -22,6 +22,8 @@ class Form extends BaseForm
 
     protected $categoryNames = [];
 
+    protected $yesNo;
+
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\Registry $registry,

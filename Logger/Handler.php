@@ -21,6 +21,7 @@ use Magento\Framework\Logger\Handler\Base as BaseLogger;
 class Handler extends BaseLogger
 {
     const LOG_FILE_NAME = 'transperfect_globallink.log';
+    protected $fileName;
 
     /**
      * constructor

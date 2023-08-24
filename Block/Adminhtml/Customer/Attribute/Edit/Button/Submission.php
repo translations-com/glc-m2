@@ -20,6 +20,7 @@ class Submission extends \Magento\Backend\Block\Widget\Container
      * @var \Magento\Store\Model\App\Emulation
      */
     protected $_emulation;
+    protected $_request;
     /**
      * @param \Magento\Backend\Block\Widget\Context $context
      * @param \Magento\Framework\Registry $registry

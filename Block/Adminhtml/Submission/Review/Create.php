@@ -16,6 +16,7 @@ use TransPerfect\GlobalLink\Block\Adminhtml\Submission\Base\Create as FormContai
  */
 class Create extends FormContainer
 {
+    protected $_mode;
     /**
      * Initialize blog post edit block
      *

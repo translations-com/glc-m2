@@ -11,6 +11,9 @@ use Magento\Backend\Block\Widget\Grid\Container;
  */
 class Category extends Container
 {
+    protected $_controller;
+    protected $_blockGroup;
+    protected $_headerText;
     /**
      * Initialize object state with incoming parameters
      *

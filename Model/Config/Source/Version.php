@@ -40,4 +40,5 @@ class Version extends \Magento\Framework\App\Config\Value
         $version = $this->moduleResource->getDbVersion('TransPerfect_GlobalLink');
         $this->setValue($version);
     }
+
 }

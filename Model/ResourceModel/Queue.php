@@ -75,6 +75,8 @@ class Queue extends AbstractDb
     protected $bannerContents;
 
     private $includedBannerIds = [];
+
+    protected $bannerCollectionFactory;
     /**
      * Queue constructor.
      *
@@ -189,11 +191,13 @@ class Queue extends AbstractDb
             }
 
             // Add included widgets - Only for CMS Pages
-            if ($object->getIncludeCmsBlockWidgets()) {
+            if ($object->getIncludeCmsBlockWidgets() && $object->getEntityTypeId() == \TransPerfect\GlobalLink\Helper\Data::CMS_PAGE_TYPE_ID) {
                 $this->_findCmsBlocks($object);
-                //$this->_findBanners($object);
-                //$this->_includeAssociatedEntities($object, $this->includedBannerIds, \TransPerfect\GlobalLink\Helper\Data::BANNER_ID, $data, true);
+                $this->_findBanners($object);
+                $this->_includeAssociatedEntities($object, $this->includedBannerIds, \TransPerfect\GlobalLink\Helper\Data::BANNER_ID, $data, true);
                 $this->_includeAssociatedEntities($object, $this->includedCmsBlockIds, \TransPerfect\GlobalLink\Helper\Data::CMS_BLOCK_TYPE_ID, $data, true);
+            } elseif($object->getIncludeCmsBlockWidgets() && $object->getEntityTypeId() == \TransPerfect\GlobalLink\Helper\Data::CATALOG_PRODUCT_TYPE_ID){
+                $this->_findCmsBlocksProduct($object);
             }
 
             // Add associated and parent categories to queue - Only for products
@@ -300,9 +304,9 @@ class Queue extends AbstractDb
         foreach ($cmsPageCollection as $cmsPage) {
             $bannerIDs = [];
             $matches = [];
-            preg_match_all('/{{widget type="(.{0,100})" .{0,150} banner_ids="(.{0,10})" .{0,150}}}/', $cmsPage->getContent(), $matches);
-            if (!empty($matches) && isset($matches[2])) {
-                $bannerIDs = array_unique($matches[2]);
+            preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,10})"(.{0,150})}}/', $cmsPage->getContent(), $matches);
+            if (!empty($matches) && isset($matches[3])) {
+                $bannerIDs = array_unique($matches[3]);
                 foreach($bannerIDs as $bannerID){
                     $bannerCollection = $this->bannerCollectionFactory->create();
                     $bannerCollection->addFieldToFilter('banner_id', $bannerID);

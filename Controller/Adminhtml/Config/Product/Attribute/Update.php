@@ -50,6 +50,7 @@ class Update extends BackendAction
      * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
      */
     protected $eavAttribute;
+    protected $resultPageFactory;
     /**
      * Update constructor.
      *

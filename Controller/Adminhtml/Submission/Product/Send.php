@@ -76,7 +76,8 @@ class Send extends BaseSubmission
                 'localizations' => $data['submission']['localize'],
                 'confirmation_email' => $data['submission']['confirmation_email'],
                 'refresh_nontranslatable_fields' => $data['submission']['refresh_nontranslatable_fields'],
-                'include_options' => $data['submission']['include_options']
+                'include_options' => $data['submission']['include_options'],
+                //'include_cms_block_widgets' => $data['submission']['include_cms_block_widgets']
             ];
             if (isset($data['submission']['attribute_text'][$project])) {
                 $queueData['attribute_text'] = $data['submission']['attribute_text'][$project];

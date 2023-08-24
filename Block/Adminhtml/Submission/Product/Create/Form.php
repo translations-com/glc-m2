@@ -67,7 +67,7 @@ class Form extends BaseForm
             'include_options',
             'select',
             [
-                'label' => __('Also Translate Customizable Options'),
+                'label' => __('Translate Customizable Options & Image Labels'),
                 'name' => 'submission[include_options]',
                 'values' => [
                     ['label' => 'Yes', 'value' => '1'],
@@ -76,6 +76,19 @@ class Form extends BaseForm
                 'default' => '0'
             ]
         );
+        /*$fieldset->addField(
+            'include_image_labels',
+            'select',
+            [
+                'label' => __('Also Translate Image Labels'),
+                'name' => 'submission[include_image_labels]',
+                'values' => [
+                    ['label' => 'Yes', 'value' => '1'],
+                    ['label' => 'No', 'value' => '0'],
+                ],
+                'default' => '0'
+            ]
+        );*/
         $fieldset->addField(
             'include_associated_and_parent_categories',
             'select',
@@ -89,6 +102,19 @@ class Form extends BaseForm
                 'default' => '0'
             ]
         );
+        /*$fieldset->addField(
+            'include_cms_block_widgets',
+            'select',
+            [
+                'label' => __('Also Translate CMS Block Widgets'),
+                'name' => 'submission[include_cms_block_widgets]',
+                'values' => [
+                    ['label' => 'No', 'value' => '0'],
+                    ['label' => 'Yes', 'value' => '1'],
+                ],
+                'default' => '0'
+            ]
+        );*/
 
         $fieldset->addField(
             'refresh_nontranslatable_fields',

@@ -50,6 +50,26 @@ class GLExchangeLocal extends GLExchange
     protected $downloadTargetResource;
 
     /**
+     * @var \findByProjectName
+     */
+    protected $findByProjectName;
+
+    /**
+     * @var \cancelTargetByDocumentId
+     */
+    protected $cancelTargetByDocumentId;
+
+    /**
+     * @var \DocumentTicket
+     */
+    protected $DocumentTicket;
+
+    /**
+     * @var \cancelDocument
+     */
+    protected $cancelDocument;
+
+    /**
      * Initialize Project Director connector
      *
      * @param \PDConfig                         $connectionConfig

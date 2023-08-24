@@ -315,13 +315,18 @@
 	</xs:complexType>
 	<xs:complexType name="SubmissionInfo">
 		<xs:sequence>
+            <xs:element name="adaptorName" nillable="true" type="xs:string" />
+            <xs:element name="adaptorVersion" nillable="true" type="xs:string" />
 			<xs:element name="clientIdentifier" nillable="true" type="xs:string" />
+            <xs:element name="clientVersion" nillable="true" type="xs:string" />
 			<xs:element name="dateRequested" nillable="true" type="tns:Date" />
 			<xs:element name="metadata" nillable="true" maxOccurs="unbounded"
 				type="tns:Metadata" />
 			<xs:element name="name" nillable="true" type="xs:string" />
+            <xs:element name="paJobNumber" nillable="true" type="xs:string" />
 			<xs:element name="projectTicket" nillable="true" type="xs:string" />
 			<xs:element name="submitter" nillable="true" type="xs:string" />
+            <xs:element name="technologyProduct" nillable="true" type="xs:string" />
 			<xs:element name="workflowDefinitionTicket" nillable="true"
 				type="xs:string" />
 		</xs:sequence>

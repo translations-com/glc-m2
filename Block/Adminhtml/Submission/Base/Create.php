@@ -6,6 +6,9 @@ use \Magento\Backend\Block\Widget\Form\Container as FormContainer;
 
 class Create extends FormContainer
 {
+    protected $_blockGroup;
+    protected $_controller;
+
     protected function _construct()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();

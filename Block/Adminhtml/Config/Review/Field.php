@@ -17,6 +17,9 @@ use Magento\Backend\Block\Widget\Grid\Container;
  */
 class Field extends Container
 {
+    protected $_controller;
+    protected $_blockGroup;
+    protected $_headerText;
     /**
      * Initialize object state with incoming parameters
      *

@@ -120,6 +120,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @var \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory
      */
     protected $reviewCollectionFactory;
+    /**
+     * @var \Magento\Framework\Module\ResourceInterface $moduleResource
+     */
+    protected $moduleResource;
 
     const LOGGING_LEVEL_DEBUG = 0;
     const LOGGING_LEVEL_INFO = 1;
@@ -165,7 +169,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         StoreCollectionFactory $storeCollectionFactory,
         FieldProductCategoryFactory $fieldProductCategoryFactory,
         \TransPerfect\GlobalLink\Helper\Ui\Logger $logger,
-        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory
+        \Magento\Review\Model\ResourceModel\Review\Product\CollectionFactory $reviewCollectionFactory,
+        \Magento\Framework\Module\ResourceInterface $moduleResource
     ) {
         $this->fieldProductCategoryFactory  = $fieldProductCategoryFactory;
         $this->eavConfig = $eavConfig;
@@ -189,9 +194,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->storeCollectionFactory = $storeCollectionFactory;
         $this->logger = $logger;
         $this->reviewCollectionFactory = $reviewCollectionFactory;
+        $this->moduleResource = $moduleResource;
         parent::__construct($context);
         $this->loggingLevels = $this->scopeConfig->getValue('globallink/general/logging_level') == null ? [''] : explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
+    /**
+     * @return Magento numerical version
+     */
+    public function getMagentoVersion(){
+        return $this->productMetadata->getVersion();
+    }
+    /**
+     * @return Integration version
+     */
+    public function getIntegrationVersion(){
+        return $this->moduleResource->getDbVersion('TransPerfect_GlobalLink');
+    }
+
     /**
      * @return if receive type is by submission: true | false
      */

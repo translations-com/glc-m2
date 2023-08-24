@@ -43,7 +43,7 @@ class Apply extends Submission
                 //Check to see if there are any cms blocks that have it as a parent and are a part of the same submission
                 //That weren't selected as a part of this action.
                 $blockChildrenRecords = $this->itemCollectionFactory->create();
-                $blockChildrenRecords->addFieldToFilter('entity_type_id', $this->helper::CMS_BLOCK_TYPE_ID);
+                $blockChildrenRecords->addFieldToFilter('entity_type_id', ['in' => [$this->helper::CMS_BLOCK_TYPE_ID, $this->helper::BANNER_ID]]);
                 $blockChildrenRecords->addFieldToFilter('parent_id', array('finset' => $pageItem->getData('entity_id')));
                 $blockChildrenRecords->addFieldToFilter('pd_locale_iso_code', $pageItem->getData('pd_locale_iso_code'));
                 $blockChildrenRecords->addFieldToFilter('queue_id', $pageItem->getData('queue_id'));

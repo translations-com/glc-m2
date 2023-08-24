@@ -89,6 +89,8 @@ class Send extends BackendAction
      * @var \TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory
      */
     protected $itemCollectionFactory;
+
+    protected $helper;
     /**
      * Send constructor.
      *

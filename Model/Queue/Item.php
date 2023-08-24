@@ -842,7 +842,24 @@ class Item extends AbstractModel
                             $translatedData['attributes']['content'] = str_replace($matches[0][$i], $newMatch, $translatedData['attributes']['content']);
                         }
                     }
-
+                }
+                preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,10})"(.{0,150})}}/', $translatedData['attributes']['content'], $matches);
+                if (!empty($matches) && isset($matches[0]) && isset($matches[3])) {
+                    for($i=0; $i < count($matches[0]); $i++){
+                        $items = $this->getCollection();
+                        $items->addFieldToFilter('entity_type_id', Helper::BANNER_ID);
+                        $items->addFieldToFilter('parent_id', array('finset' => $this->getData('entity_id')));
+                        $items->addFieldToFilter('queue_id', $this->getData('queue_id'));
+                        $items->addFieldToFilter('pd_locale_iso_code', $this->getData('pd_locale_iso_code'));
+                        $items->addFieldToFilter('status_id', $this::STATUS_APPLIED);
+                        $items->addFieldToFilter('entity_id', $matches[3][$i]);
+                        if(count($items) > 0){
+                            $foundItem = $items->getFirstItem();
+                            $translatedBannerID = $foundItem->getData('entity_id');
+                            $newMatch = str_replace('banner_ids="'.$matches[3][$i],'banner_ids="'.$translatedBannerID, $matches[0][$i]);
+                            $translatedData['attributes']['content'] = str_replace($matches[0][$i], $newMatch, $translatedData['attributes']['content']);
+                        }
+                    }
                 }
             }
             // try to find page with our identifier where target store set directly
