@@ -171,7 +171,7 @@
                     </depends>
                 </field>
                 <field id="tnp_include_options" translate="label" type="select" sortOrder="35" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Include Customizable Options</label>
+                    <label>Include Customizable Options and Image Labels</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="*/*/translate_new_products">1</field>

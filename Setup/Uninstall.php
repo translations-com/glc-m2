@@ -76,6 +76,7 @@ class Uninstall implements UninstallInterface
          * Removing generated rows in the core_config_data table
          */
         $setup->getConnection()->query("DELETE FROM core_config_data WHERE path LIKE 'globallink%'");
+        $setup->getConnection()->query("DELETE FROM patch_list WHERE patch_name LIKE 'TransPerfect%'");
         /**
          * End setup
          */

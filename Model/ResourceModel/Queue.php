@@ -309,14 +309,19 @@ class Queue extends AbstractDb
                 $bannerIDs = array_unique($matches[3]);
                 foreach($bannerIDs as $bannerID){
                     $bannerCollection = $this->bannerCollectionFactory->create();
-                    $bannerCollection->addFieldToFilter('banner_id', $bannerID);
+                    if(strpos($bannerID, ',') !== false) {
+                        $bannerCollection->addFieldToFilter('banner_id',
+                            ['in' => explode(",", $bannerID)]);
+                    } else{
+                        $bannerCollection->addFieldToFilter('banner_id', $bannerID);
+                    }
                     if ($bannerCollection->getSize() > 0) {
                         foreach($bannerCollection as $banner){
-                            if(!empty($this->includedCmsBlockIds[$bannerID])){
-                                $this->includedBannerIds[$bannerID]['parent'] = $this->includedBannerIds[$bannerID]['parent'] . ','. $cmsPage->getData('page_id');
+                            if(!empty($this->includedBannerIds[$banner->getId()])){
+                                $this->includedBannerIds[$banner->getId()]['parent'] = $this->includedBannerIds[$bannerID]['parent'] . ','. $cmsPage->getData('page_id');
                             } else{
-                                $this->includedBannerIds[$bannerID]['name'] = $banner->getName();
-                                $this->includedBannerIds[$bannerID]['parent'] = $cmsPage->getData('page_id');
+                                $this->includedBannerIds[$banner->getId()]['name'] = $banner->getName();
+                                $this->includedBannerIds[$banner->getId()]['parent'] = $cmsPage->getData('page_id');
                             }
                         }
 
