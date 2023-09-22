@@ -777,12 +777,17 @@ class Item extends AbstractModel
 
             if ($needNewEntity) {
                 $newEntity = $this->blockFactory->create();
-                $newEntity->setTitle($oldEntity->getTitle());
                 $newEntity->addData($translatedData['attributes']);
-                $newEntity->setStoreId($targetStoreId);
+                if (!array_key_exists('content', $translatedData['attributes'])) {
+                    $newEntity->setContent($oldEntity->getContent());
+                }
+                if (!array_key_exists('title', $translatedData['attributes'])) {
+                    $newEntity->setTitle($oldEntity->getTitle());
+                }
                 if (!array_key_exists('identifier', $translatedData['attributes'])) {
                     $newEntity->setIdentifier($oldEntity->getIdentifier());
                 }
+                $newEntity->setStoreId($targetStoreId);
                 $newEntity->setIsActive($oldEntity->getIsActive());
                 $newEntity->save();
                 $this->setData('new_entity_id', $newEntity->getBlockId());
@@ -924,7 +929,7 @@ class Item extends AbstractModel
                     $newEntity->setIdentifier($oldEntity->getIdentifier());
                 }
                 if (!array_key_exists('meta_title', $translatedData['attributes'])) {
-                    $newEntity->setMetaTitle($oldEntity->getIdentifier());
+                    $newEntity->setMetaTitle($oldEntity->getMetaTitle());
                 }
                 $newEntity->setPageLayout($oldEntity->getPageLayout());
                 $newEntity->setIsActive($oldEntity->getIsActive());
