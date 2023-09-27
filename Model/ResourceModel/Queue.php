@@ -304,7 +304,7 @@ class Queue extends AbstractDb
         foreach ($cmsPageCollection as $cmsPage) {
             $bannerIDs = [];
             $matches = [];
-            preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,100})(.{0,350})}}/', $cmsPage->getContent(), $matches);
+            preg_match_all('/{{widget type="(.{0,100})"(.{0,100})banner_ids="([ 0-9\,]+)"(.{0,250})}}/', $cmsPage->getContent(), $matches);
             if (!empty($matches) && isset($matches[3])) {
                 $bannerIDs = array_unique($matches[3]);
                 foreach($bannerIDs as $bannerID){
@@ -318,7 +318,7 @@ class Queue extends AbstractDb
                     if ($bannerCollection->getSize() > 0) {
                         foreach($bannerCollection as $banner){
                             if(!empty($this->includedBannerIds[$banner->getId()])){
-                                $this->includedBannerIds[$banner->getId()]['parent'] = $this->includedBannerIds[$bannerID]['parent'] . ','. $cmsPage->getData('page_id');
+                                $this->includedBannerIds[$banner->getId()]['parent'] = $this->includedBannerIds[$banner->getId()]['parent'] . ','. $cmsPage->getData('page_id');
                             } else{
                                 $this->includedBannerIds[$banner->getId()]['name'] = $banner->getName();
                                 $this->includedBannerIds[$banner->getId()]['parent'] = $cmsPage->getData('page_id');
