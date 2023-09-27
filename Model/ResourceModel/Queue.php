@@ -304,7 +304,7 @@ class Queue extends AbstractDb
         foreach ($cmsPageCollection as $cmsPage) {
             $bannerIDs = [];
             $matches = [];
-            preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,100})" template="(.{0,150})}}/', $cmsPage->getContent(), $matches);
+            preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,100})(.{0,350})}}/', $cmsPage->getContent(), $matches);
             if (!empty($matches) && isset($matches[3])) {
                 $bannerIDs = array_unique($matches[3]);
                 foreach($bannerIDs as $bannerID){
