@@ -2,10 +2,10 @@
 
 namespace TransPerfect\GlobalLink\Magento\Mail;
 
-use Zend\Mime\Mime;
-use Zend\Mime\PartFactory;
-use Zend\Mail\MessageFactory as MailFactory;
-use Zend\Mime\MessageFactory as MessageFactory;
+use Laminas\Mime\Mime;
+use Laminas\Mime\PartFactory;
+use Laminas\Mail\MessageFactory as MailFactory;
+use Laminas\Mime\MessageFactory as MessageFactory;
 
 
 class Message implements \Magento\Framework\Mail\MailMessageInterface
