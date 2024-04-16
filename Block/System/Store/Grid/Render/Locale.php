@@ -2,6 +2,7 @@
 namespace TransPerfect\GlobalLink\Block\System\Store\Grid\Render;
 
 use Magento\Catalog\Model\Product\Exception;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class Locale
@@ -12,12 +13,16 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
 {
     protected $_helperGlobalLink;
 
+    protected $storeManager;
+
     public function __construct(
         \Magento\Backend\Block\Context $context,
         \TransPerfect\GlobalLink\Helper\Data $helperGlobalLink,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         array $data = []
     ) {
         $this->_helperGlobalLink = $helperGlobalLink;
+        $this->storeManager = $storeManager;
         parent::__construct($context, $data);
     }
 
@@ -26,7 +31,8 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
      */
     public function render(\Magento\Framework\DataObject $row)
     {
-        if (!$row->getData($this->getColumn()->getIndex())) {
+        $currentStore = $this->storeManager->getStore($row->getStoreId());
+        if ($currentStore == null) {
             return null;
         }
         return '<a title="' . __(
@@ -35,7 +41,7 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
             href="' .
         $this->getUrl('adminhtml/*/editStore', ['store_id' => $row->getStoreId()]) .
         '">' .
-        $this->getLocaleLabel($row->getLocale())
+        $this->getLocaleLabel($currentStore->getLocale())
         . '</a>';
     }
 
