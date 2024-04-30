@@ -194,7 +194,7 @@ class Queue extends AbstractDb
             if ($object->getIncludeCmsBlockWidgets() && $object->getEntityTypeId() == \TransPerfect\GlobalLink\Helper\Data::CMS_PAGE_TYPE_ID) {
                 $this->_findCmsBlocks($object);
                 $this->_findBanners($object);
-                $this->_includeAssociatedEntities($object, $this->includedBannerIds, \TransPerfect\GlobalLink\Helper\Data::BANNER_ID, $data, true);
+                $this->_includeAssociatedEntities($object, $this->includedBannerIds, \TransPerfect\GlobalLink\Helper\Data::BANNER_ID, $data, false);
                 $this->_includeAssociatedEntities($object, $this->includedCmsBlockIds, \TransPerfect\GlobalLink\Helper\Data::CMS_BLOCK_TYPE_ID, $data, true);
             } elseif($object->getIncludeCmsBlockWidgets() && $object->getEntityTypeId() == \TransPerfect\GlobalLink\Helper\Data::CATALOG_PRODUCT_TYPE_ID){
                 $this->_findCmsBlocksProduct($object);
@@ -266,14 +266,19 @@ class Queue extends AbstractDb
         foreach ($cmsPageCollection as $cmsPage) {
             $blockIDs = [];
             $matches = [];
-            preg_match_all('/{{widget type="(.{0,100})"(.{1,115})block_id="(.{0,10})"(.{0,115})}}/', $cmsPage->getContent(), $matches);
+            $lastVersionArray = explode(".", $this->productHelper->getMagentoVersion());
+            preg_match_all('/{{widget type="(.{0,100})"(.{1,115})block_id="(.{0,100})"(.{0,115})}}/', $cmsPage->getContent(), $matches);
             //preg_match_all('/{{widget.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matches);
             //preg_match_all('/{{block.+block_id="(\d+)" type_name="(.+)"}}/', $cmsPage->getContent(), $matchesBlock);
             if (!empty($matches) && isset($matches[3])) {
                 $blockIDs = array_unique($matches[3]);
                 foreach($blockIDs as $blockID){
                     $cmsBlockCollection = $this->cmsBlockCollectionFactory->create();
-                    $cmsBlockCollection->addFieldToFilter('block_id', $blockID);
+                    if($lastVersionArray[2] < 7 && $lastVersionArray[1] == "4"){
+                        $cmsBlockCollection->addFieldToFilter('block_id', $blockID);
+                    } else{
+                        $cmsBlockCollection->addFieldToFilter('identifier', $blockID);
+                    }
                     if ($cmsBlockCollection->getSize() > 0) {
                         $blockName = $cmsBlockCollection->getFirstItem()->getTitle();
                         if(!empty($this->includedCmsBlockIds[$blockID])){
@@ -281,6 +286,7 @@ class Queue extends AbstractDb
                         } else{
                             $this->includedCmsBlockIds[$blockID]['name'] = $blockName;
                             $this->includedCmsBlockIds[$blockID]['parent'] = $cmsPage->getData('page_id');
+                            $this->includedCmsBlockIds[$blockID]['id'] = $cmsBlockCollection->getFirstItem()->getData('block_id');
                         }
 
                     }
@@ -360,10 +366,10 @@ class Queue extends AbstractDb
 
         foreach ($localizations as $localization => $targetStores) {
             if($isBlock){
-                foreach ($includedEntities as $itemId => $item) {
+                foreach ($includedEntities as $item) {
                     $data[] = [
                         'queue_id' => (int)$object->getId(),
-                        'entity_id' => (int)$itemId,
+                        'entity_id' => (int)$item['id'],
                         'entity_name' => $item['name'],
                         'entity_type_id' => $entityTypeId,
                         'pd_locale_iso_code' => $localization,
@@ -376,7 +382,7 @@ class Queue extends AbstractDb
                     $data[] = [
                         'queue_id' => (int)$object->getId(),
                         'entity_id' => (int)$itemId,
-                        'entity_name' => $itemName,
+                        'entity_name' => $itemName['name'],
                         'entity_type_id' => $entityTypeId,
                         'pd_locale_iso_code' => $localization,
                         'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
