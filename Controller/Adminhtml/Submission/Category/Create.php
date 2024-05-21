@@ -15,6 +15,11 @@ class Create extends Category
 {
     public function execute()
     {
+        if ($this->helper->isClassifierConfigured('globallink_classifiers/classifiers/catalogcategoryclassifier', $this->getRequest()->getParam('store'))) {
+            $error = __('Classifier is not configured. Please hit save on the classifiers page.');
+            $this->messageManager->addErrorMessage($error);
+            return $this->_redirect('*/category');
+        }
         if (!$this->_formKeyValidator->validate($this->getRequest())) {
             return $this->_redirect('*/category');
         }

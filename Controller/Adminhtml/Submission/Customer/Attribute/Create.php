@@ -19,15 +19,21 @@ class Create extends BackendAction
     protected $logger;
 
     protected $resultPageFactory = false;
+    /**
+     * @var \TransPerfect\GlobalLink\Helper\Data
+     */
+    protected $helper;
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        Logger $logger
+        Logger $logger,
+        \TransPerfect\GlobalLink\Helper\Data $helper
     ) {
         parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
         $this->logger = $logger;
+        $this->helper = $helper;
     }
 
     /**
@@ -35,6 +41,12 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        if ($this->helper->isClassifierConfigured('globallink_classifiers/classifiers/customerattributeclassifier', $this->getRequest()->getParam('store'))) {
+            $error = __('Classifier is not configured. Please hit save on the classifiers page.');
+            $this->messageManager->addErrorMessage($error);
+            $redirectFactory = $this->resultRedirectFactory->create();
+            return $redirectFactory->setPath($this->_redirect->getRefererUrl());
+        }
         $attributeId = $this->getRequest()->getParam('id');
         if($attributeId == null){
             $this->messageManager->addErrorMessage("The attribute does not exist. Please save before attempting to send for translation");

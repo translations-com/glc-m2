@@ -77,6 +77,11 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        if ($this->helper->isClassifierConfigured('globallink_classifiers/classifiers/cmsblockclassifier', $this->getRequest()->getParam('store'))) {
+            $error = __('Classifier is not configured. Please hit save on the classifiers page.');
+            $this->messageManager->addErrorMessage($error);
+            return $this->_redirect('cms/block');
+        }
         if (!$this->_formKeyValidator->validate($this->getRequest())) {
             $this->_redirect('cms/block');
         }

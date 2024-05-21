@@ -18,15 +18,20 @@ class Create extends BackendAction
     protected $logger;
 
     protected $resultPageFactory = false;
-
+    /**
+     * @var \TransPerfect\GlobalLink\Helper\Data
+     */
+    protected $helper;
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        Logger $logger
+        Logger $logger,
+        \TransPerfect\GlobalLink\Helper\Data $helper
     ) {
         parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
         $this->logger = $logger;
+        $this->helper = $helper;
     }
 
     /**
@@ -34,6 +39,11 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        if ($this->helper->isClassifierConfigured('globallink_classifiers/classifiers/bannerclassifier', $this->getRequest()->getParam('store'))) {
+            $error = __('Classifier is not configured. Please hit save on the classifiers page.');
+            $this->messageManager->addErrorMessage($error);
+            return $this->_redirect('adminhtml/banner/index');
+        }
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));

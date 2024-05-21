@@ -199,6 +199,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->loggingLevels = $this->scopeConfig->getValue('globallink/general/logging_level') == null ? [''] : explode(',', $this->scopeConfig->getValue('globallink/general/logging_level'));
     }
     /**
+     * Check if classifier is configured
+     */
+    public function isClassifierConfigured($type, $store){
+        return empty($this->scopeConfig->getValue($type,\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store));
+    }
+    /**
      * @return Magento numerical version
      */
     public function getMagentoVersion(){

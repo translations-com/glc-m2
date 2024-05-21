@@ -70,6 +70,11 @@ class Create extends BackendAction
      */
     public function execute()
     {
+        if ($this->helper->isClassifierConfigured('globallink_classifiers/classifiers/catalogproductclassifier', $this->getRequest()->getParam('store'))) {
+            $error = __('Classifier is not configured. Please hit save on the classifiers page.');
+            $this->messageManager->addErrorMessage($error);
+            return $this->_redirect('catalog/product');
+        }
         if ($this->getRequest()->getParam('id')) {
             $productsToTranslate = [$this->getRequest()->getParam('id')];
         } else {
