@@ -382,7 +382,7 @@ class Queue extends AbstractDb
                     $data[] = [
                         'queue_id' => (int)$object->getId(),
                         'entity_id' => (int)$itemId,
-                        'entity_name' => $itemName['name'],
+                        'entity_name' => $itemName,
                         'entity_type_id' => $entityTypeId,
                         'pd_locale_iso_code' => $localization,
                         'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/

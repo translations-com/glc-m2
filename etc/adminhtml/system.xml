@@ -114,7 +114,7 @@
                     <label>Classifier for Categories</label>
                     <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
                 </field>
-                <field id="catalogproductclassifier" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="cartalogproductclassifier" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Classifier for Products</label>
                     <source_model>TransPerfect\GlobalLink\Model\Config\Source\Classifiers</source_model>
                 </field>

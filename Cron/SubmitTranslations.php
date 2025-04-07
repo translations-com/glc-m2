@@ -463,7 +463,7 @@ class SubmitTranslations extends Translations
         switch ($entityTypeId) {
             case HelperData::CATALOG_PRODUCT_TYPE_ID:
                 $fileFormatType = $this->scopeConfig->getValue(
-                    'globallink_classifiers/classifiers/catalogproductclassifier',
+                    'globallink_classifiers/classifiers/cartalogproductclassifier',
                     \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
                     $sourceStore->getId()
                 );
