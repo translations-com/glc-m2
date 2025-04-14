@@ -65,7 +65,7 @@ class Email implements ObserverInterface
      * @param \TransPerfect\GlobalLink\Logger\BgTask\Logger      $bgLogger
      */
     public function __construct(
-        \TransPerfect\GlobalLink\Magento\Mail\Template\TransportBuilder $transportBuilder,
+        \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Escaper $escaper,

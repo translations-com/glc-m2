@@ -138,6 +138,4 @@
     </type>
     <preference for="Magento\Ui\Component\MassAction" type="TransPerfect\GlobalLink\Ui\Component\MassAction" />
     <preference for="Magento\Catalog\Model\ResourceModel\Category\Collection" type="TransPerfect\GlobalLink\Model\ResourceModel\Category\Collection" />
-    <preference for="Magento\Framework\Mail\Template\TransportBuilder" type="TransPerfect\GlobalLink\Magento\Mail\Template\TransportBuilder" />
-    <preference for="Magento\Framework\Mail\Message" type="TransPerfect\GlobalLink\Magento\Mail\Message"/>
 </config>
