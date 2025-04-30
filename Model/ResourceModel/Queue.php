@@ -378,11 +378,11 @@ class Queue extends AbstractDb
                     ];
                 }
             } else {
-                foreach ($includedEntities as $itemId => $itemName) {
+                foreach ($includedEntities as $itemId => $itemObject) {
                     $data[] = [
                         'queue_id' => (int)$object->getId(),
                         'entity_id' => (int)$itemId,
-                        'entity_name' => $itemName,
+                        'entity_name' => $itemObject['name'],
                         'entity_type_id' => $entityTypeId,
                         'pd_locale_iso_code' => $localization,
                         'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
