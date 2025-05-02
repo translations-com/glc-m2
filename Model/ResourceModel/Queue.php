@@ -377,6 +377,18 @@ class Queue extends AbstractDb
                         'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
                     ];
                 }
+            } else if($entityTypeId == 3){
+                foreach ($includedEntities as $itemId => $itemObject) {
+                    $data[] = [
+                        'queue_id' => (int)$object->getId(),
+                        'entity_id' => (int)$itemId,
+                        'entity_name' => $itemObject,
+                        'entity_type_id' => $entityTypeId,
+                        'pd_locale_iso_code' => $localization,
+                        'target_stores' => ',' . implode(',', $targetStores) . ',',  /*need commas here for LIKE condition*/
+                        'parent_id' => null,
+                    ];
+                }
             } else {
                 foreach ($includedEntities as $itemId => $itemObject) {
                     $data[] = [
