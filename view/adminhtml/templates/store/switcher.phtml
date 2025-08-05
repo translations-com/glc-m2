@@ -1,6 +1,7 @@
 <?php
 // @codingStandardsIgnoreFile
-
+use Magento\Framework\Escaper;
+/* @var Escaper $escaper */
 /* @var $block \TransPerfect\GlobalLink\Block\Adminhtml\Store\Switcher */
 ?>
 <?php if ($websites = $block->getWebsites()): ?>
@@ -102,12 +103,12 @@
                             <?php if ($block->isStoreSwitchEnabled() && ! $block->isStoreSelected($store)) {
                                 ?>
                                 <a data-role="store-view-id" data-value="<?php echo $block->escapeHtml($store->getId()) ?>" href="#">
-                                    <?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $block->getLocalizeLabel($store) ?>
+                                    <?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $escaper->escapeHtmlAttr($block->getLocalizeLabel($store)) ?>
                                 </a>
                             <?php
                             } else {
                                 ?>
-                                <span><?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $block->getLocalizeLabel($store) ?></span>
+                                <span><?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $escaper->escapeHtmlAttr($block->getLocalizeLabel($store)) ?></span>
                             <?php
                             } ?>
                         </li>
@@ -212,7 +213,7 @@ require([
 
     function chooseStoreAlert() {
         alert({
-            content: "<?php echo __('Choose store language') ?>"
+            content: "<?php echo $escaper->escapeHtmlAttr(__('Choose store language')) ?>"
         });
     }
 

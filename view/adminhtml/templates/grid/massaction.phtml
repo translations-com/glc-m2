@@ -1,4 +1,7 @@
 <?php
+// @codingStandardsIgnoreFile
+use Magento\Framework\Escaper;
+/* @var Escaper $escaper */
 /** @var $block \Magento\Backend\Block\Widget\Grid\Massaction\Extended */
 // @codingStandardsIgnoreFile
     $collection = $tmpBlock->getCollection();
@@ -96,10 +99,10 @@
             });
             var resetFlag = true;
             $('#<?php echo $block->getHtmlId() ?>-select').on('change', function () {
-                var object = <?php echo $this->getJsObjectName() ?>;
-                var readyForImport = <?php echo json_encode($ids); ?>;
-                var maxLengthErrors = <?php echo json_encode($maxLengthIds); ?>;
-                var completedIds =  <?php echo json_encode($completedIds); ?>;
+                var object = <?php echo $escaper->escapeHtmlAttr($this->getJsObjectName()) ?>;
+                var readyForImport = <?php /* @escapeNotVerified */ echo json_encode($ids); ?>;
+                var maxLengthErrors = <?php /* @escapeNotVerified */ echo json_encode($maxLengthIds); ?>;
+                var completedIds =  <?php /* @escapeNotVerified */ echo json_encode($completedIds); ?>;
                 var items = object.items;
                 var value = $(this).val();
                 var isCompleted = false;
