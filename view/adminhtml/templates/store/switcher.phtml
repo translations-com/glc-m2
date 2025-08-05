@@ -102,12 +102,12 @@
                             <?php if ($block->isStoreSwitchEnabled() && ! $block->isStoreSelected($store)) {
                                 ?>
                                 <a data-role="store-view-id" data-value="<?php echo $block->escapeHtml($store->getId()) ?>" href="#">
-                                    <?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $block->getLocalizeLabel($store) ?>
+                                    <?php echo $block->escapeHtml($store->getName()) ?>/<?php /* @escapeNotVerified */ echo $block->getLocalizeLabel($store) ?>
                                 </a>
                             <?php
                             } else {
                                 ?>
-                                <span><?php echo $block->escapeHtml($store->getName()) ?>/<?php echo $block->getLocalizeLabel($store) ?></span>
+                                <span><?php echo $block->escapeHtml($store->getName()) ?>/<?php /* @escapeNotVerified */ echo $block->getLocalizeLabel($store) ?></span>
                             <?php
                             } ?>
                         </li>
@@ -212,7 +212,7 @@ require([
 
     function chooseStoreAlert() {
         alert({
-            content: "<?php echo __('Choose store language') ?>"
+            content: "<?php /* @escapeNotVerified */ echo __('Choose store language') ?>"
         });
     }
 

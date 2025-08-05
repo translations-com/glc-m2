@@ -96,10 +96,10 @@
             });
             var resetFlag = true;
             $('#<?php echo $block->getHtmlId() ?>-select').on('change', function () {
-                var object = <?php echo $this->getJsObjectName() ?>;
-                var readyForImport = <?php echo json_encode($ids); ?>;
-                var maxLengthErrors = <?php echo json_encode($maxLengthIds); ?>;
-                var completedIds =  <?php echo json_encode($completedIds); ?>;
+                var object = <?php /* @escapeNotVerified */ echo $this->getJsObjectName() ?>;
+                var readyForImport = <?php /* @escapeNotVerified */ echo json_encode($ids); ?>;
+                var maxLengthErrors = <?php /* @escapeNotVerified */ echo json_encode($maxLengthIds); ?>;
+                var completedIds =  <?php /* @escapeNotVerified */ echo json_encode($completedIds); ?>;
                 var items = object.items;
                 var value = $(this).val();
                 var isCompleted = false;

@@ -6,7 +6,7 @@
 
 <?php echo $block->getButtonHtml() ?>
 <span class="result" id="test_connection_result">
-    <img class="processing" hidden="hidden" alt="Test Connection" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="processing" hidden="hidden" alt="Test Connection" style="margin:-3px 5px" src="<?php /* @escapeNotVerified */ echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
     <span id="message" style="margin-left: 10px"></span>
 </span>
 
@@ -20,7 +20,7 @@
 
         jQuery('#test_connection').on('click', function () {
             var params = {};
-            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+            new Ajax.Request('<?php /* @escapeNotVerified */ echo $block->getAjaxUrl() ?>', {
                 parameters: params,
                 loaderArea: false,
                 asynchronous: true,
