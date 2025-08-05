@@ -187,10 +187,10 @@ $numColumns = sizeof($block->getColumns());
                                 if ($block->shouldRenderCell($_item, $_column)):
                                     $_rowspan = $block->getRowspan($_item, $_column);
                                     ?>
-                                <td <?php /* @escapeNotVerified */ echo($_rowspan ? 'rowspan="' . $_rowspan . '" ' : '') ?>
+                                <td <?php echo($_rowspan ? 'rowspan="' . $_rowspan . '" ' : '') ?>
                                     class="<?php /* @escapeNotVerified */ echo $_column->getCssProperty() ?>
                                         <?php /* @escapeNotVerified */ echo $_column->getId() == 'massaction' ? 'data-grid-checkbox-cell': ''?>">
-                                    <?php /* @escapeNotVerified */ echo(($_html = $_column->getRowField($_item)) != '' ? $_html : '&nbsp;') ?>
+                                    <?php echo(($_html = $_column->getRowField($_item)) != '' ? $_html : '&nbsp;') ?>
                                     </td><?php
                                     if ($block->shouldRenderEmptyCell($_item, $_column)):
                                         ?>
@@ -207,7 +207,7 @@ $numColumns = sizeof($block->getColumns());
                                     foreach ($block->getMultipleRowColumns($_i) as $_column): ?>
                                         <td class="<?php /* @escapeNotVerified */ echo $_column->getCssProperty() ?>
                                         <?php /* @escapeNotVerified */ echo $_column->getId() == 'massaction' ? 'data-grid-checkbox-cell': ''?>">
-                                            <?php /* @escapeNotVerified */ echo(($_html = $_column->getRowField($_i)) != '' ? $_html : '&nbsp;') ?>
+                                            <?php echo(($_html = $_column->getRowField($_i)) != '' ? $_html : '&nbsp;') ?>
                                         </td>
                                     <?php endforeach; ?>
                                 </tr>
