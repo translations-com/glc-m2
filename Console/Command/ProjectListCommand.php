@@ -32,7 +32,7 @@ class ProjectListCommand extends Command
         $this->setName('globallink:project:list')->setDescription('List GlobalLink projects.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $projects = $this->translationService->getProjects();
         $output->writeIn(var_export($projects, true));

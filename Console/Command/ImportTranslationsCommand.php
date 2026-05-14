@@ -32,10 +32,9 @@ class ImportTranslationsCommand extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('');
-
         $output->writeln('Importing ready submissions...');
         try {
             $result = $this->importTranslations->executeCli();

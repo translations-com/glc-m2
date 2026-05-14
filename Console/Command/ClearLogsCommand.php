@@ -42,7 +42,7 @@ class ClearLogsCommand extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $currentDate = date('m-d-Y', time());
         $currentMonth = date('m');
