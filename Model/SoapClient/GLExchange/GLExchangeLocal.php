@@ -90,7 +90,7 @@ class GLExchangeLocal extends GLExchange
         }
         $reflection = $reflection->getParentClass();
         foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
+            //$property->setAccessible(true);
             $this->privates[$property->getName()] = $property;
         }
 

@@ -35,6 +35,7 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
         if ($currentStore == null) {
             return null;
         }
+
         return '<a title="' . __(
             'Edit Locale'
         ) . '"
@@ -54,6 +55,9 @@ class Locale extends \Magento\Backend\Block\Widget\Grid\Column\Renderer\Abstract
      */
     protected function getLocaleLabel($id)
     {
+        if($id == null){
+            return '';
+        }
         $locales = $this->_helperGlobalLink->getLocales(false, true, true);
 
         if (isset($locales[$id])) {
