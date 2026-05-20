@@ -377,11 +377,11 @@ class ReceiveTranslations extends Translations
             ]]
         );
         foreach ($queues as $queue) {
-            $documentTickets = $itemResource->getDistinctDocTicketsForQueue($queue->getId());
+            $targetTickets = $itemResource->getDistinctTargetTicketsForQueue($queue->getId());
             if(is_array($this->targets) && count($this->targets) > 0) {
                 foreach ($this->targets as $target) {
-                    if (in_array($target->documentTicket, $documentTickets)) {
-                        $logData = ['message' => "Document ticket {$target->documentTicket} found already delivered/cancelled but completed in PD, resetting queue status to sent."];
+                    if (in_array($target->ticket, $targetTickets)) {
+                        $logData = ['message' => "Target ticket {$target->ticket} found already delivered/cancelled but completed in PD, resetting queue status to sent."];
                         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                         }
@@ -389,8 +389,8 @@ class ReceiveTranslations extends Translations
                             $queue->setStatus(Queue::STATUS_SENT);
                             $queue->save();
                         }
-                        $this->cliMessage("Document ticket {$target->documentTicket} from queue {$queue->getId()} found already delivered/cancelled but completed in PD, resetting queue status to sent.");
-                        $item = $this->resetStatuses($target->documentTicket);
+                        $this->cliMessage("Target ticket {$target->ticket} from queue {$queue->getId()} found already delivered/cancelled but completed in PD, resetting queue status to sent.");
+                        $item = $this->resetStatuses($target->ticket);
                     }
                 }
             }
@@ -464,12 +464,12 @@ class ReceiveTranslations extends Translations
         return $item;
     }
 
-    protected function resetStatuses($docTicket)
+    protected function resetStatuses($targetTicket)
     {
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
-            'document_ticket',
-            ['eq' => $docTicket]
+            'target_ticket',
+            ['eq' => $targetTicket]
         );
         if ($items->getSize()) {
             foreach($items as $item){

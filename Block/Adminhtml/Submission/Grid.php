@@ -235,7 +235,7 @@ class Grid extends Extended
             'url' => $this->getUrl('*/submission/apply')
         ]);
         $this->getMassactionBlock()->addItem('remove_translations', [
-            'label' => __('Remove Cancelled Translations'),
+            'label' => __('Remove Submission List Items'),
             'url' => $this->getUrl('*/submission/remove')
         ]);
         return $this;

@@ -48,13 +48,16 @@ class Submission extends Container
                 ]
             );
         }
-        $this->addButton(
-            'remove_all_cancelled',
-            [
-                'label' => __('Remove all cancelled items'),
-                'onclick' => 'deleteConfirm("'.__('Are you sure you want to remove all cancelled items?').'", \'' . $this->getUrl('*/*/remove', ['ids' => 'all']) . '\')',
-                'class' => 'add primary',
-            ]
-        );
+        /* 05/19/26 Justin Griffin
+         * This button was removed as the functionality of remove_translations has changed
+         */
+        //  $this->addButton(
+        //      'remove_all_cancelled',
+        //      [
+        //          'label' => __('Remove all cancelled items'),
+        //          'onclick' => 'deleteConfirm("'.__('Are you sure you want to remove all cancelled items?').'", \'' . $this->getUrl('*/*/remove', ['ids' => 'all']) . '\')',
+        //          'class' => 'add primary',
+        //      ]
+        //  );
     }
 }

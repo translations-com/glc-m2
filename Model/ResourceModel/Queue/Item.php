@@ -110,7 +110,8 @@ class Item extends AbstractDb
             'request_date' => 'queue.request_date',
             'due_date'  => 'queue.due_date',
             'parent_id' => 'main_table.parent_id',
-            'queue_id' => 'main_table.queue_id'
+            'queue_id' => 'main_table.queue_id',
+            'target_ticket' => 'main_table.target_ticket'
         ];
         return $aliasesMap[$alias];
     }
@@ -165,6 +166,31 @@ class Item extends AbstractDb
         }
 
         return $docTickets;
+    }
+    /**
+     * Returns distinct target tickets for given Queue
+     *
+     * @param int $queueId
+     *
+     * @return array
+     */
+    public function getDistinctTargetTicketsForQueue($queueId)
+    {
+        $queueId = (int) $queueId;
+        $select = $this->getConnection()->select()
+            ->from(['main_table' => $this->getTable('globallink_job_items')])
+            ->reset(\Magento\Framework\DB\Select::COLUMNS)
+            ->columns('target_ticket')
+            ->distinct(true)
+            ->where('main_table.queue_id IN (?)', [$queueId]);
+
+        $rowset = $this->getConnection()->fetchAll($select);
+        $targetTickets = [];
+        foreach ($rowset as $row) {
+            $targetTickets[] = $row['target_ticket'];
+        }
+
+        return $targetTickets;
     }
     /**
      * Returns length of SQL field

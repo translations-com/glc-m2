@@ -44,18 +44,17 @@ class Remove extends Submission
                 ['in' => $itemIds]
             );
         }
-        $items->addFieldToFilter(
+        //05-19-26 Justin Griffin
+        //This was removed to let this feature work with all rows to allow better cleanup
+
+        /*$items->addFieldToFilter(
             'status_id',
             ['in' => [[Item::STATUS_FOR_DELETE],[Item::STATUS_ERROR_DOWNLOAD],[Item::STATUS_CANCEL_FAILED]]]
-        );
+        );*/
         $itemsTotal = $items->getSize();
 
         if (!$itemsTotal) {
-            if ($itemIds === 'all') {
-                $this->messageManager->addErrorMessage(__('There are no cancelled items'));
-            } else {
-                $this->messageManager->addErrorMessage(__('None of selected items are cancelled'));
-            }
+            $this->messageManager->addErrorMessage(__('There are no items'));
             return $resultRedirect->setPath('*/*/index');
         }
 
