@@ -394,29 +394,29 @@ class Item extends AbstractModel
             switch ($this->getEntityTypeId()) :
                 case Helper::CATALOG_CATEGORY_TYPE_ID:
                     $this->applyTranslationCatalogCategory();
-            break;
-            case Helper::CMS_BLOCK_TYPE_ID:
+                    break;
+                case Helper::CMS_BLOCK_TYPE_ID:
                     $this->applyTranslationCmsBlock();
-            break;
-            case Helper::CMS_PAGE_TYPE_ID:
+                    break;
+                case Helper::CMS_PAGE_TYPE_ID:
                     $this->applyTranslationCmsPage();
-            break;
-            case Helper::CATALOG_PRODUCT_TYPE_ID:
+                    break;
+                case Helper::CATALOG_PRODUCT_TYPE_ID:
                     $this->applyTranslationCatalogProduct($queue->getData('refresh_nontranslatable_fields'));
-            break;
-            case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
+                    break;
+                case Helper::PRODUCT_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationProductAttribute($queue->getData('include_options'));
-            break;
-            case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
+                    break;
+                case Helper::CUSTOMER_ATTRIBUTE_TYPE_ID:
                     $this->applyTranslationCustomerAttribute();
-            break;
-            case Helper::PRODUCT_REVIEW_ID:
+                    break;
+                case Helper::PRODUCT_REVIEW_ID:
                     $this->applyTranslationReview();
-            break;
-            case Helper::BANNER_ID:
-                $this->applyTranslationBanner();
-            break;
-            default:
+                    break;
+                case Helper::BANNER_ID:
+                    $this->applyTranslationBanner();
+                    break;
+                default:
                     throw new \Exception(__('Skip item %1. Unknown entity type id %2', $this->getId(), $this->getEntityTypeId()));
             endswitch;
             $start = microtime(true);
@@ -744,7 +744,7 @@ class Item extends AbstractModel
             $blocks = $this->blockCollectionFactory->create();
             if (!array_key_exists('identifier', $translatedData['attributes'])) {
                 $blocks->addFieldToFilter('identifier', $identifier);
-            } else{
+            } else {
                 $blocks->addFieldToFilter('identifier', $translatedData['attributes']['identifier']);
             }
             $blocks->addStoreFilter($targetStoreId);
@@ -829,39 +829,39 @@ class Item extends AbstractModel
             $underVersionControl = (bool)$oldEntity->getUnderVersionControl();
             $identifier = $oldEntity->getIdentifier();
 
-            if(array_key_exists('content', $translatedData['attributes'])){
+            if (array_key_exists('content', $translatedData['attributes'])) {
                 preg_match_all('/{{widget type="(.{0,100})"(.{1,115})block_id="(.{0,10})"(.{0,115})}}/', $translatedData['attributes']['content'], $matches);
                 if (!empty($matches) && isset($matches[0]) && isset($matches[3])) {
-                    for($i=0; $i < count($matches[0]); $i++){
+                    for ($i=0; $i < count($matches[0]); $i++) {
                         $items = $this->getCollection();
                         $items->addFieldToFilter('entity_type_id', Helper::CMS_BLOCK_TYPE_ID);
-                        $items->addFieldToFilter('parent_id', array('finset' => $this->getData('entity_id')));
+                        $items->addFieldToFilter('parent_id', ['finset' => $this->getData('entity_id')]);
                         $items->addFieldToFilter('queue_id', $this->getData('queue_id'));
                         $items->addFieldToFilter('pd_locale_iso_code', $this->getData('pd_locale_iso_code'));
                         $items->addFieldToFilter('status_id', $this::STATUS_APPLIED);
                         $items->addFieldToFilter('entity_id', $matches[3][$i]);
-                        if(count($items) > 0){
+                        if (count($items) > 0) {
                             $foundItem = $items->getFirstItem();
                             $translatedBlockID = $foundItem->getData('new_entity_id');
-                            $newMatch = str_replace('block_id="'.$matches[3][$i],'block_id="'.$translatedBlockID, $matches[0][$i]);
+                            $newMatch = str_replace('block_id="' . $matches[3][$i], 'block_id="' . $translatedBlockID, $matches[0][$i]);
                             $translatedData['attributes']['content'] = str_replace($matches[0][$i], $newMatch, $translatedData['attributes']['content']);
                         }
                     }
                 }
                 preg_match_all('/{{widget type="(.{0,100})"(.{0,150})banner_ids="(.{0,10})"(.{0,150})}}/', $translatedData['attributes']['content'], $matches);
                 if (!empty($matches) && isset($matches[0]) && isset($matches[3])) {
-                    for($i=0; $i < count($matches[0]); $i++){
+                    for ($i=0; $i < count($matches[0]); $i++) {
                         $items = $this->getCollection();
                         $items->addFieldToFilter('entity_type_id', Helper::BANNER_ID);
-                        $items->addFieldToFilter('parent_id', array('finset' => $this->getData('entity_id')));
+                        $items->addFieldToFilter('parent_id', ['finset' => $this->getData('entity_id')]);
                         $items->addFieldToFilter('queue_id', $this->getData('queue_id'));
                         $items->addFieldToFilter('pd_locale_iso_code', $this->getData('pd_locale_iso_code'));
                         $items->addFieldToFilter('status_id', $this::STATUS_APPLIED);
                         $items->addFieldToFilter('entity_id', $matches[3][$i]);
-                        if(count($items) > 0){
+                        if (count($items) > 0) {
                             $foundItem = $items->getFirstItem();
                             $translatedBannerID = $foundItem->getData('entity_id');
-                            $newMatch = str_replace('banner_ids="'.$matches[3][$i],'banner_ids="'.$translatedBannerID, $matches[0][$i]);
+                            $newMatch = str_replace('banner_ids="' . $matches[3][$i], 'banner_ids="' . $translatedBannerID, $matches[0][$i]);
                             $translatedData['attributes']['content'] = str_replace($matches[0][$i], $newMatch, $translatedData['attributes']['content']);
                         }
                     }
@@ -872,7 +872,7 @@ class Item extends AbstractModel
             $pages = $this->pageCollectionFactory->create();
             if (!array_key_exists('identifier', $translatedData['attributes'])) {
                 $pages->addFieldToFilter('identifier', $identifier);
-            } else{
+            } else {
                 $pages->addFieldToFilter('identifier', $translatedData['attributes']['identifier']);
             }
             $pages->addStoreFilter($targetStoreId);
@@ -1002,16 +1002,16 @@ class Item extends AbstractModel
         $translatedData = $this->getTranslatedData();
         $imageFields = ['image_label', 'thumbnail_label', 'small_image_label', 'swatch_image_label'];
         $nonupdatingFields = ['store_id', 'entity_id', 'attribute_set_id', 'sku', 'created_at', 'updated_at', 'row_id', 'created_in', 'updated_in'];
-        if($resetFromSource){
+        if ($resetFromSource) {
             $sourceProduct = $this->productRepository->getById($entityId, false, $sourceStoreId);
         }
         foreach ($targetStoreIds as $targetStoreId) {
             $product = $this->productRepository->getById($entityId, false, $targetStoreId);
-            if($resetFromSource){
-                foreach($sourceProduct->storedData as $key => $value){
-                    if(in_array($key, $nonupdatingFields)){
+            if ($resetFromSource) {
+                foreach ($sourceProduct->storedData as $key => $value) {
+                    if (in_array($key, $nonupdatingFields)) {
                         //DO NOTHING
-                    } else{
+                    } else {
                         $product->setData($key, $value);
                     }
                 }
@@ -1065,7 +1065,10 @@ class Item extends AbstractModel
                             }
                         }
                         $option->setData('store_id', $targetStoreId);
-                        $option->setData('title', $translatedOptions['entity_' . $entityId][$optionId]);
+                        if ($translatedOptions['entity_' . $entityId][$optionId] != null) {
+                            $option->setData('title', $translatedOptions['entity_' . $entityId][$optionId]);
+                        }
+
                         $option->save();
                         $product->addOption($option);
                         $newCustomOptions[] = $option;
@@ -1081,13 +1084,13 @@ class Item extends AbstractModel
             //$this->productRepository->save($product); //returns 'The image content is not valid' error for some products
             $start = microtime(true);
             foreach ($translatedData['attributes'] as $attributeName => $attributeValue) {
-                if(!str_starts_with($attributeName, 'image_')){
+                if (!str_starts_with($attributeName, 'image_')) {
                     $product->getResource()->saveAttribute($product, $attributeName);
                 }
             }
             $existingImageFields = array_intersect($imageFields, array_keys($translatedData['attributes']));
             foreach ($mediaGallery as $image) {
-                $attributeLabel = 'image_'.$image->getId();
+                $attributeLabel = 'image_' . $image->getId();
                 if (array_key_exists($attributeLabel, $translatedData['attributes'])) {
                     $image->setLabel($translatedData['attributes'][$attributeLabel]);
                 }
@@ -1146,8 +1149,8 @@ class Item extends AbstractModel
                 ProductAttributeInterface::ENTITY_TYPE_CODE,
                 $entityId
             );
-            if($includeOptions == 1) {
-                if($optionsAttribute->getIsUserDefined() == 1) {
+            if ($includeOptions == 1) {
+                if ($optionsAttribute->getIsUserDefined() == 1) {
                     $options = $optionsAttribute->getOptions();
                     foreach ($options as $option) {
                         $optionId = $option->getValue();
@@ -1159,7 +1162,7 @@ class Item extends AbstractModel
                             $this->helper->saveOptionLabel($optionId, $targetStoreId, ($translatedData['options']['entity_' . $entityId][$optionId]));
                         }
                     }
-                } else{
+                } else {
                     $logData = [
                         'message' => 'Attribute options were chosen to be translated, but could not. The attribute was not user defined.',
                     ];
@@ -1487,8 +1490,6 @@ class Item extends AbstractModel
         $allEntities[$this->getEntityTypeId()] = [$this->getEntityId()];
         $this->translationStatusResource->moveToTranslated($allEntities, $targetStoreIds);
     }
-
-
 
     /**
      * remove data from url_rewrite table
