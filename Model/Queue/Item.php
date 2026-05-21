@@ -1054,12 +1054,6 @@ class Item extends AbstractModel
                     foreach ($customOptions as $option) {
                         $optionId = $option->getData('option_id');
                         $translatedOptions = $translatedData['options'];
-                        if ($translatedOptions['entity_' . $entityId][$optionId] != null) {
-                            $option->setData('store_id', $targetStoreId);
-                            $option->setTitle($translatedOptions['entity_' . $entityId][$optionId]);
-                            $option->setDefaultTitle($translatedOptions['entity_' . $entityId][$optionId]);
-                            $option->setStoreTitle($translatedOptions['entity_' . $entityId][$optionId]);
-                        }
                         if (isset($translatedOptions['option_' . $optionId])) {
                             foreach ($translatedOptions['option_' . $optionId] as $valueId => $translatedValue) {
                                 if ($option->getValueById($valueId) != null) {
@@ -1070,6 +1064,8 @@ class Item extends AbstractModel
                                 }
                             }
                         }
+                        $option->setData('store_id', $targetStoreId);
+                        $option->setData('title', $translatedOptions['entity_' . $entityId][$optionId]);
                         $option->save();
                         $product->addOption($option);
                         $newCustomOptions[] = $option;
