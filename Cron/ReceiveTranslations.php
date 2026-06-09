@@ -3,7 +3,6 @@ namespace TransPerfect\GlobalLink\Cron;
 
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
-use TransPerfect\GlobalLink\Model\TranslationService;
 
 /**
  * Class ReceiveTranslations
@@ -82,10 +81,10 @@ class ReceiveTranslations extends Translations
                 $this->targets = $this->translationService->receiveTranslationsByProject();
                 if (count($this->targets) > 0 && in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Targets were found via PD. Count = " . count($this->targets)]));
-                } else if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && count($this->targets) == 0) {
+                } elseif (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && count($this->targets) == 0) {
                     $this->cliMessage("PD reported no targets were available.");
                     $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "PD reported no targets were available."]));
-                } else if(count($this->targets) == 0){
+                } elseif (count($this->targets) == 0) {
                     $this->cliMessage("PD reported no targets were available.");
                 }
             } catch (\Exception $e) {
@@ -209,29 +208,29 @@ class ReceiveTranslations extends Translations
 
         if (!empty($submissionsAndItems)) {
             // current queue has items which must be examined if translation completed
-            if($this->isReceiveTypeBySubmission){
+            if ($this->isReceiveTypeBySubmission) {
                 try {
                     $targets = $this->translationService->receiveTranslationsByTickets(array_keys($submissionsAndItems), $queue);
 
                 } catch (\Exception $e) {
-                    $errorMessage = 'Exception while receiving targets by submission tickets. '.$e->getMessage();
+                    $errorMessage = 'Exception while receiving targets by submission tickets. ' . $e->getMessage();
                     $this->cliMessage($errorMessage, 'error');
                     $logData = [
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'message' => $errorMessage,
                     ];
-                    if(in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
+                    if (in_array($this->helper::LOGGING_LEVEL_ERROR, $this->helper->loggingLevels)) {
                         $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                     }
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                 }
-            } else{
+            } else {
                 $targets = $this->getSubmissionTargetsFromProject($documentsAndItems);
             }
             $targetArray = implode(array_keys($submissionsAndItems));
             if (empty($targets)) {
-                if($this->isReceiveTypeBySubmission){
+                if ($this->isReceiveTypeBySubmission) {
                     $logData = ['message' => "No targets were found in PD. Finishing. Submission Item Array: {$targetArray}"];
                 } else {
                     $logData = ['message' => "No targets found that match the available submissions. Finishing. Submission Item Array: {$targetArray}"];
@@ -241,9 +240,9 @@ class ReceiveTranslations extends Translations
                 }
                 $logData = null;
                 return $this;
-            } else{
+            } else {
                 $targetCount = count($targets);
-                if($this->isReceiveTypeBySubmission){
+                if ($this->isReceiveTypeBySubmission) {
                     $logData = ['message' => "Targets were found in PD (count={$targetCount}). Submission Item Array: {$targetArray}"];
                 } else {
                     $logData = ['message' => "Targets found that match the available submissions(count={$targetCount}). Submission Item Array: {$targetArray}"];
@@ -253,7 +252,7 @@ class ReceiveTranslations extends Translations
                 }
                 $logData = null;
             }
-            if($this->targets != null && is_array($this->targets) && count($this->targets) > 0) {
+            if ($this->targets != null && is_array($this->targets) && count($this->targets) > 0) {
                 foreach ($targets as $target) {
                     if (empty($documentsAndItems[$target->documentTicket][$target->targetLocale])) {
                         // finished job for item which hasn't been requested while this run
@@ -378,7 +377,7 @@ class ReceiveTranslations extends Translations
         );
         foreach ($queues as $queue) {
             $targetTickets = $itemResource->getDistinctTargetTicketsForQueue($queue->getId());
-            if(is_array($this->targets) && count($this->targets) > 0) {
+            if (is_array($this->targets) && count($this->targets) > 0) {
                 foreach ($this->targets as $target) {
                     if (in_array($target->ticket, $targetTickets)) {
                         $logData = ['message' => "Target ticket {$target->ticket} found already delivered/cancelled but completed in PD, resetting queue status to sent."];
@@ -403,7 +402,7 @@ class ReceiveTranslations extends Translations
         $targetFound = false;
         $targetNotFoundCount = 0;
 
-        if($this->targets != null && is_array($this->targets) && count($this->targets) > 0) {
+        if ($this->targets != null && is_array($this->targets) && count($this->targets) > 0) {
             foreach ($this->targets as $target) {
                 foreach ($ticketArray as $key => $value) {
                     if ($target->documentTicket == $key) {
@@ -416,8 +415,8 @@ class ReceiveTranslations extends Translations
                 }
             }
         }
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && $targetNotFoundCount > 0){
-            $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Targets were found that do not match any current submission. Count = ".$targetNotFoundCount]));
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels) && $targetNotFoundCount > 0) {
+            $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Targets were found that do not match any current submission. Count = " . $targetNotFoundCount]));
         }
         return $targetArray;
     }
@@ -451,7 +450,7 @@ class ReceiveTranslations extends Translations
             'document_ticket',
             ['eq' => $docTicket]
         );
-        if($targetLanguage){
+        if ($targetLanguage) {
             $items->addFieldToFilter(
                 'pd_locale_iso_code',
                 ['eq' => $targetLanguage]
@@ -472,7 +471,7 @@ class ReceiveTranslations extends Translations
             ['eq' => $targetTicket]
         );
         if ($items->getSize()) {
-            foreach($items as $item){
+            foreach ($items as $item) {
                 $item->setStatusId(Item::STATUS_INPROGRESS);
                 $item->save();
             }
@@ -490,11 +489,11 @@ class ReceiveTranslations extends Translations
     {
         try {
             $confirmationTicket = $this->translationService->sendDownloadConfirmation($target->ticket);
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)){
-                $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Confirmation sent for target ".$target->ticket]));
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                $this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => "Confirmation sent for target " . $target->ticket]));
             }
         } catch (\Exception $e) {
-            $errorMessage = 'Exception while sending download confirmation for target ' . $target->ticket  . ': ' . $e->getMessage();
+            $errorMessage = 'Exception while sending download confirmation for target ' . $target->ticket . ': ' . $e->getMessage();
             $logData = [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
