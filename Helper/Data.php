@@ -9,16 +9,15 @@
 
 namespace TransPerfect\GlobalLink\Helper;
 
-use Magento\Store\Model\StoreManagerInterface;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Category\Attribute\CollectionCustomFactory as CategoryAttributeCollectionFactory;
-use \TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCustomFactory as ProductAttributeCollectionFactory;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
-use Magento\Indexer\Model\Indexer\CollectionFactory as IndexerCollectionFactory;
-use Magento\Indexer\Model\IndexerFactory as IndexerFactory;
-use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory as StoreCollectionFactory;
-use \TransPerfect\GlobalLink\Model\FieldProductCategoryFactory as FieldProductCategoryFactory;
+use Magento\Store\Model\StoreManagerInterface;
+use TransPerfect\GlobalLink\Model\FieldProductCategoryFactory as FieldProductCategoryFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Category\Attribute\CollectionCustomFactory as CategoryAttributeCollectionFactory;
+use TransPerfect\GlobalLink\Model\ResourceModel\Product\Attribute\CollectionCustomFactory as ProductAttributeCollectionFactory;
+
 /**
  * Class Data
  *
@@ -146,7 +145,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const PRODUCT_REVIEW_ID = 15;
     const BANNER_ID = 16;
 
-
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
@@ -201,29 +199,33 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Check if classifier is configured
      */
-    public function isClassifierConfigured($type, $store){
-        return empty($this->scopeConfig->getValue($type,\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store));
+    public function isClassifierConfigured($type, $store)
+    {
+        return empty($this->scopeConfig->getValue($type, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store));
     }
     /**
      * @return Magento numerical version
      */
-    public function getMagentoVersion(){
+    public function getMagentoVersion()
+    {
         return $this->productMetadata->getVersion();
     }
     /**
      * @return Integration version
      */
-    public function getIntegrationVersion(){
+    public function getIntegrationVersion()
+    {
         return $this->moduleResource->getDbVersion('TransPerfect_GlobalLink');
     }
 
     /**
      * @return if receive type is by submission: true | false
      */
-    public function isReceiveTypeBySubmission(){
-        if($this->scopeConfig->getValue('globallink/general/receive_by_submission') == 1){
+    public function isReceiveTypeBySubmission()
+    {
+        if ($this->scopeConfig->getValue('globallink/general/receive_by_submission') == 1) {
             return true;
-        } else{
+        } else {
             return false;
         }
     }
@@ -231,12 +233,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return pd locale iso code array from store id array
      */
-	public function getPdLocaleIsoCodeByStoreId($storeIds){
+    public function getPdLocaleIsoCodeByStoreId($storeIds)
+    {
         $stores = $this->storeCollectionFactory->create();
         $stores->addFieldToFilter(
-            'store_id', ['in' => $storeIds]);
-        $localeCodes = array();
-        foreach($stores as $store){
+            'store_id',
+            ['in' => $storeIds]
+        );
+        $localeCodes = [];
+        foreach ($stores as $store) {
             $localeCodes[] = $store->getLocale();
         }
         return $localeCodes;
@@ -244,30 +249,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return store id's if you have the PD ISO Code
      */
-    public function getStoreIdFromLocale($locales){
+    public function getStoreIdFromLocale($locales)
+    {
         $stores = $this->storeCollectionFactory->create();
         $stores->addFieldToFilter(
-            'locale', ['in' => $locales]);
-        $localeCodes = array();
-        foreach($stores as $store){
+            'locale',
+            ['in' => $locales]
+        );
+        $localeCodes = [];
+        foreach ($stores as $store) {
             $storeIds[] = $store->getData('store_id');
         }
-        if(isset($storeIds)) {
+        if (isset($storeIds)) {
             return $storeIds;
         }
         return null;
     }
-	/*
+    /*
      * @return project short codes
      */
-    public function getProjectShortCodes(){
-        $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
+    public function getProjectShortCodes()
+    {
+        $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         return array_map('trim', explode(",", $shortCodeString));
     }
     /*
      * @return custom attributes
      */
-    public function getCustomAttributes($shortCode){
+    public function getCustomAttributes($shortCode)
+    {
         return $this->translationService->getCustomAttributes($shortCode);
     }
 
@@ -284,40 +294,39 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 $pages->addFieldToFilter('page_id', $id);
                 $pagesFound = count($pages);
                 if ($pagesFound) {
-                    foreach($pages as $page){
+                    foreach ($pages as $page) {
                         $storeViews = $page->getStoreId();
-                        if(in_array($defaultStore, $storeViews)){
+                        if (in_array($defaultStore, $storeViews)) {
                             return $defaultStore;
-                        }
-                        else{
+                        } else {
                             return $storeViews[0];
                         }
                     }
                 }
+                // no break
             case Data::CMS_BLOCK_TYPE_ID:
                 $blocks = $this->blockCollectionFactory->create();
                 $blocks->addFieldToFilter('block_id', $id);
                 $blocksFound = count($blocks);
                 if ($blocksFound) {
-                    foreach($blocks as $block){
+                    foreach ($blocks as $block) {
                         $storeViews = $block->getStoreId();
-                        if(in_array($defaultStore, $storeViews)){
+                        if (in_array($defaultStore, $storeViews)) {
                             return $defaultStore;
-                        }
-                        else{
+                        } else {
                             return $storeViews[0];
                         }
                     }
                 }
+                // no break
             case Data::PRODUCT_REVIEW_ID:
                 $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
                 $review = $this->reviewCollectionFactory->create()->addStoreData()->getItemById($id);
                 if ($review) {
                     $storeViews = $review->getData('stores');
-                    if(in_array($defaultStore, $storeViews)){
+                    if (in_array($defaultStore, $storeViews)) {
                         return $defaultStore;
-                    }
-                    else{
+                    } else {
                         return $storeViews[0];
                     }
                 }
@@ -326,75 +335,79 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return boolean
      */
-    public function hasDifferentStores($typeId, $ids){
+    public function hasDifferentStores($typeId, $ids)
+    {
         $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
         $isEnterprise = $this->isEnterprise();
-        switch($typeId){
+        switch ($typeId) {
             case Data::CMS_PAGE_TYPE_ID:
-                $storeViewArray = array();
+                $storeViewArray = [];
                 $collection = $this->pageCollectionFactory->create();
-                $collection->addFieldToFilter('page_id', array('in' => $ids));
+                $collection->addFieldToFilter('page_id', ['in' => $ids]);
                 foreach ($collection as $entity) {
-                    if(!in_array('0', $entity->getData('store_id'))){
+                    if (!in_array('0', $entity->getData('store_id'))) {
                         $storeViewArray[] = $entity->getData('store_id');
                     }
                 }
-                if(count($storeViewArray) > 1){
-                    if(count(call_user_func_array('array_intersect', $storeViewArray)) < 1){
+                if (count($storeViewArray) > 1) {
+                    if (count(call_user_func_array('array_intersect', $storeViewArray)) < 1) {
                         return true;
-                    } else{
+                    } else {
                         return false;
                     }
-                } else{
+                } else {
                     return false;
                 }
+                // no break
             case Data::CMS_BLOCK_TYPE_ID:
-                $storeViewArray = array();
+                $storeViewArray = [];
                 $collection = $this->blockCollectionFactory->create();
-                $collection->addFieldToFilter('block_id', array('in' => $ids));
+                $collection->addFieldToFilter('block_id', ['in' => $ids]);
                 foreach ($collection as $entity) {
-                    if(!in_array('0', $entity->getData('store_id'))){
+                    if (!in_array('0', $entity->getData('store_id'))) {
                         $storeViewArray[] = $entity->getData('store_id');
                     }
                 }
-                if(count($storeViewArray) > 1){
-                    if(count(call_user_func_array('array_intersect', $storeViewArray)) < 1){
+                if (count($storeViewArray) > 1) {
+                    if (count(call_user_func_array('array_intersect', $storeViewArray)) < 1) {
                         return true;
-                    } else{
+                    } else {
                         return false;
                     }
-                } else{
+                } else {
                     return false;
                 }
+                // no break
             case Data::PRODUCT_REVIEW_ID:
-                $storeViewArray = array();
-                foreach($ids as $id){
+                $storeViewArray = [];
+                foreach ($ids as $id) {
                     $review = $this->reviewCollectionFactory->create()->addStoreData()->getItemById($id);
-                    if($review){
-                        if(!in_array('0', $review->getData('stores'))){
+                    if ($review) {
+                        if (!in_array('0', $review->getData('stores'))) {
                             $storeViewArray[] = $review->getData('stores');
                         }
                     }
                 }
-                if(count($storeViewArray) > 1){
-                    if(count(call_user_func_array('array_intersect', $storeViewArray)) < 1){
+                if (count($storeViewArray) > 1) {
+                    if (count(call_user_func_array('array_intersect', $storeViewArray)) < 1) {
                         return true;
-                    } else{
+                    } else {
                         return false;
                     }
-                } else{
+                } else {
                     return false;
                 }
         }
     }
-    public function getCommonStoreId($typeId, $ids){
+    public function getCommonStoreId($typeId, $ids)
+    {
         $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
         $isEnterprise = $this->isEnterprise();
-        switch($typeId) {
+        switch ($typeId) {
             case Data::CMS_PAGE_TYPE_ID:
-                $storeViewArray = array();
+                $storeViewArray = [];
                 $collection = $this->pageCollectionFactory->create();
-                $collection->addFieldToFilter('page_id', array('in' => $ids));
+                $collection->addFieldToFilter('page_id', ['in' => $ids]);
                 foreach ($collection as $entity) {
                     if (!in_array('0', $entity->getData('store_id'))) {
                         $storeViewArray[] = $entity->getData('store_id');
@@ -405,7 +418,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     if (in_array($defaultStore, $commonStores)) {
                         return $defaultStore;
                     } else {
-                        return array_values($commonStores)[0];;
+                        return array_values($commonStores)[0];
                     }
                 } elseif (count($storeViewArray) == 1) {
                     if (in_array($defaultStore, $storeViewArray[0])) {
@@ -418,9 +431,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 break;
             case Data::CMS_BLOCK_TYPE_ID:
-                $storeViewArray = array();
+                $storeViewArray = [];
                 $collection = $this->blockCollectionFactory->create();
-                $collection->addFieldToFilter('block_id', array('in' => $ids));
+                $collection->addFieldToFilter('block_id', ['in' => $ids]);
                 foreach ($collection as $entity) {
                     if (!in_array('0', $entity->getData('store_id'))) {
                         $storeViewArray[] = $entity->getData('store_id');
@@ -431,7 +444,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     if (in_array($defaultStore, $commonStores)) {
                         return $defaultStore;
                     } else {
-                        return array_values($commonStores)[0];;
+                        return array_values($commonStores)[0];
                     }
                 } elseif (count($storeViewArray) == 1) {
                     if (in_array($defaultStore, $storeViewArray[0])) {
@@ -444,9 +457,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 break;
             case Data::PRODUCT_REVIEW_ID:
-                $storeViewArray = array();
+                $storeViewArray = [];
                 $collection = $this->reviewCollectionFactory->create();
-                $collection->addFieldToFilter('review_id', array('in' => $ids));
+                $collection->addFieldToFilter('review_id', ['in' => $ids]);
                 foreach ($collection as $entity) {
                     if (!in_array('0', $entity->getData('store_id'))) {
                         $storeViewArray[] = $entity->getData('store_id');
@@ -457,7 +470,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                     if (in_array($defaultStore, $commonStores)) {
                         return $defaultStore;
                     } else {
-                        return array_values($commonStores)[0];;
+                        return array_values($commonStores)[0];
                     }
                 } elseif (count($storeViewArray) == 1) {
                     if (in_array($defaultStore, $storeViewArray[0])) {
@@ -472,27 +485,29 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
     }
 
-    public function getDefaultStoreViewIds($typeId, $ids){
+    public function getDefaultStoreViewIds($typeId, $ids)
+    {
         $defaultStore = $this->storeManager->getDefaultStoreView()->getId();
-        switch($typeId){
+        switch ($typeId) {
             case Data::CMS_PAGE_TYPE_ID:
-                $newIds = array();
+                $newIds = [];
                 $collection = $this->pageCollectionFactory->create();
-                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_page_store')],
+                $collection->getSelect()->join(
+                    ['store_table' => $collection->getTable('cms_page_store')],
                     "main_table.row_id = store_table.row_id",
-                    []);
-                foreach($ids as $id) {
+                    []
+                );
+                foreach ($ids as $id) {
                     foreach ($collection as $entity) {
-                        if ($entity->getData('page_id') == $id){
-                            if($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore){
+                        if ($entity->getData('page_id') == $id) {
+                            if ($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore) {
                                 $identifier = $entity->getData('identifier');
-                                foreach($collection as $innerEntity){
-                                    if($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)){
+                                foreach ($collection as $innerEntity) {
+                                    if ($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)) {
                                         $newIds[] = $innerEntity->getData('page_id');
                                     }
                                 }
-                            }
-                            else{
+                            } else {
                                 $newIds[] = $id;
                             }
                         }
@@ -501,24 +516,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 return array_unique($newIds);
                 break;
             case Data::CMS_BLOCK_TYPE_ID:
-                $newIds = array();
+                $newIds = [];
                 $collection = $this->blockCollectionFactory->create();
-                $collection->getSelect()->join(['store_table' => $collection->getTable('cms_block_store')],
+                $collection->getSelect()->join(
+                    ['store_table' => $collection->getTable('cms_block_store')],
                     "main_table.row_id = store_table.row_id",
-                    []);
-                foreach($ids as $id) {
+                    []
+                );
+                foreach ($ids as $id) {
                     foreach ($collection as $entity) {
-                        if ($entity->getData('block_id') == $id){
-                            if($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore){
+                        if ($entity->getData('block_id') == $id) {
+                            if ($entity->getData('store_id')[0] != '0' && $entity->getData('store_id')[0] != $defaultStore) {
                                 $identifier = $entity->getData('identifier');
-                                foreach($collection as $innerEntity){
-                                    if($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)){
+                                foreach ($collection as $innerEntity) {
+                                    if ($identifier == $innerEntity->getIdentifier() && ($innerEntity->getData('store_id')[0] == '0' || $innerEntity->getData('store_id')[0] == $defaultStore)) {
                                         $newIds[] = $innerEntity->getData('block_id');
                                     }
                                     //Put an else here if we want to resolve this and still translate
                                 }
-                            }
-                            else{
+                            } else {
                                 $newIds[] = $id;
                             }
                         }
@@ -531,13 +547,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return boolean
      */
-    public function defaultStoreSelected(){
-        if($this->storeManager->getDefaultStoreView()->getId() == $this->storeManager->getStore()->getId()){
+    public function defaultStoreSelected()
+    {
+        if ($this->storeManager->getDefaultStoreView()->getId() == $this->storeManager->getStore()->getId()) {
             return true;
         }
         return false;
     }
-
 
     public function reIndexing()
     {
@@ -628,7 +644,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $shortcode
      * @return array
      */
-    public function getConfiguredTargetLanguagesBySource($shortCode, $source){
+    public function getConfiguredTargetLanguagesBySource($shortCode, $source)
+    {
         $locales = $this->getLocales(true, true, true);
         try {
             $response = $this->translationService->requestGLExchange(
@@ -639,16 +656,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 ]
             );
             $targetLocales = [];
-            foreach ($response as $project){
-                if($project->projectInfo->shortCode == $shortCode){
-                    if(is_array($project->projectLanguageDirections)) {
+            foreach ($response as $project) {
+                if ($project->projectInfo->shortCode == $shortCode) {
+                    if (is_array($project->projectLanguageDirections)) {
                         foreach ($project->projectLanguageDirections as $languageDirection) {
                             if ($source == $languageDirection->sourceLanguage->locale && array_key_exists($languageDirection->targetLanguage->locale, $locales)) {
                                 $targetLocales[] = $languageDirection->targetLanguage->locale;
                             }
                         }
-                    } elseif(isset($project->projectLanguageDirections)){
-                        if($project->projectLanguageDirections->sourceLanguage->locale == $source){
+                    } elseif (isset($project->projectLanguageDirections)) {
+                        if ($project->projectLanguageDirections->sourceLanguage->locale == $source) {
                             $targetLocales[] = $project->projectLanguageDirections->targetLanguage->locale;
                         }
                     }
@@ -676,36 +693,22 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected function getAllLocales($includeSource = false, $onlyConfiguredProjects = false)
     {
         $shortCodes = $this->getProjectShortCodes();
+        $targetLocales = [];
+        $sourceLocales = [];
         try {
-            $response = $this->translationService->requestGLExchange(
-                '/services/ProjectService',
-                'getUserProjects',
-                [
-                    'isSubProjectIncluded' => true,
-                ]
-            );
-            $targetLocales = [];
-            $sourceLocales = [];
-            foreach ($response as $project){
-                if(in_array($project->projectInfo->shortCode, $shortCodes) && $onlyConfiguredProjects == true){
-                    if (isset($project->projectLanguageDirections->sourceLanguage)) {
-                        $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
-                        $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
-                    } else {
-                        foreach ($project->projectLanguageDirections as $direction) {
-                            $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
-                            $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
-                        }
+            $glExchange = $this->translationService->requestGLExchange();
+            $response = $this->translationService->requestGLExchange()->getProjects();
+            foreach ($response as $project) {
+                $languageDirections = $glExchange->getProjectLanguageDirections($project->projectId);
+                if (in_array($project->shortCode, $shortCodes) && $onlyConfiguredProjects == true) {
+                    foreach ($languageDirections as $languageDirection) {
+                        $targetLocales[$languageDirection->targetLanguage] = $languageDirection->targetLanguageDisplayName;
+                        $sourceLocales[$languageDirection->sourceLanguage] = $languageDirection->sourceLanguageDisplayName;
                     }
-                } else if($onlyConfiguredProjects == false){
-                    if (isset($project->projectLanguageDirections->sourceLanguage)) {
-                        $targetLocales[$project->projectLanguageDirections->targetLanguage->locale] = $project->projectLanguageDirections->targetLanguage->value;
-                        $sourceLocales[$project->projectLanguageDirections->sourceLanguage->locale] = $project->projectLanguageDirections->sourceLanguage->value;
-                    } else {
-                        foreach ($project->projectLanguageDirections as $direction) {
-                            $targetLocales[$direction->targetLanguage->locale] = $direction->targetLanguage->value;
-                            $sourceLocales[$direction->sourceLanguage->locale] = $direction->sourceLanguage->value;
-                        }
+                } elseif ($onlyConfiguredProjects == false) {
+                    foreach ($languageDirections as $languageDirection) {
+                        $targetLocales[$languageDirection->targetLanguage] = $languageDirection->targetLanguageDisplayName;
+                        $sourceLocales[$languageDirection->sourceLanguage] = $languageDirection->sourceLanguageDisplayName;
                     }
                 }
             }
@@ -917,9 +920,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         foreach ($collection as $entity) {
             $storeIds[] = $entity->getData($label)[0];
         }
-        foreach($storeIds as $current){
-            foreach($storeIds as $inner){
-                if($current != $inner){
+        foreach ($storeIds as $current) {
+            foreach ($storeIds as $inner) {
+                if ($current != $inner) {
                     return true;
                 }
             }
@@ -933,28 +936,30 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param string $value
      * @throws \Exception
      */
-    public function saveAttributeLabel($attributeId, $targetStoreId, $value){
+    public function saveAttributeLabel($attributeId, $targetStoreId, $value)
+    {
         $connection = $this->resource->getConnection();
         $bind = ['attribute_id' => $attributeId, 'store_id' => $targetStoreId];
         $select = $connection->select()->from(
             ['c' => 'eav_attribute_label'],
-            ['*'])
+            ['*']
+        )
             ->where(
                 "c.attribute_id = :attribute_id"
             )->where(
                 "c.store_id = :store_id"
             );
         $result = $connection->fetchRow($select, $bind);
-        if($result != false){
+        if ($result != false) {
             try {
                 $connection->update('eav_attribute_label', ["value" => $value], ['attribute_id = ?' => (int)$attributeId, 'store_id = ?' => (int)$targetStoreId]);
-            } catch (\Exception $e){
-                if($this->logger->isErrorEnabled()){
+            } catch (\Exception $e) {
+                if ($this->logger->isErrorEnabled()) {
                     $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
                 }
             }
-        } else{
-            try{
+        } else {
+            try {
                 $connection->insert('eav_attribute_label', ["value" => $value, "attribute_id" => $attributeId, "store_id" => $targetStoreId]);
             } catch (\Exception $e) {
                 if ($this->logger->isErrorEnabled()) {
@@ -970,36 +975,38 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param string $value
      * @throws \Exception
      */
-     public function saveOptionLabel($optionId, $targetStoreId, $value){
-         $connection = $this->resource->getConnection();
-         $bind = ['option_id' => $optionId, 'store_id' => $targetStoreId];
-         $select = $connection->select()->from(
-             ['c' => 'eav_attribute_option_value'],
-             ['*'])
-         ->where(
-             "c.option_id = :option_id"
-         )->where(
-             "c.store_id = :store_id"
-         );
-         $result = $connection->fetchRow($select, $bind);
-         if($result != false){
-             try {
-                 $connection->update('eav_attribute_option_value', ["value" => $value], ['option_id = ?' => (int)$optionId, 'store_id = ?' => (int)$targetStoreId]);
-             } catch (\Exception $e){
-                 if($this->logger->isErrorEnabled()){
-                     $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
-                 }
-             }
-         } else{
-            try{
+    public function saveOptionLabel($optionId, $targetStoreId, $value)
+    {
+        $connection = $this->resource->getConnection();
+        $bind = ['option_id' => $optionId, 'store_id' => $targetStoreId];
+        $select = $connection->select()->from(
+            ['c' => 'eav_attribute_option_value'],
+            ['*']
+        )
+        ->where(
+            "c.option_id = :option_id"
+        )->where(
+            "c.store_id = :store_id"
+        );
+        $result = $connection->fetchRow($select, $bind);
+        if ($result != false) {
+            try {
+                $connection->update('eav_attribute_option_value', ["value" => $value], ['option_id = ?' => (int)$optionId, 'store_id = ?' => (int)$targetStoreId]);
+            } catch (\Exception $e) {
+                if ($this->logger->isErrorEnabled()) {
+                    $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
+                }
+            }
+        } else {
+            try {
                 $connection->insert('eav_attribute_option_value', ["value" => $value, "option_id" => $optionId, "store_id" => $targetStoreId]);
             } catch (\Exception $e) {
                 if ($this->logger->isErrorEnabled()) {
                     $this->logger->logAction($this::PRODUCT_ATTRIBUTE_TYPE_ID, $this->logger::CRITICAL, $data = [], $severity = 'error', $message = $e->getMessage());
                 }
             }
-         }
-     }
+        }
+    }
     /**
      * Updates translation configuration for eav attributes
      *
@@ -1172,12 +1179,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return $result;
     }
 
-    public function checkForCompletedSubmissionByTicket($submissionTicket){
+    public function checkForCompletedSubmissionByTicket($submissionTicket)
+    {
         $completedTargets = $this->translationService->getCompletedTargetsBySubmission($submissionTicket);
-        if(($completedTargets != null)){
+        if (($completedTargets != null)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
 

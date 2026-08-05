@@ -84,23 +84,16 @@ class TestConnection extends Action
     {
         $result = true;
         try {
-            $response = $this->translationService->requestGLExchange(
-                '/services/ProjectService',
-                'getUserProjects',
-                [
-                        'isSubProjectIncluded' => true,
-                    ]
-            );
-            if (empty($response)) {
+            $response = $this->translationService->requestGLExchange();
+            $healthCheck = $response->healthcheck();
+            if (empty($healthCheck)) {
                 $result = __('Empty response');
             }
-            if (is_array($response)) {
-                if ($response[0] == null) {
-                    $result = __('Connection Failed');
-                }
+            if (!$healthCheck->healthy) {
+                $result = __('Connection Failed');
             }
         } catch (\Exception $e) {
-            $result = __('Connection Failed');
+            $result = __($e->getMessage());
         }
         return $result;
     }

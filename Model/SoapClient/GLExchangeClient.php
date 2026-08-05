@@ -2,10 +2,9 @@
 
 namespace TransPerfect\GlobalLink\Model\SoapClient;
 
+use GlobalLink\RestClient\GlobalLinkClient;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
-use PDConfig;
-use TransPerfect\GlobalLink\Model\SoapClient\GLExchange\GLExchangeLocalFactory;
 
 /**
  * Class GLExchangeClient
@@ -21,10 +20,11 @@ class GLExchangeClient
     protected $userAgent;
     protected $maxTargetCount;
     protected $maxCancelledCount;
-    protected $connectionConfig;
     protected $glExchangeLocalFactory;
     protected $productMetadata;
     protected $moduleResource;
+    protected $oauthclient;
+    protected $oauthsecret;
 
     /**
      * default value for max targets
@@ -40,7 +40,7 @@ class GLExchangeClient
     const LOGGING_LEVEL_ERROR = 2;
 
     /**
-     * @var GLExchange
+     * @var GlobalLinkClient
      */
     protected $connect;
 
@@ -64,14 +64,14 @@ class GLExchangeClient
         ScopeConfigInterface $scopeConfig,
         \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
         \Magento\Framework\App\Request\Http $request,
-        PDConfig $pdConfig,
-        GLExchangeLocalFactory $glExchangeLocalFactory,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \Magento\Framework\Module\ResourceInterface $moduleResource
     ) {
-        $this->connectionUrl = $scopeConfig->getValue('globallink/connection/url', ScopeInterface::SCOPE_STORE);
-        $this->username = $scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
-        $this->password = $scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
+        $this->connectionUrl = (string)$scopeConfig->getValue('globallink/connection/url', ScopeInterface::SCOPE_STORE);
+        $this->username = (string)$scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
+        $this->password = (string)$scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
+        $this->oauthclient = (string)$scopeConfig->getValue('globallink/connection/oauthclient', ScopeInterface::SCOPE_STORE);
+        $this->oauthsecret = (string)$scopeConfig->getValue('globallink/connection/oauthsecret', ScopeInterface::SCOPE_STORE);
         $this->enabledLevels = $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE) == null ? [''] : explode(',', $scopeConfig->getValue('globallink/general/logging_level', ScopeInterface::SCOPE_STORE));
         $this->userAgent = $request->getServerValue('HTTP_USER_AGENT');
         $this->productMetadata = $productMetadata;
@@ -85,19 +85,20 @@ class GLExchangeClient
         }
         $this->maxCancelledCount = self::DEFAULT_MAX_CANCELLED;
         $this->bgLogger = $bgLogger;
-        $this->connectionConfig = $pdConfig;
-        $this->glExchangeLocalFactory = $glExchangeLocalFactory;
     }
 
     /**
      * get connection to service
      *
-     * @return \GLExchange
+     * @return GlobalLinkClient
      */
     public function getConnect()
     {
-        if (!($this->connect instanceof \GLExchange)) {
-            $this->connect = $this->connect();
+        if ($this->connect instanceof GlobalLinkClient) {
+            //DO NOTHING
+        } else {
+            $this->connect = new GlobalLinkClient($this->connectionUrl, $this->username, $this->password, $this->oauthclient, $this->oauthsecret, null, "TEST", null);
+
         }
 
         return $this->connect;
@@ -109,7 +110,7 @@ class GLExchangeClient
      * @return \TransPerfect\GlobalLink\Model\SoapClient\GLExchange\GLExchangeLocal
      * @throws \Exception
      */
-    protected function connect()
+    /*protected function connect()
     {
         if (empty($this->connectionUrl)) {
             throw new \Exception("GLExchangeClient: Configuration option 'connectionUrl' is not set");
@@ -134,7 +135,7 @@ class GLExchangeClient
         }
 
         return $connection;
-    }
+    }*/
     /**
      * DO NOT USE THIS METHOD IN USUAL WORK
      *
@@ -143,7 +144,7 @@ class GLExchangeClient
      *
      * @return string
      */
-    public function testConnectError($username, $password, $url)
+    /*public function testConnectError($username, $password, $url)
     {
         $this->connectionConfig->url = $url;
         $this->connectionConfig->username = $username;
@@ -161,7 +162,7 @@ class GLExchangeClient
             $error = 'Connection failed. ' . $e->getMessage();
         }
         return $error;
-    }
+    }*/
 
     /**
      * Send request
@@ -649,8 +650,9 @@ class GLExchangeClient
         $pdproject = $client->getProject($project);
         for ($i=0; $i < 30; $i++) {
             $targetTickets = $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
-            if($targetTickets != null)
+            if ($targetTickets != null) {
                 return $targetTickets;
+            }
         }
 
         return $targetTickets;

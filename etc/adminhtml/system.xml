@@ -85,6 +85,16 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment><![CDATA[Required field]]></comment>
                 </field>
+                <field id="oauthclient" translate="label" type="text" sortOrder="22" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>OAuth Client ID</label>
+                    <validate>required-entry</validate>
+                    <comment><![CDATA[Required field]]></comment>
+                </field>
+                <field id="oauthsecret" translate="label" type="obscure" sortOrder="24" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>OAuth Client Secret</label>
+                    <validate>required-entry</validate>
+                    <comment><![CDATA[Required field]]></comment>
+                </field>
                 <field id="url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>GlobalLink Url</label>
                     <validate>required-entry</validate>

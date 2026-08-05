@@ -2,10 +2,10 @@
 
 namespace TransPerfect\GlobalLink\Controller\Adminhtml\Submission\Product;
 
-use \Magento\Backend\App\Action as BackendAction;
+use Magento\Backend\App\Action as BackendAction;
+use Magento\Ui\Component\MassAction\Filter;
 use TransPerfect\GlobalLink\Helper\Data;
 use TransPerfect\GlobalLink\Helper\Ui\Logger;
-use Magento\Ui\Component\MassAction\Filter;
 
 /**
  * Class Create
@@ -103,7 +103,7 @@ class Create extends BackendAction
         $checkFields = $this->helper->checkFieldsConfigured(Data::CATALOG_PRODUCT_TYPE_ID, $productsToTranslate);
         if (!$checkFields['ok']) {
             $error = __('Fields are not configured under Globallink > Field Configuration > Products. Check config for following Attribute Sets:');
-            $error.= ' '.implode(', ', $checkFields['errorMessages']);
+            $error.= ' ' . implode(', ', $checkFields['errorMessages']);
             $this->messageManager->addErrorMessage($error);
             return $this->_redirect('catalog/product');
         }
@@ -119,7 +119,7 @@ class Create extends BackendAction
         $resultPage->setActiveMenu('TransPerfect_GlobalLink::management');
         $resultPage->getConfig()->getTitle()->prepend(__('Create Submission'));
         $resultPage->addBreadcrumb(__('Submission'), __('Submission'));
-        if($this->logger->isInfoEnabled()) {
+        if ($this->logger->isInfoEnabled()) {
             $this->logger->logAction(Data::CATALOG_PRODUCT_TYPE_ID, Logger::FORM_ACTION_TYPE, $this->getRequest()->getParams(), Logger::NOTICE);
         }
         return $resultPage;

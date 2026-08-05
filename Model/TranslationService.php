@@ -73,7 +73,7 @@ class TranslationService
 
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        GLExchangeClient $glExchangeClient,
+        \TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient $glExchangeClient,
         ItemCollectionFactory $itemCollectionFactory,
         \TransPerfect\GlobalLink\Logger\BgTask\Logger $bgLogger,
         Filesystem $filesystem,
@@ -92,21 +92,12 @@ class TranslationService
     }
 
     /**
-     * Send request using GLExchange library
-     *
-     * @param string $endpoint
-     * @param string $serviceMethodName
-     * @param array  $parameters
-     *
-     * @return
+     * Request GlobalLinkClient library
+     * @return \GlobalLink\RestClient\GlobalLinkClient
      */
-    public function requestGLExchange($endpoint, $serviceMethodName, array $parameters = [])
+    public function requestGLExchange()
     {
-        $response = $this->glExchangeClient->request($endpoint, $serviceMethodName, $parameters);
-
-        $preparedData = $response;
-
-        return $preparedData;
+        return $this->glExchangeClient->getConnect();
     }
 
     /**
@@ -215,7 +206,7 @@ class TranslationService
     {
         $targets = [];
         try {
-            foreach($this->projectShortCodes as $project) {
+            foreach ($this->projectShortCodes as $project) {
                 $targets = array_merge($targets, $this->glExchangeClient->receiveTranslationsByProject($project));
             }
         } catch (\Exception $e) {

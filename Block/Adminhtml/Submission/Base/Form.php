@@ -243,7 +243,7 @@ class Form extends GenericForm
                         } elseif ($attribute->type == 'COMBO' && $comboAttributePopulated == false) {
                             $newValues = [];
                             $attributeFieldId = 'attribute_' . $projectShortcode . '_combo';
-                            $values = explode(',', $attribute->values);
+                            $values = $attribute->values;
                             if ($attribute->mandatory == false) {
                                 $newValues[] = ['value' => '', 'label' => ''];
                             }
@@ -548,43 +548,27 @@ class Form extends GenericForm
         $locallyAvailableLocales = $this->helper->getLocales(true);
 
         try {
-            $response = $this->translationService->requestGLExchange(
-                '/services/ProjectService',
-                'getUserProjects',
-                [
-                    'isSubProjectIncluded' => true,
-                ]
-            );
+            $glExchange = $this->translationService->requestGLExchange();
+            $response = $glExchange->getProjects();
             foreach ($response as $project) {
-                if (in_array($project->projectInfo->shortCode, $shortCodes)) {
+                $customAttributes = $glExchange->getProjectCustomAttributes($project->projectId);
+                if (in_array($project->shortCode, $shortCodes)) {
                     $projectsArray[] = [
-                        'label' => $project->projectInfo->name,
-                        'value' => $project->projectInfo->shortCode,
-                        'custom_attributes' => $project->projectCustomFieldConfiguration
+                        'label' => $project->name,
+                        'value' => $project->projectId,
+                        'custom_attributes' => $customAttributes
                     ];
                 }
 
-                $targetlocales[$project->projectInfo->shortCode] = [];
-                if(isset($project->projectLanguageDirections->sourceLanguage) && isset($project->projectLanguageDirections->targetLanguage)){
-                    if (array_key_exists($project->projectLanguageDirections->targetLanguage->locale, $this->localize)) {
-                        $serviceLocaleLabel = $project->projectLanguageDirections->targetLanguage->value;
-                        $targetlocales[$project->projectInfo->shortCode][] = [
-                            'value' => $project->projectLanguageDirections->targetLanguage->locale,
-                            'label' => $serviceLocaleLabel,
+                $targetlocales[$project->projectId] = [];
+                $languageDirections = $glExchange->getProjectLanguageDirections($project->projectId);
+                foreach ($languageDirections as $languageDirection) {
+                    if (array_key_exists($languageDirection->targetLanguage, $this->localize)) {
+                        $serviceLocaleLabel = $languageDirection->targetLanguageDisplayName;
+                        $targetlocales[$project->projectId][] = [
+                            'value' => $languageDirection->targetLanguage,
+                            'label' => $languageDirection->targetLanguageDisplayName,
                         ];
-                    }
-                } else{
-                    foreach ($project->projectLanguageDirections as $direction) {
-                        if ($direction->sourceLanguage->locale == $this->currentLocale) {
-                            // limit by stores locales
-                            if (array_key_exists($direction->targetLanguage->locale, $this->localize)) {
-                                $serviceLocaleLabel = $direction->targetLanguage->value;
-                                $targetlocales[$project->projectInfo->shortCode][] = [
-                                    'value' => $direction->targetLanguage->locale,
-                                    'label' => $serviceLocaleLabel,
-                                ];
-                            }
-                        }
                     }
                 }
             }
