@@ -534,14 +534,15 @@ class Item extends AbstractModel
      */
     public function cancelTranslationCall()
     {
+        $queue = $this->_getQueue();
         if ($this->getStatusId() != self::STATUS_FOR_CANCEL
             && $this->getStatusId() != self::STATUS_CANCEL_FAILED) {
             return false;
         }
 
         $isCancelled = $this->translationService->cancelTargetByDocumentId(
-            $this->getDocumentTicket(),
-            $this->getPdLocaleIsoCode()
+            $this->getDocumentId(),
+            $queue->getData('submission_id')
         );
         if ($isCancelled) {
             $this->setStatusId(self::STATUS_FOR_DELETE);

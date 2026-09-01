@@ -276,9 +276,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /*
      * @return custom attributes
      */
-    public function getCustomAttributes($shortCode)
+    public function getCustomAttributes($projectID)
     {
-        return $this->translationService->getCustomAttributes($shortCode);
+        return $this->translationService->getCustomAttributes($projectID);
     }
 
     /**
@@ -1179,9 +1179,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return $result;
     }
 
-    public function checkForCompletedSubmissionByTicket($submissionTicket)
+    public function checkForCompletedSubmissionByTicket($documentID)
     {
-        $completedTargets = $this->translationService->getCompletedTargetsBySubmission($submissionTicket);
+        $completedTargets = $this->translationService->getCompletedTargetsBySubmission($documentID);
         if (($completedTargets != null)) {
             return true;
         } else {

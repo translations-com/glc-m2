@@ -3,8 +3,17 @@
 namespace TransPerfect\GlobalLink\Model\SoapClient;
 
 use GlobalLink\RestClient\GlobalLinkClient;
+use GlobalLink\RestClient\Model\BatchInfo;
+use GlobalLink\RestClient\Model\CreateSubmissionTargetLanguageInfo;
+use GlobalLink\RestClient\Model\TechTracking;
+use GlobalLink\RestClient\Request\CreateSubmissionRequest;
+use GlobalLink\RestClient\Request\GetTargetsRequest;
+use GlobalLink\RestClient\Request\SaveSubmissionRequest;
+use GlobalLink\RestClient\Request\UploadSourceFileRequest;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use mysql_xdevapi\Exception;
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * Class GLExchangeClient
@@ -531,29 +540,78 @@ class GLExchangeClient
      */
     public function initSubmission(array $data)
     {
+        $client = $this->getConnect();
+        $targetLanguageInfos = [];
+        foreach ($data['targetLanguages'] as $targetLanguage) {
+            $targetLanguageInfos[] = new CreateSubmissionTargetLanguageInfo($targetLanguage);
+        }
         $textAttributeFilled = false;
         $comboAttributeFilled = false;
-        $pdproject = $this->getConnect()->getProject($data['projectShortCode']);
-        $customAttributes = $pdproject->customAttributes;
-        $submission = $this->getLibraryClass('PDSubmission');
-        $submission->name = $data['submissionName'];
-        $submission->project = $pdproject;
-        $submission->isUrgent = (bool) $data['submissionPriority'];
-        $submission->instructions = $data['submissionNotes'];
-        $submission->dueDate = strtotime($data['submissionDueDate'])*1000;
-        $submission->customAttributes = [];
+        $customAttributes = [];
         foreach ($customAttributes as $attribute) {
             if ($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
-                $submission->customAttributes[$attribute->name] = $data['attribute_text'];
+                $customAttributes[$attribute->name] = $data['attribute_text'];
                 $textAttributeFilled = true;
             }
             if ($data['attribute_combo'] != null && $attribute->type == 'COMBO' && $comboAttributeFilled == false) {
-                $submission->customAttributes[$attribute->name] = $data['attribute_combo'];
+                $customAttributes[$attribute->name] = $data['attribute_combo'];
                 $comboAttributeFilled = true;
             }
         }
-        $client = $this->getConnect();
-        $client->initSubmission($submission);
+        $batch = new BatchInfo(
+            name: 'Batch 1',
+            targetFormat: 'TXLF',
+            targetLanguageInfos: $targetLanguageInfos
+        );
+        if (strlen($data['submissionNotes']) > 0 && !isEmpty($customAttributes)) {
+            $request = new CreateSubmissionRequest(
+                name: $data['submissionName'],
+                dueDate: strtotime($data['submissionDueDate'])*1000,
+                projectId: $data['projectShortCode'],
+                sourceLanguage: $data['sourceLanguage'],
+                batchInfos: [$batch],
+                claimScope: 'LANGUAGE',
+                instructions: $data['instructions'],
+                customAttributes: $customAttributes,
+            );
+        } elseif (strlen($data['submissionNotes']) > 0 && isEmpty($customAttributes)) {
+            $request = new CreateSubmissionRequest(
+                name: $data['submissionName'],
+                dueDate: strtotime($data['submissionDueDate'])*1000,
+                projectId: $data['projectShortCode'],
+                sourceLanguage: $data['sourceLanguage'],
+                batchInfos: [$batch],
+                claimScope: 'LANGUAGE',
+                instructions: $data['instructions']
+            );
+        } elseif (strlen($data['submissionNotes']) == 0 && !isEmpty($customAttributes)) {
+            $request = new CreateSubmissionRequest(
+                name: $data['submissionName'],
+                dueDate: strtotime($data['submissionDueDate'])*1000,
+                projectId: $data['projectShortCode'],
+                sourceLanguage: $data['sourceLanguage'],
+                batchInfos: [$batch],
+                claimScope: 'LANGUAGE',
+                customAttributes: $customAttributes
+            );
+        } else {
+            $request = new CreateSubmissionRequest(
+                name: $data['submissionName'],
+                dueDate: strtotime($data['submissionDueDate'])*1000,
+                projectId: $data['projectShortCode'],
+                sourceLanguage: $data['sourceLanguage'],
+                batchInfos: [$batch],
+                claimScope: 'LANGUAGE'
+            );
+        }
+        try {
+            $createResponse = $client->createSubmission($request);
+        } catch (\Magento\Framework\Webapi\Exception $e) {
+            $errorMessage = $e->getMessage();
+            echo $errorMessage;
+        }
+
+        return $createResponse->submissionId;
     }
 
     /**
@@ -567,54 +625,59 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
 
-        $document = $this->getLibraryClass('PDDocument');
+        $request = new UploadSourceFileRequest(
+            batchName: 'Batch 1',
+            fileContents: $data['data'],
+            fileName: $data['name'],
+            fileFormatName: $data['fileformat'],
+            targetLanguages: $data['targetLanguages']
+        );
+
+        $response = $client->uploadSubmissionSourceFile($data['submission_id'], $request);
+        $targetLanguagesString = implode(",", $data['targetLanguages']);
+        /*$document = $this->getLibraryClass('PDDocument');
         $document->fileformat = $data['fileformat'];
         $document->name = $data['name'];
         $document->sourceLanguage = $data['sourceLanguage'];
         $document->targetLanguages = $data['targetLanguages'];
         $document->data = $data['data'];
         $targetLanguagesString = implode(",", $document->targetLanguages);
-        $documentTicket = $client->uploadTranslatable($document);
+        $documentTicket = $client->uploadTranslatable($document);*/
 
-        $message = "Document uploaded to GLPD. Document ticket: {$documentTicket}. Item name: {$document->name}, Source language: {$document->sourceLanguage}, Target Language(s): {$targetLanguagesString}. ";
-        $debugMessage = "Entity Data: {$document->data}";
+        $documentID = $response->documentIds[0]->documentId;
+        $fileName = $response->documentIds[0]->name;
+        $message = "Document uploaded to GLPD. Document ID: {$documentID}. Item name: {$fileName}, Source language: {$data['sourceLanguage']}, Target Language(s): {$targetLanguagesString}. ";
 
         $logData = ['message' => $message];
         if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
-        if (in_array($this::LOGGING_LEVEL_DEBUG, $this->enabledLevels)) {
-            $logData = ['message' => $debugMessage];
-            $this->bgLogger->debug($this->bgLogger->bgLogMessage($logData));
-            if (!empty($data['logInfo'])) {
-                $logData = ['message' => "Additional Info: {$data['logInfo']}"];
-                $this->bgLogger->debug($this->bgLogger->bgLogMessage($logData));
-            }
-        }
-        return $documentTicket;
+
+        return $response->documentIds[0]->documentId;
     }
 
     /**
      * Start submission
      *
-     * @return string Submission ticket
+     * @var int $submissionID
      */
-    public function startSubmission()
+    public function startSubmission($submissionID)
     {
         $client = $this->getConnect();
+        $techTracking = new TechTracking(
+            adaptorName: 'GlobalLink Magento Integration',
+            adaptorVersion: $this->moduleResource->getDbVersion('TransPerfect_GlobalLink'),
+            clientVersion: $this->productMetadata->getVersion(),
+            technologyProduct: 'GLE'
+        );
+        //$client->putSubmissionTechTracking($submissionID, $techTracking);
+        $result = $client->saveSubmission($submissionID, new SaveSubmissionRequest(autoStart: true));
 
-        $client->setAdaptorName("Magento");
-        $client->setClientVersion("Commerce " . $this->productMetadata->getVersion());
-        $client->setAdaptorVersion($this->moduleResource->getDbVersion('TransPerfect_GlobalLink'));
-        $submissionTicket = $client->startSubmission();
-
-        $message = "Submission created. Submission ticket: {$submissionTicket}.";
+        $message = "Submission started. Submission ID: {$submissionID}.";
         $logData = ['message' => $message];
         if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
-
-        return $submissionTicket;
     }
 
     /**
@@ -664,15 +727,11 @@ class GLExchangeClient
      * @return [Target]
      */
 
-    public function getCompletedTargetsBySubmission($submissionTicket)
+    public function getCompletedTargetsBySubmission($documentID)
     {
         $client = $this->getConnect();
-        for ($i=0; $i < 30; $i++) {
-            $targetTickets = $client->getCompletedTargetsBySubmission($submissionTicket, $this->maxTargetCount);
-            if ($targetTickets != null) {
-                return $targetTickets;
-            }
-        }
-        return $client->getCompletedTargetsBySubmission($submissionTicket, $this->maxTargetCount);
+        $targetsRequest = new GetTargetsRequest('PROCESSED', documentIds: [$documentID]);
+        $targets = $client->getTargets($targetsRequest);
+        return $targets;
     }
 }

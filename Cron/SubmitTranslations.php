@@ -8,7 +8,6 @@ use TransPerfect\GlobalLink\Helper\Data as HelperData;
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
 
-
 /**
  * Class SubmitTranslations
  */
@@ -141,15 +140,15 @@ class SubmitTranslations extends Translations
                     $queue->save();
                     continue;
                 }
-                if($this->mode == 'cli' && isset($this->ddOverride) && $this->ddOverride != null && $this->ddOverride > 0){
+                if ($this->mode == 'cli' && isset($this->ddOverride) && $this->ddOverride != null && $this->ddOverride > 0) {
                     $dueDate = $this->dateTime->date('Y-m-d H:i:s', $queue->getData('due_date'));
                     $now = $this->dateTime->date('Y-m-d H:i:s');
-                    if($now > $dueDate){
-                        $newDate = $this->dateTime->date('Y-m-d H:i:s', strtotime($now." +".$this->ddOverride." days"));
+                    if ($now > $dueDate) {
+                        $newDate = $this->dateTime->date('Y-m-d H:i:s', strtotime($now . " +" . $this->ddOverride . " days"));
                         $queue->setData('due_date', $newDate);
                         $queue->save();
                         $logData = [
-                            'message' => 'Due-date of submission with ID ' . $queue->getId().' found to be in the past. Adjusting due-date by '.$this->ddOverride.' day(s)',
+                            'message' => 'Due-date of submission with ID ' . $queue->getId() . ' found to be in the past. Adjusting due-date by ' . $this->ddOverride . ' day(s)',
                         ];
                         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
@@ -292,7 +291,7 @@ class SubmitTranslations extends Translations
             $dataToSend[$itemEntityTypeId][$itemEntityId]['entity_name'] = $item->getEntityName();
             $dataToSend[$itemEntityTypeId][$itemEntityId]['item_ids'][] = $item->getId();
             $dataToSend[$itemEntityTypeId][$itemEntityId]['target_locales'][$item->getId()] = $item->getPdLocaleIsoCode();
-            $dataToSend[$itemEntityTypeId][$itemEntityId]['document_ticket'] = '';
+            $dataToSend[$itemEntityTypeId][$itemEntityId]['document_id'] = '';
             $dataToSend[$itemEntityTypeId][$itemEntityId]['upload_failed'] = 0;
         }
 
@@ -300,9 +299,9 @@ class SubmitTranslations extends Translations
 
         $items = null;
 
-        $submissionTicket = '';
+        $submissionID = '';
         try {
-            $submissionTicket = $this->submitEntities($dataToSend, $queue);
+            $submissionID = $this->submitEntities($dataToSend, $queue, $originStoreId);
         } catch (\Exception $e) {
             $queue->setStatus(Queue::STATUS_INPROGRESS);
             $errorMessage = 'Exception while submission.'
@@ -320,8 +319,8 @@ class SubmitTranslations extends Translations
             $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
         }
 
-        if ($submissionTicket) {
-            $this->updateTicketsAndStatuses($dataToSend, $submissionTicket);
+        if ($submissionID) {
+            $this->updateTicketsAndStatuses($dataToSend, $submissionID);
         }
 
         // update queue status
@@ -364,11 +363,25 @@ class SubmitTranslations extends Translations
      *
      * @return string Submission ticket or empty string
      */
-    protected function submitEntities(array &$dataToSend, $queue)
+    protected function submitEntities(array &$dataToSend, $queue, $originStoreId)
     {
         $submissionTicket = '';
-
+        $sourceStore = $this->storeManager->getStore($originStoreId);
+        if (!empty($sourceStore->getLocale())) {
+            $sourceLanguage = $sourceStore->getLocale();
+        } else {
+            $sourceLanguage = str_replace(
+                '_',
+                '-',
+                $this->scopeConfig->getValue(
+                    'general/locale/code',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $sourceStore->getId()
+                )
+            );
+        }
         $data = [];
+        $targetLanguages = [];
         $data['projectShortCode'] = $queue->getProjectShortcode();
         $data['submissionName'] = $queue->getName();
         $data['submissionNotes'] = $queue->getSubmissionInstructions();
@@ -376,7 +389,19 @@ class SubmitTranslations extends Translations
         $data['submissionPriority'] = $queue->getPriority();
         $data['attribute_text'] = $queue->getAttributeText();
         $data['attribute_combo'] = $queue->getAttributeCombo();
-        $this->translationService->initSubmission($data);
+        $data['sourceLanguage'] = $sourceLanguage;
+        foreach ($dataToSend as $entity) {
+            foreach ($entity as $currentItem) {
+                foreach($currentItem['target_locales'] as $locale) {}
+                if (!in_array($locale, $targetLanguages)) {
+                    $targetLanguages[] = $locale;
+                }
+            }
+
+        }
+        $data['targetLanguages'] = $targetLanguages;
+        $submissionID = $this->translationService->initSubmission($data);
+        $queue->setData('submission_id', $submissionID);
 
         $haveUploadedDocuments = false;
 
@@ -386,7 +411,7 @@ class SubmitTranslations extends Translations
                 //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Start entity '.$entityId]));
 
                 try {
-                    $documentTicket = $this->sendDocument($queue->getOriginStoreId(), $entityTypeId, $entityId, $entityData, $queue);
+                    $documentID = $this->sendDocument($queue->getOriginStoreId(), $entityTypeId, $entityId, $entityData, $queue);
                 } catch (\Exception $e) {
                     $queue->setStatus(Queue::STATUS_INPROGRESS);
                     $errorMessage = 'Exception while sending a document.'
@@ -409,9 +434,9 @@ class SubmitTranslations extends Translations
                     continue;
                 }
 
-                if (empty($documentTicket)) {
+                if (empty($documentID)) {
                     $queue->setStatus(Queue::STATUS_INPROGRESS);
-                    $errorMessage = 'Document ticket recieved from GLPD is empty'
+                    $errorMessage = 'Document ID recieved from GLPD is empty'
                         . " (site={$queue->getOriginStoreId()}, "
                         . $this->helper->getEntityTypeOptionArray()[$entityTypeId] . ' '
                         . "(id={$entityId}), "
@@ -428,8 +453,8 @@ class SubmitTranslations extends Translations
                     $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
                     $dataToSend[$entityTypeId][$entityId]['upload_failed'] = 1;
                 } else {
-                    $dataToSend[$entityTypeId][$entityId]['document_ticket'] = $documentTicket;
-                    $this->cliMessage('Document uploaded (document ticket ' . $documentTicket . ')');
+                    $dataToSend[$entityTypeId][$entityId]['document_id'] = $documentID;
+                    $this->cliMessage('Document uploaded (document ID ' . $documentID . ')');
                     $haveUploadedDocuments = true;
                 }
                 //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Finish entity '.$entityId]));
@@ -437,11 +462,11 @@ class SubmitTranslations extends Translations
         }
 
         if ($haveUploadedDocuments) {
-            $submissionTicket = $this->translationService->startSubmission();
-            $this->cliMessage('Submission created (submission ticket ' . $submissionTicket . ')');
+            $this->translationService->startSubmission($submissionID);
+            $this->cliMessage('Submission created (submission ID ' . $submissionID . ')');
         }
 
-        return $submissionTicket;
+        return $submissionID;
     }
 
     /**
@@ -539,6 +564,7 @@ class SubmitTranslations extends Translations
         $data['sourceLanguage'] = $sourceLanguage;
         $data['targetLanguages'] = $entityData['target_locales'];
         $data['data'] = $this->file->read($filePath);
+        $data['submission_id'] = $queue->getData('submission_id');
 
         $data['logInfo'] = "(site={$originStoreId}, "
             . $this->helper->getEntityTypeOptionArray()[$entityTypeId] . ' '
@@ -552,31 +578,31 @@ class SubmitTranslations extends Translations
      * Walk through $dataToSend array and update all items which have been successfully sent
      *
      * @param array  &$dataToSend
-     * @param string $submissionTicket
+     * @param int $submissionID
      */
-    protected function updateTicketsAndStatuses(array &$dataToSend, $submissionTicket)
+    protected function updateTicketsAndStatuses(array &$dataToSend, $submissionID)
     {
         $allItems = [];
         foreach ($dataToSend as $entityTypeId => $entities) {
             foreach ($entities as $entityId => $entityData) {
                 foreach ($entityData['item_ids'] as $itemId) {
                     $allItems[$itemId] = [
-                        'document_ticket' => $entityData['document_ticket'],
+                        'document_id' => $entityData['document_id'],
                         'upload_failed' => $entityData['upload_failed'],
                     ];
                 }
             }
         }
-        $this->doUpdateTicketsAndStatuses($allItems, $submissionTicket);
+        $this->doUpdateTicketsAndStatuses($allItems, $submissionID);
     }
 
     /**
      * Update Items
      *
      * @param array  $allItems
-     * @param string $submissionTicket
+     * @param string $submissionID
      */
-    protected function doUpdateTicketsAndStatuses(array $allItems, $submissionTicket)
+    protected function doUpdateTicketsAndStatuses(array $allItems, $submissionID)
     {
         $items = $this->itemCollectionFactory->create();
         $items->addFieldToFilter(
@@ -585,10 +611,10 @@ class SubmitTranslations extends Translations
         );
         foreach ($items as $item) {
             $itemId = $item->getId();
-            if (!empty($allItems[$itemId]['document_ticket'])) {
+            if (!empty($allItems[$itemId]['document_id'])) {
                 $item->setStatusId(Item::STATUS_INPROGRESS);
-                $item->setDocumentTicket($allItems[$itemId]['document_ticket']);
-                $item->setSubmissionTicket($submissionTicket);
+                $item->setValue($allItems[$itemId]['document_id']);
+                $item->setSubmissionId($submissionID);
             } elseif (!empty($allItems[$itemId]['upload_failed'])) {
                 $item->setStatusId(Item::STATUS_ERROR_UPLOAD);
             }
@@ -705,7 +731,7 @@ class SubmitTranslations extends Translations
             //$attributes->addFieldToFilter('globallink_field_product_category.attribute_set_id', $attributeSetId);
             //$attributes->addFieldToFilter('globallink_field_product_category.include_in_translation', 1);
             foreach ($attributes as $attribute) {
-                if($attribute->getAttributeCode() == 'description'){
+                if ($attribute->getAttributeCode() == 'description') {
                     $maxLength = 16777215;
                 } else {
                     switch ($attribute->getBackendType()) {
@@ -786,7 +812,7 @@ class SubmitTranslations extends Translations
         $blockCollection = $this->blockCollectionFactory->create();
         $blockCollection->addStoreFilter($storeId);
         $blockCollection->addFieldToFilter('block_id', $entityId);
-        if($blockCollection->count() == 1) {
+        if ($blockCollection->count() == 1) {
             foreach ($blockCollection as $currentBlock) {
                 $block = $currentBlock;
             }
@@ -834,11 +860,11 @@ class SubmitTranslations extends Translations
         $pageCollection = $this->pageCollectionFactory->create();
         $pageCollection->addStoreFilter($storeId);
         $pageCollection->addFieldToFilter('page_id', $entityId);
-        if($pageCollection->count() == 1) {
+        if ($pageCollection->count() == 1) {
             foreach ($pageCollection as $currentPage) {
                 $page = $currentPage;
             }
-        } else{
+        } else {
             $page = $this->pageFactory->create();
             $page->setStoreId($storeId)->load($entityId);
         }
@@ -959,7 +985,7 @@ class SubmitTranslations extends Translations
         if (empty($attrArr)) {
             return [];
         }
-        if($this->includeOptions == 1) {
+        if ($this->includeOptions == 1) {
             $options = $attribute->getOptions();
 
             foreach ($options as $option) {
@@ -993,7 +1019,7 @@ class SubmitTranslations extends Translations
         $data = [];
 
         $fieldNames = $this->getFieldsToTranslate(HelperData::CATALOG_PRODUCT_TYPE_ID, $entityId);
-        $logData = ['message' => "Product fields selected for translation: ".json_encode($fieldNames)];
+        $logData = ['message' => "Product fields selected for translation: " . json_encode($fieldNames)];
         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
@@ -1014,9 +1040,9 @@ class SubmitTranslations extends Translations
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
         }
-        foreach($product->getMediaGalleryEntries() as $image){
-            if(!empty($image->getLabel()) && $this->includeOptions == '1') {
-                $attrArr["image_".$image->getId()] = $image->getData('label');
+        foreach ($product->getMediaGalleryEntries() as $image) {
+            if (!empty($image->getLabel()) && $this->includeOptions == '1') {
+                $attrArr["image_" . $image->getId()] = $image->getData('label');
             }
         }
 
@@ -1396,7 +1422,8 @@ class SubmitTranslations extends Translations
         }
     }
 
-    public function setOverride($ddOverride){
+    public function setOverride($ddOverride)
+    {
         $this->ddOverride = $ddOverride;
     }
 }

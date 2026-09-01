@@ -9,6 +9,7 @@ use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Store\Model\ScopeInterface;
 use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
+use GlobalLink\RestClient\Request\CancelSubmissionRequest;
 use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
 
 class TranslationService
@@ -40,6 +41,8 @@ class TranslationService
      * @var string
      */
     private $password;
+    private $oauthclient;
+    private $oauthsecret;
     /**
      * @var array
      */
@@ -82,6 +85,8 @@ class TranslationService
         $this->glExchangeClient = $glExchangeClient;
         $this->username = $scopeConfig->getValue('globallink/connection/username', ScopeInterface::SCOPE_STORE);
         $this->password = $scopeConfig->getValue('globallink/connection/password', ScopeInterface::SCOPE_STORE);
+        $this->oauthclient = (string)$scopeConfig->getValue('globallink/connection/oauthclient', ScopeInterface::SCOPE_STORE);
+        $this->oauthsecret = (string)$scopeConfig->getValue('globallink/connection/oauthsecret', ScopeInterface::SCOPE_STORE);
         $shortCodes = $scopeConfig->getValue('globallink/general/project_short_codes', ScopeInterface::SCOPE_STORE);
         $this->projectShortCodes = array_map('trim', $shortCodes == null ? [''] : explode(',', $shortCodes));
         $this->itemCollectionFactory = $itemCollectionFactory;
@@ -107,7 +112,7 @@ class TranslationService
      */
     public function initSubmission(array $data)
     {
-        $this->glExchangeClient->initSubmission($data);
+        return $this->glExchangeClient->initSubmission($data);
     }
 
     /**
@@ -115,11 +120,9 @@ class TranslationService
      *
      * @param string $shortCode
      */
-    public function getCustomAttributes($shortCode)
+    public function getCustomAttributes($projectID)
     {
-        $pdproject = $this->glExchangeClient->getConnect()->getProject($shortCode);
-        $customAttributes = $pdproject->customAttributes;
-        return $customAttributes;
+        return $this->requestGLExchange()->getProjectCustomAttributes($projectID);
     }
 
     /**
@@ -137,11 +140,11 @@ class TranslationService
     /**
      * Start submission task
      *
-     * @return string Submission ticket
+     * @var int $submissionID
      */
-    public function startSubmission()
+    public function startSubmission($submissionID)
     {
-        return $this->glExchangeClient->startSubmission();
+        $this->glExchangeClient->startSubmission($submissionID);
     }
 
     /**
@@ -278,22 +281,17 @@ class TranslationService
     /**
      * Cancel target by document ticket and locale code
      *
-     * @param string $documentTicket
-     * @param string $localeCode
+     * @param string $documentID
+     * @param string $submissionID
      *
      * @return bool
      */
-    public function cancelTargetByDocumentId($documentTicket, $localeCode)
+    public function cancelTargetByDocumentId($documentID, $submissionID)
     {
-        $result = $this->glExchangeClient->getConnect()->cancelTargetByDocumentTicket($documentTicket, $localeCode);
-        /*$result = $this->requestGLExchange(
-            '/services/TargetService',
-            'cancelTargetByDocumentId',
-            [
-                'documentId' => $documentTicket,
-                'targetLocale' => $localeCode,
-            ]
-        );*/
+        $result = $this->glExchangeClient->getConnect()->cancelSubmission($submissionID, new CancelSubmissionRequest(
+            documentIds: [$documentID]
+        ));
+
 
         return $result;
     }
@@ -397,8 +395,8 @@ class TranslationService
      * Gets completed targets by submission
      * @return Target[]
      */
-    public function getCompletedTargetsBySubmission($submissionTicket)
+    public function getCompletedTargetsBySubmission($documentID)
     {
-        return $this->glExchangeClient->getCompletedTargetsBySubmission($submissionTicket);
+        return $this->glExchangeClient->getCompletedTargetsBySubmission($documentID);
     }
 }

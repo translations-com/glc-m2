@@ -7,6 +7,7 @@
     <column xsi:type="timestamp" name="request_date" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Time when request was sent"/>
     <column xsi:type="datetime" name="due_date" on_update="false" nullable="false" comment="Time when the request is due"/>
     <column xsi:type="varchar" name="project_shortcode" nullable="true" length="32" comment="Project Shortcode"/>
+    <column xsi:type="int" name="submission_id" nullable="true" length="32" comment="Submission ID"/>
     <column xsi:type="text" name="origin_store_id" nullable="false" comment="FK to store table's store_id field"/>
     <column xsi:type="text" name="priority" nullable="false" comment="Priority: High, Medium, Low"/>
     <column xsi:type="int" name="progress" padding="10" unsigned="true" nullable="false" identity="false" comment="Indicator (0-100)"/>
@@ -38,6 +39,7 @@
     <column xsi:type="varchar" name="target_stores" nullable="true" length="64" comment="Target Store Ids"/>
     <column xsi:type="varchar" name="submission_ticket" nullable="true" length="64" comment="Submission Ticket"/>
     <column xsi:type="varchar" name="document_ticket" nullable="true" length="64" comment="Document Ticket"/>
+    <column xsi:type="int" name="document_id" nullable="true" length="15" comment="Document ID"/>
     <column xsi:type="varchar" name="target_ticket" nullable="true" length="64" comment="Target Ticket"/>
     <column xsi:type="varchar" name="parent_id" nullable="true" length="64" comment="Parent ID"/>
     <column xsi:type="int" name="new_entity_id" padding="10" unsigned="true" nullable="true" identity="false" comment="New Entity Object ID"/>

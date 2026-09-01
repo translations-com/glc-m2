@@ -202,7 +202,7 @@ class Send extends BackendAction
         );
         if (count($items) >= 1) {
             foreach ($items as $item) {
-                if ($item->getSubmissionTicket() != null && $this->helper->checkForCompletedSubmissionByTicket($item->getSubmissionTicket())) {
+                if ($item->getSubmissionTicket() != null && $this->helper->checkForCompletedSubmissionByTicket($item->getDocumentId())) {
                     return true;
                 }
             }
