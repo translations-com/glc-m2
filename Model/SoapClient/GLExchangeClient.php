@@ -5,14 +5,17 @@ namespace TransPerfect\GlobalLink\Model\SoapClient;
 use GlobalLink\RestClient\GlobalLinkClient;
 use GlobalLink\RestClient\Model\BatchInfo;
 use GlobalLink\RestClient\Model\CreateSubmissionTargetLanguageInfo;
+use GlobalLink\RestClient\Model\Target;
 use GlobalLink\RestClient\Model\TechTracking;
 use GlobalLink\RestClient\Request\CreateSubmissionRequest;
 use GlobalLink\RestClient\Request\GetTargetsRequest;
+use GlobalLink\RestClient\Request\ListProjectsRequest;
 use GlobalLink\RestClient\Request\SaveSubmissionRequest;
 use GlobalLink\RestClient\Request\UploadSourceFileRequest;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use mysql_xdevapi\Exception;
+
 use function PHPUnit\Framework\isEmpty;
 
 /**
@@ -615,6 +618,24 @@ class GLExchangeClient
     }
 
     /**
+     * Get all project IDs configured
+     *
+     * @var array $shortCodes
+     * @return array $projectIds
+     */
+    public function getProjectIds($shortCodes)
+    {
+        $projectIds = [];
+        foreach ($shortCodes as $shortCode) {
+            $request = new ListProjectsRequest(
+                shortCode: $shortCode
+            );
+            $projectIds[] = $this->getConnect()->getProjects($request)[0]->projectId;
+        }
+        return $projectIds;
+    }
+
+    /**
      * Send document
      *
      * @param array $data
@@ -705,20 +726,60 @@ class GLExchangeClient
      *
      * @param $project
      *
-     * @return PDTarget[]
+     * @return list<Target>
      */
     public function receiveTranslationsByProject($project)
     {
         $client = $this->getConnect();
-        $pdproject = $client->getProject($project);
-        for ($i=0; $i < 30; $i++) {
-            $targetTickets = $client->getCompletedTargetsByProject($pdproject, $this->maxTargetCount);
-            if ($targetTickets != null) {
-                return $targetTickets;
+        $page = 1;
+        $returnTickets = [];
+        $targetTickets = null;
+        while ($targetTickets == null || count($targetTickets) != 0) {
+            $request = new GetTargetsRequest(
+                targetStatus: 'PROCESSED',
+                projectIds: $project,
+                pageSize: 200,
+                pageNumber: $page
+            );
+            $targetTickets = $client->getTargets($request);
+            $returnTickets = array_merge($returnTickets, $targetTickets);
+            if ($targetTickets == null || count($targetTickets) == 0) {
+                return $returnTickets;
             }
+            $page++;
         }
 
-        return $targetTickets;
+        return null;
+    }
+
+    /**
+     * Receive canclled tickets by submission
+     *
+     * @param array $submissionIds
+     *
+     * @return list<Target>
+     */
+    public function getCancelledTargetsBySubmissions($submissionIds){
+        $client = $this->getConnect();
+        $page = 1;
+        $returnTickets = [];
+        $targetTickets = null;
+        while ($targetTickets == null || count($targetTickets) != 0) {
+            $request = new GetTargetsRequest(
+                targetStatus: 'CANCELLED',
+                submissionIds: $submissionIds,
+                pageSize: 200,
+                pageNumber: $page
+            );
+            $targetTickets = $client->getTargets($request);
+            $returnTickets = array_merge($returnTickets, $targetTickets);
+            if ($targetTickets == null || count($targetTickets) == 0) {
+                return $returnTickets;
+            }
+            $page++;
+        }
+
+        return null;
     }
 
     /**

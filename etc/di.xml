@@ -3,7 +3,6 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <!--<item name="globallink_project_list" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ProjectListCommand</item>-->
                 <item name="globallink_translations_submit" xsi:type="object">TransPerfect\GlobalLink\Console\Command\SubmitTranslationsCommand</item>
                 <item name="globallink_translations_receive" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ReceiveTranslationsCommand</item>
                 <item name="globallink_translations_cancel" xsi:type="object">TransPerfect\GlobalLink\Console\Command\CancelTranslationsCommand</item>
@@ -11,8 +10,6 @@
                 <item name="globallink_logs_clear" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ClearLogsCommand</item>
                 <item name="globallink_translations_unlock" xsi:type="object">TransPerfect\GlobalLink\Console\Command\UnlockTranslationsCommand</item>
                 <item name="globallink_translations_reset" xsi:type="object">TransPerfect\GlobalLink\Console\Command\ResetAdaptorCommand</item>
-                <item name="globallink_test_glexchangeclient_connect" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientConnectCommand</item>
-                <item name="globallink_test_glexchangeclient_request" xsi:type="object">TransPerfect\GlobalLink\Console\Command\GLExchangeClientRequestCommand</item>
             </argument>
         </arguments>
     </type>
@@ -106,24 +103,6 @@
             <argument name="submitTranslations" xsi:type="object">\TransPerfect\GlobalLink\Cron\SubmitTranslations\Proxy</argument>
             <argument name="receiveTranslations" xsi:type="object">\TransPerfect\GlobalLink\Cron\ReceiveTranslations\Proxy</argument>
             <argument name="cancelTranslations" xsi:type="object">\TransPerfect\GlobalLink\Cron\CancelTranslations\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="TransPerfect\GlobalLink\Console\Command\GLExchangeClientConnectCommand">
-        <arguments>
-            <argument name="glExchangeClient" xsi:type="object">\TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient\Proxy</argument>
-            <argument name="inputOptionFactory" xsi:type="object">\Symfony\Component\Console\Input\InputOptionFactory\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="TransPerfect\GlobalLink\Console\Command\GLExchangeClientRequestCommand">
-        <arguments>
-            <argument name="glExchangeClient" xsi:type="object">\TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient\Proxy</argument>
-            <argument name="inputOptionFactory" xsi:type="object">\Symfony\Component\Console\Input\InputOptionFactory\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="TransPerfect\GlobalLink\Console\Command\ProjectListCommand">
-        <arguments>
-            <argument name="translationService" xsi:type="object">\TransPerfect\GlobalLink\Model\TranslationService\Proxy</argument>
-            <argument name="scopeConfig" xsi:type="object">\Magento\Framework\App\Config\ScopeConfigInterface\Proxy</argument>
         </arguments>
     </type>
     <type name="TransPerfect\GlobalLink\Console\Command\ResetAdaptorCommand">

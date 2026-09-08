@@ -3,8 +3,6 @@ namespace TransPerfect\GlobalLink\Cron;
 
 use TransPerfect\GlobalLink\Model\Queue;
 use TransPerfect\GlobalLink\Model\Queue\Item;
-use TransPerfect\GlobalLink\Model\TranslationService;
-use TransPerfect\GlobalLink\Helper\Data as HelperData;
 
 /**
  * Class CancelTranslations
@@ -53,7 +51,7 @@ class CancelTranslations extends Translations
     {
         try {
             $logData = ['message' => "Start cancel translations task (mode:{$this->mode})"];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             if (!$this->lockJob()) {
@@ -80,12 +78,12 @@ class CancelTranslations extends Translations
             if (!$queuesTotal) {
                 $logData = ['message' => "There were not any submissions that could be checked found. Finishing....."];
                 $this->cliMessage("There were not any submissions that could be checked found. Finishing.....");
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
-            } else{
+            } else {
                 $logData = ['message' => "Found submissions to check for cancellation, number = " . $queuesTotal];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             }
@@ -96,8 +94,7 @@ class CancelTranslations extends Translations
                 $processedQueues[] = $queue;
             }
             $this->eventManager->dispatch('transperfect_globallink_cancel_queue_after', ['queues' => $processedQueues]);
-        }
-        finally {
+        } finally {
             $this->unlockJob();
         }
     }
@@ -116,9 +113,10 @@ class CancelTranslations extends Translations
         $itemResource = $this->itemResourceFactory->create();
         $sbmTickets = $itemResource->getDistinctSbmTicketsForQueue($queue->getId());
         $cancelled = $this->translationService->getCancelledTargetsBySubmissions($sbmTickets);
+        $canclledDocIds = $this->convertDocIds($cancelled);
         $items = $this->itemCollectionFactory->create();
         $logData = ['message' => "Beginning cancellation check for submission = " . $queue->getData('name')];
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
         $items->addFieldToFilter(
@@ -128,33 +126,33 @@ class CancelTranslations extends Translations
             ]]
         );
         $items->addFieldToFilter(
-            'document_ticket',
-            ['in' => array_keys($cancelled)]
+            'document_id',
+            ['in' => $canclledDocIds]
         );
         $logData = ['message' => "Number of items available to check in submission = " . count($items)];
-        if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+        if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
             $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
         }
         $remoteCancelExists = false;
         foreach ($items as $item) {
-            if (in_array($item->getPdLocaleIsoCode(), $cancelled[$item->getDocumentTicket()])) {
+            if (in_array($item->getPdLocaleIsoCode(), $cancelled[$item->getData('document_id')])) {
                 $remoteCancelExists = true;
                 $logData = ['message' => "Found remotely cancelled item that needs to be synced, item ID: " . $item->getId()];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
                 $item->setStatusId(Item::STATUS_FOR_DELETE);
-                $message = 'Local Item ('.$item->getId().') for remotely cancelled task has been removed.';
+                $message = 'Local Item (' . $item->getId() . ') for remotely cancelled task has been removed.';
                 $this->cliMessage($message);
                 $logData = [
                     'message' => $message,
                 ];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             }
         }
-        if($remoteCancelExists == false) {
+        if ($remoteCancelExists == false) {
             $logData = ['message' => "No remotely cancelled items were found for submission " . $queue->getName()];
             if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
@@ -177,35 +175,35 @@ class CancelTranslations extends Translations
         );
         if ($items->getSize()) {
             $logData = ['message' => "Found locally cancelled items that need to be synced, count = " . $items->getSize()];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
             $queue->setProcessed(true);
-        } else{
+        } else {
             $logData = ['message' => "No locally cancelled items were found that need to be synced"];
-            if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+            if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                 $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
             }
         }
         foreach ($items as $item) {
             if ($item->cancelTranslationCall()) {
-                $message = 'Remote translation task has been cancelled (item id '.$item->getId().')';
+                $message = 'Remote translation task has been cancelled (item id ' . $item->getId() . ')';
                 $this->cliMessage($message);
                 $logData = [
                     'message' => $message,
                 ];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
                 }
             } else {
-                $message = "Can't cancel translation (item id ".$item->getId().")";
+                $message = "Can't cancel translation (item id " . $item->getId() . ")";
                 $this->cliMessage($message, 'error');
                 $logData = [
                     'file' => __FILE__,
                     'line' => __LINE__,
                     'message' => $message,
                 ];
-                if(in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
+                if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                     $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
                 }
                 $queue->setQueueErrors(array_merge($queue->getQueueErrors(), [$this->bgLogger->bgLogMessage($logData)]));
@@ -230,5 +228,13 @@ class CancelTranslations extends Translations
             ]]
         );
         $items->walk('delete');
+    }
+    protected function convertDocIds($tickets)
+    {
+        $docIds = [];
+        foreach ($tickets as $ticket) {
+            $docIds[] = $ticket->documentId;
+        }
+        return $docIds;
     }
 }

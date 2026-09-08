@@ -3,13 +3,14 @@
 namespace TransPerfect\GlobalLink\Model;
 
 use Exception;
+use GlobalLink\RestClient\Exception\GlobalLinkException;
+use GlobalLink\RestClient\Request\CancelSubmissionRequest;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Store\Model\ScopeInterface;
 use TransPerfect\GlobalLink\Model\ResourceModel\Queue\Item\CollectionFactory as ItemCollectionFactory;
-use GlobalLink\RestClient\Request\CancelSubmissionRequest;
 use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
 
 class TranslationService
@@ -70,6 +71,7 @@ class TranslationService
      * @var \Magento\Framework\Filesystem\Io\File
      */
     protected $file;
+
     const LOGGING_LEVEL_DEBUG = 0;
     const LOGGING_LEVEL_INFO = 1;
     const LOGGING_LEVEL_ERROR = 2;
@@ -104,6 +106,14 @@ class TranslationService
     {
         return $this->glExchangeClient->getConnect();
     }
+    /**
+     * Get all project IDs configured
+     * @return array
+     */
+    public function getProjectIds(){
+        return $this->glExchangeClient->getProjectIds($this->projectShortCodes);
+    }
+
 
     /**
      * Init submission task
@@ -199,20 +209,24 @@ class TranslationService
     }
     /**
      * Receive translations
-     *
-     *
-     *
-     * @return PDTarget[]
-     * @throws Exception
+     * @return int[]
+     * @throws GlobalLinkException
      */
     public function receiveTranslationsByProject()
     {
         $targets = [];
+        $projectIds = $this->getProjectIds();
         try {
-            foreach ($this->projectShortCodes as $project) {
-                $targets = array_merge($targets, $this->glExchangeClient->receiveTranslationsByProject($project));
+            $targets = array_merge($targets, $this->glExchangeClient->receiveTranslationsByProject($projectIds));
+        } catch (GlobalLinkException $e) {
+            if (in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+                $logData = [
+                    'trace' => $e->getTraceAsString(),
+                    'line' => $e->getLine(),
+                    'message' => $e->getMessage()
+                ];
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
             }
-        } catch (\Exception $e) {
             throw $e;
         }
 
@@ -241,19 +255,14 @@ class TranslationService
     /**
      * Download translated text
      *
-     * @param string $documentTicket
+     * @param string $submissionID
+     * @param string $targetID
      *
      * @return string xml
      */
-    public function downloadTarget($documentTicket)
+    public function downloadTarget($submissionID, $targetID)
     {
-        $translatedText = $this->requestGLExchange(
-            '/services/TargetService',
-            'downloadTargetResource',
-            [
-                'targetId' => $documentTicket,
-            ]
-        );
+        $translatedText = $this->requestGLExchange()->downloadTargetDeliverable($submissionID, $targetID);
 
         return $translatedText;
     }
@@ -291,7 +300,6 @@ class TranslationService
         $result = $this->glExchangeClient->getConnect()->cancelSubmission($submissionID, new CancelSubmissionRequest(
             documentIds: [$documentID]
         ));
-
 
         return $result;
     }
@@ -331,17 +339,9 @@ class TranslationService
      *      ],
      *  ]
      */
-    public function getCancelledTargetsBySubmissions(array $submissionTickets)
+    public function getCancelledTargetsBySubmissions(array $submissionIds)
     {
-        $result = $this->requestGLExchange(
-            '/services/TargetService',
-            'getCanceledTargetsBySubmissions',
-            [
-                'submissionTickets' => $submissionTickets,
-            ]
-        );
-
-        return $result;
+        return $this->glExchangeClient->getCancelledTargetsBySubmissions($submissionIds);
     }
 
     /**

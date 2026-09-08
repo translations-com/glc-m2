@@ -613,7 +613,7 @@ class SubmitTranslations extends Translations
             $itemId = $item->getId();
             if (!empty($allItems[$itemId]['document_id'])) {
                 $item->setStatusId(Item::STATUS_INPROGRESS);
-                $item->setValue($allItems[$itemId]['document_id']);
+                $item->setData('document_id', $allItems[$itemId]['document_id']);
                 $item->setSubmissionId($submissionID);
             } elseif (!empty($allItems[$itemId]['upload_failed'])) {
                 $item->setStatusId(Item::STATUS_ERROR_UPLOAD);

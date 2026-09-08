@@ -111,7 +111,9 @@ class Item extends AbstractDb
             'due_date'  => 'queue.due_date',
             'parent_id' => 'main_table.parent_id',
             'queue_id' => 'main_table.queue_id',
-            'target_ticket' => 'main_table.target_ticket'
+            'target_ticket' => 'main_table.target_ticket',
+            'document_id' => 'main_table.document_id',
+            'target_id' => 'main_table.target_id'
         ];
         return $aliasesMap[$alias];
     }
@@ -130,14 +132,14 @@ class Item extends AbstractDb
         $select = $this->getConnection()->select()
             ->from(['main_table' => $this->getTable('globallink_job_items')])
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
-            ->columns('submission_ticket')
+            ->columns('submission_id')
             ->distinct(true)
             ->where('main_table.queue_id IN (?)', [$queueId]);
 
         $rowset = $this->getConnection()->fetchAll($select);
         $sbmTickets = [];
         foreach ($rowset as $row) {
-            $sbmTickets[] = $row['submission_ticket'];
+            $sbmTickets[] = $row['submission_id'];
         }
 
         return $sbmTickets;
@@ -180,17 +182,17 @@ class Item extends AbstractDb
         $select = $this->getConnection()->select()
             ->from(['main_table' => $this->getTable('globallink_job_items')])
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
-            ->columns('target_ticket')
+            ->columns('target_id')
             ->distinct(true)
             ->where('main_table.queue_id IN (?)', [$queueId]);
 
         $rowset = $this->getConnection()->fetchAll($select);
-        $targetTickets = [];
+        $targetIds = [];
         foreach ($rowset as $row) {
-            $targetTickets[] = $row['target_ticket'];
+            $targetIds[] = $row['target_id'];
         }
 
-        return $targetTickets;
+        return $targetIds;
     }
     /**
      * Returns length of SQL field
