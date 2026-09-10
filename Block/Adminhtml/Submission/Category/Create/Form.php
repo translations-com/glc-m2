@@ -109,7 +109,7 @@ class Form extends BaseForm
     protected function _prepareCategories()
     {
         $itemsToTranslate = $this->_coreRegistry->registry('itemsToTranslate');
-        $this->categoriesToTranslate = $itemsToTranslate['ids'];
+        $this->categoriesToTranslate = explode(',', $itemsToTranslate['ids']);
         $this->categoryNames = $itemsToTranslate['names'];
 
         return $this;

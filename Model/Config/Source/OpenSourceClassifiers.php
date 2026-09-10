@@ -2,7 +2,6 @@
 namespace TransPerfect\GlobalLink\Model\Config\Source;
 
 use Magento\Framework\Exception\StateException;
-use TransPerfect\GlobalLink\Model\SoapClient\GLExchangeClient;
 
 /**
  * Class OpenSourceClassifiers
@@ -37,67 +36,52 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
 
     public function toOptionArray()
     {
+        $glExchange = $this->testService->getConnect();
         $fileFormats = [];
         try {
-            $connectionUrl = $this->scopeConfig->getValue('globallink/connection/url', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            $username = $this->scopeConfig->getValue('globallink/connection/username', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            $password = $this->scopeConfig->getValue('globallink/connection/password', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-            $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE ) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes',  \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
-            if(!$this->helper->isEnterprise()){
+            $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+            if (!$this->helper->isEnterprise()) {
                 $fileFormats[0] = ['value' => 0, 'label' => 'This feature is not available outside of Commerce Edition'];
                 return $fileFormats;
             }
             $shortCodes = array_map('trim', explode(",", $shortCodeString));
-            if ($connectionUrl == null || $username == null || $password == null) {
+            if ($glExchange->healthcheck()) {
+                //DO NOTHING
+            } else {
                 $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
                 return $fileFormats;
-            }
-            $error = $this->testService->testConnectError($username, $password, $connectionUrl);
-            if ($error == '') {
-                $response = $this->translationService->requestGLExchange(
-                    '/services/ProjectService',
-                    'getUserProjects',
-                    [
-                        'isSubProjectIncluded' => true,
-                    ]
-                );
-            } else {
-                $response = [];
             }
         } catch (StateException $ex) {
             $response = [];
         }
         $i=1;
+        $response = $glExchange->getProjects();
         if (!empty($response)) {
             foreach ($response as $project) {
-                if ($project == null) {
-                    $fileFormats[$i - 1] = ['value' => $i, 'label' => 'No available File Formats, could not connect to PD'];
-                    break;
-                }
-                $currentShortCode = trim($project->projectInfo->shortCode);
-                if(!in_array($currentShortCode, $shortCodes)){
+                $currentShortCode = trim($project->shortCode);
+                if (!in_array($currentShortCode, $shortCodes)) {
                     //DO NOTHING
                 } else {
-                    $currentFormats = $project->fileFormatProfiles;
+                    $currentFormats = $glExchange->getProjectFileFormats($project->projectId);
                     if (is_array($currentFormats)) {
                         $formatExists = false;
                         foreach ($currentFormats as $format) {
-                            $currentProfileName = $format->profileName;
-                            if(!empty($fileFormats)){
-                                foreach($fileFormats as $format){
-                                    if($currentProfileName == $format['value']){
+                            $currentProfileName = $format->name;
+                            if (!empty($fileFormats)) {
+                                foreach ($fileFormats as $format) {
+                                    if ($currentProfileName == $format['value']) {
                                         $formatExists = true;
                                     }
                                 }
                             }
-                            if(!$formatExists) {
+                            if (!$formatExists) {
                                 $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
                                 $i++;
                             }
                             $formatExists = false;
                         }
                     } else {
-                        $currentProfileName = $currentFormats->profileName;
+                        $currentProfileName = $currentFormats->name;
                         $formatExists = false;
                         if (!empty($fileFormats)) {
                             foreach ($fileFormats as $format) {
@@ -106,7 +90,7 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
                                 }
                             }
                         }
-                        if(!$formatExists) {
+                        if (!$formatExists) {
                             $fileFormats[$i - 1] = ['value' => $currentProfileName, 'label' => $currentProfileName];
                             $i++;
                         }

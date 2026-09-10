@@ -293,6 +293,7 @@ class SubmitTranslations extends Translations
             $dataToSend[$itemEntityTypeId][$itemEntityId]['target_locales'][$item->getId()] = $item->getPdLocaleIsoCode();
             $dataToSend[$itemEntityTypeId][$itemEntityId]['document_id'] = '';
             $dataToSend[$itemEntityTypeId][$itemEntityId]['upload_failed'] = 0;
+
         }
 
         //$this->bgLogger->info($this->bgLogger->bgLogMessage(['message' => 'Memory: '.number_format(memory_get_usage()).' : Entities id array created']));
@@ -392,13 +393,13 @@ class SubmitTranslations extends Translations
         $data['sourceLanguage'] = $sourceLanguage;
         foreach ($dataToSend as $entity) {
             foreach ($entity as $currentItem) {
-                foreach($currentItem['target_locales'] as $locale) {}
-                if (!in_array($locale, $targetLanguages)) {
+                foreach($currentItem['target_locales'] as $locale) {
                     $targetLanguages[] = $locale;
                 }
-            }
 
+            }
         }
+        $targetLanguages = array_unique($targetLanguages);
         $data['targetLanguages'] = $targetLanguages;
         $submissionID = $this->translationService->initSubmission($data);
         $queue->setData('submission_id', $submissionID);

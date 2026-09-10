@@ -4,7 +4,6 @@
     <default>
         <globallink>
             <general>
-                <max_target_count>1000</max_target_count>
                 <reindexing>0</reindexing>
             </general>
             <connection>
