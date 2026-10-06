@@ -36,8 +36,15 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
 
     public function toOptionArray()
     {
-        $glExchange = $this->testService->getConnect();
         $fileFormats = [];
+        try{
+            $glExchange = $this->testService->getConnect();
+        } catch(\Exception $e) {
+            $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
+            return $fileFormats;
+        }
+
+
         try {
             $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             if (!$this->helper->isEnterprise()) {

@@ -66,7 +66,7 @@ class TestConnection extends Action
             }
         } catch (\Exception $e) {
             $this->loggerInterface->critical($e);
-            $response->setData(['result' => false, 'message' => $e->getMessage()]);
+            $response->setData(['result' => false, 'message' => 'Connection Failed - ' . $e->getMessage()]);
         }
 
         return $response;

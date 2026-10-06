@@ -33,16 +33,22 @@ class Classifiers implements \Magento\Framework\Option\ArrayInterface
 
     public function toOptionArray()
     {
-        $glExchange = $this->testService->getConnect();
         $fileFormats = [];
+        try{
+            $glExchange = $this->testService->getConnect();
+        } catch(\Exception $e) {
+            $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
+            return $fileFormats;
+        }
+
+
         try {
             $shortCodeString = $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE) == null ? '' : $this->scopeConfig->getValue('globallink/general/project_short_codes', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
             $shortCodes = array_map('trim', explode(",", $shortCodeString));
             if ($glExchange->healthcheck()) {
                 //DO NOTHING
             } else {
-                $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
-                return $fileFormats;
+
             }
         } catch (StateException $ex) {
             $response = [];

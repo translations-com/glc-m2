@@ -64,7 +64,7 @@ class Send extends BaseSubmission
                 'magento_admin_user_requested_by' => $this->_auth->getUser()->getId(),
                 'request_date' => $this->_dateTime->gmtTimestamp(),
                 'due_date' => $dueDate,
-                'priority' => $data['submission']['priority'],
+                /*'priority' => $data['submission']['priority'],*/
                 'origin_store_id' => $data['submission']['store'],
                 'items' => $data['submission']['items'],
                 'localizations' => $data['submission']['localize'],

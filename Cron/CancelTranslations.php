@@ -111,7 +111,7 @@ class CancelTranslations extends Translations
 
         // Remove local tasks that have been cancelled on Service side
         $itemResource = $this->itemResourceFactory->create();
-        $sbmTickets = $itemResource->getDistinctSbmTicketsForQueue($queue->getId());
+        $sbmTickets = $itemResource->getDistinctDocTicketsForQueue($queue->getId());
         $cancelled = $this->translationService->getCancelledTargetsBySubmissions($sbmTickets);
         $canclledDocIds = $this->convertDocIds($cancelled);
         $items = $this->itemCollectionFactory->create();

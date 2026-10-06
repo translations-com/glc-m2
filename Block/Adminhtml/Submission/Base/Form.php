@@ -328,8 +328,8 @@ class Form extends GenericForm
                 }
             }
         }
-
-        $fieldset->addField(
+        //10-6-26 Justin - Removed temporarily as a part of a new redesign for the next version now that MSLA levels are supported.
+        /*$fieldset->addField(
             'priority',
             'select',
             [
@@ -341,7 +341,7 @@ class Form extends GenericForm
                 ],
                 'value' => '0'
             ]
-        );
+        );*/
 
         $fieldset->addField(
             'confirmation_email',

@@ -70,7 +70,7 @@ class Send extends BaseSubmission
                 'request_date' => $this->_dateTime->gmtTimestamp(),
                 'due_date' => $dueDate,
                 'include_associated_and_parent_categories' => $data['submission']['include_associated_and_parent_categories'],
-                'priority' => $data['submission']['priority'],
+                /*'priority' => $data['submission']['priority'],*/
                 'origin_store_id' => $data['submission']['store'],
                 'items' => $data['submission']['items'],
                 'localizations' => $data['submission']['localize'],

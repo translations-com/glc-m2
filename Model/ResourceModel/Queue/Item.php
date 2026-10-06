@@ -113,7 +113,8 @@ class Item extends AbstractDb
             'queue_id' => 'main_table.queue_id',
             'target_ticket' => 'main_table.target_ticket',
             'document_id' => 'main_table.document_id',
-            'target_id' => 'main_table.target_id'
+            'target_id' => 'main_table.target_id',
+            'submission_id' => 'queue.submission_id'
         ];
         return $aliasesMap[$alias];
     }
@@ -157,14 +158,14 @@ class Item extends AbstractDb
         $select = $this->getConnection()->select()
             ->from(['main_table' => $this->getTable('globallink_job_items')])
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
-            ->columns('document_ticket')
+            ->columns('document_id')
             ->distinct(true)
             ->where('main_table.queue_id IN (?)', [$queueId]);
 
         $rowset = $this->getConnection()->fetchAll($select);
         $docTickets = [];
         foreach ($rowset as $row) {
-            $docTickets[] = $row['document_ticket'];
+            $docTickets[] = $row['document_id'];
         }
 
         return $docTickets;

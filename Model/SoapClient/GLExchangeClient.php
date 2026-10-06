@@ -119,17 +119,22 @@ class GLExchangeClient
     public function initSubmission(array $data)
     {
         $client = $this->getConnect();
-
+        $customAttributes = $client->getProjectCustomAttributes($data['projectShortCode']);
+        $mslalevels = $client->getProjectMslaLevels($data['projectShortCode']);
         $textAttributeFilled = false;
         $comboAttributeFilled = false;
-        $customAttributes = [];
+        $customAttributesToSend = [];
         foreach ($customAttributes as $attribute) {
             if ($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
-                $customAttributes[$attribute->name] = $data['attribute_text'];
+                $newAttribute['name'] = $attribute->name;
+                $newAttribute['value'] = $data['attribute_text'];
+                $customAttributesToSend[] = $newAttribute;
                 $textAttributeFilled = true;
             }
             if ($data['attribute_combo'] != null && $attribute->type == 'COMBO' && $comboAttributeFilled == false) {
-                $customAttributes[$attribute->name] = $data['attribute_combo'];
+                $newAttribute['name'] = $attribute->name;
+                $newAttribute['value'] = $data['attribute_combo'];
+                $customAttributesToSend[] = $newAttribute;
                 $comboAttributeFilled = true;
             }
         }
@@ -138,7 +143,7 @@ class GLExchangeClient
             targetFormat: 'TXLF',
             targetLanguages: $data['targetLanguages']
         );
-        if (strlen($data['submissionNotes']) > 0 && !isEmpty($customAttributes)) {
+        if (!empty($data['submissionNotes'])  && !empty($customAttributes)) {
             $request = new CreateSubmissionRequest(
                 name: $data['submissionName'],
                 dueDate: strtotime($data['submissionDueDate'])*1000,
@@ -147,9 +152,9 @@ class GLExchangeClient
                 batchInfos: [$batch],
                 claimScope: 'LANGUAGE',
                 instructions: $data['submissionNotes'],
-                customAttributes: $customAttributes,
+                customAttributes: $customAttributesToSend,
             );
-        } elseif (strlen($data['submissionNotes']) > 0 && isEmpty($customAttributes)) {
+        } elseif (!empty($data['submissionNotes']) && empty($customAttributes)) {
             $request = new CreateSubmissionRequest(
                 name: $data['submissionName'],
                 dueDate: strtotime($data['submissionDueDate'])*1000,
@@ -159,7 +164,7 @@ class GLExchangeClient
                 claimScope: 'LANGUAGE',
                 instructions: $data['submissionNotes']
             );
-        } elseif (strlen($data['submissionNotes']) == 0 && !isEmpty($customAttributes)) {
+        } elseif (empty($data['submissionNotes']) && !empty($customAttributes)) {
             $request = new CreateSubmissionRequest(
                 name: $data['submissionName'],
                 dueDate: strtotime($data['submissionDueDate'])*1000,
@@ -167,7 +172,7 @@ class GLExchangeClient
                 sourceLanguage: $data['sourceLanguage'],
                 batchInfos: [$batch],
                 claimScope: 'LANGUAGE',
-                customAttributes: $customAttributes
+                customAttributes: $customAttributesToSend
             );
         } else {
             $request = new CreateSubmissionRequest(
@@ -263,7 +268,7 @@ class GLExchangeClient
             clientVersion: $this->productMetadata->getVersion(),
             technologyProduct: 'GLE'
         );
-        //$client->putSubmissionTechTracking($submissionID, $techTracking);
+        $client->putSubmissionTechTracking($submissionID, $techTracking);
         $result = $client->saveSubmission($submissionID, new SaveSubmissionRequest(autoStart: true));
 
         $message = "Submission started. Submission ID: {$submissionID}.";
@@ -284,7 +289,7 @@ class GLExchangeClient
     public function receiveTranslationsByProject($project)
     {
         $client = $this->getConnect();
-        $page = 1;
+        $page = 0;
         $returnTickets = [];
         $targetTickets = null;
         while ($targetTickets == null || count($targetTickets) != 0) {
@@ -315,7 +320,7 @@ class GLExchangeClient
     public function getCancelledTargetsBySubmissions($submissionIds)
     {
         $client = $this->getConnect();
-        $page = 1;
+        $page = 0;
         $returnTickets = [];
         $targetTickets = null;
         while ($targetTickets == null || count($targetTickets) != 0) {

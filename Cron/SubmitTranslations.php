@@ -387,7 +387,7 @@ class SubmitTranslations extends Translations
         $data['submissionName'] = $queue->getName();
         $data['submissionNotes'] = $queue->getSubmissionInstructions();
         $data['submissionDueDate'] = $queue->getDueDate();
-        $data['submissionPriority'] = $queue->getPriority();
+        //$data['submissionPriority'] = $queue->getPriority();
         $data['attribute_text'] = $queue->getAttributeText();
         $data['attribute_combo'] = $queue->getAttributeCombo();
         $data['sourceLanguage'] = $sourceLanguage;
