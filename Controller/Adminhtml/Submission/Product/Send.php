@@ -45,7 +45,7 @@ class Send extends BaseSubmission
                 $formData['id_' . $itemId] = $itemName;
             }
             $customAttributes = $this->helper->getCustomAttributes($formData['project']);
-            foreach ($customAttributes as $attribute) {
+            foreach ($customAttributes->customAttributes as $attribute) {
                 if ($attribute->type == 'TEXT') {
                     if ($attribute->mandatory && ($formData['attribute_text'][$project] == "" || empty($formData['attribute_text'][$project]))) {
                         $this->messageManager->addErrorMessage(__('Cannot create submission, one or more mandatory custom attributes was not filled out.'));

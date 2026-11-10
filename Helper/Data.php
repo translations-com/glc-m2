@@ -646,29 +646,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getConfiguredTargetLanguagesBySource($shortCode, $source)
     {
+        $targetLocales = [];
         $locales = $this->getLocales(true, true, true);
         try {
-            $response = $this->translationService->requestGLExchange(
-                '/services/ProjectService',
-                'getUserProjects',
-                [
-                    'isSubProjectIncluded' => true,
-                ]
-            );
-            $targetLocales = [];
-            foreach ($response as $project) {
-                if ($project->projectInfo->shortCode == $shortCode) {
-                    if (is_array($project->projectLanguageDirections)) {
-                        foreach ($project->projectLanguageDirections as $languageDirection) {
-                            if ($source == $languageDirection->sourceLanguage->locale && array_key_exists($languageDirection->targetLanguage->locale, $locales)) {
-                                $targetLocales[] = $languageDirection->targetLanguage->locale;
-                            }
-                        }
-                    } elseif (isset($project->projectLanguageDirections)) {
-                        if ($project->projectLanguageDirections->sourceLanguage->locale == $source) {
-                            $targetLocales[] = $project->projectLanguageDirections->targetLanguage->locale;
-                        }
-                    }
+            $projectID = $this->translationService->getProjectIds([$shortCode])[0];
+            $project = $this->translationService->requestGLExchange()->getProject($projectID);
+            foreach ($project->projectLanguageDirections as $languageDirection) {
+                if ($languageDirection->sourceLanguage == $source && array_key_exists($languageDirection->targetLanguage, $locales)) {
+                    $targetLocales[] = $languageDirection->targetLanguage;
                 }
             }
         } catch (\Exception $e) {
@@ -698,15 +683,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         try {
             $glExchange = $this->translationService->requestGLExchange();
             $response = $this->translationService->requestGLExchange()->getProjects();
-            foreach ($response as $project) {
+            foreach ($response->projects as $project) {
                 $languageDirections = $glExchange->getProjectLanguageDirections($project->projectId);
                 if (in_array($project->shortCode, $shortCodes) && $onlyConfiguredProjects == true) {
-                    foreach ($languageDirections as $languageDirection) {
+                    foreach ($languageDirections->languageDirections as $languageDirection) {
                         $targetLocales[$languageDirection->targetLanguage] = $languageDirection->targetLanguageDisplayName;
                         $sourceLocales[$languageDirection->sourceLanguage] = $languageDirection->sourceLanguageDisplayName;
                     }
                 } elseif ($onlyConfiguredProjects == false) {
-                    foreach ($languageDirections as $languageDirection) {
+                    foreach ($languageDirections->languageDirections as $languageDirection) {
                         $targetLocales[$languageDirection->targetLanguage] = $languageDirection->targetLanguageDisplayName;
                         $sourceLocales[$languageDirection->sourceLanguage] = $languageDirection->sourceLanguageDisplayName;
                     }
@@ -1258,5 +1243,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 ]
             ],
         ];
+    }
+    public function getProjectId($shortCode){
+        $response = $this->translationService->requestGLExchange()->getProjects();
+        foreach ($response->projects as $project) {
+            if ($project->shortCode == $shortCode) {
+                return $project->projectId;
+            }
+        }
     }
 }

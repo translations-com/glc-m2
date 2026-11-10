@@ -2,6 +2,7 @@
 namespace TransPerfect\GlobalLink\Model\Config\Source;
 
 use Magento\Framework\Exception\StateException;
+use GlobalLink\RestClient\Response\LoginResponse;
 
 /**
  * Class OpenSourceClassifiers
@@ -39,6 +40,7 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
         $fileFormats = [];
         try{
             $glExchange = $this->testService->getConnect();
+            $auth = $glExchange->getAuthenticationResponse();
         } catch(\Exception $e) {
             $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
             return $fileFormats;
@@ -52,11 +54,11 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
                 return $fileFormats;
             }
             $shortCodes = array_map('trim', explode(",", $shortCodeString));
-            if ($glExchange->healthcheck()) {
-                //DO NOTHING
-            } else {
+            if ($auth->isError()) {
                 $fileFormats[0] = ['value' => 0, 'label' => 'No available File Formats, could not connect to PD'];
                 return $fileFormats;
+            } else {
+                //DO NOTHING
             }
         } catch (StateException $ex) {
             $response = [];
@@ -64,12 +66,12 @@ class OpenSourceClassifiers implements \Magento\Framework\Option\ArrayInterface
         $i=1;
         $response = $glExchange->getProjects();
         if (!empty($response)) {
-            foreach ($response as $project) {
+            foreach ($response->projects as $project) {
                 $currentShortCode = trim($project->shortCode);
                 if (!in_array($currentShortCode, $shortCodes)) {
                     //DO NOTHING
                 } else {
-                    $currentFormats = $glExchange->getProjectFileFormats($project->projectId);
+                    $currentFormats = $glExchange->getProjectFileFormats($project->projectId)->fileFormatProfiles;
                     if (is_array($currentFormats)) {
                         $formatExists = false;
                         foreach ($currentFormats as $format) {

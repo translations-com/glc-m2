@@ -78,7 +78,7 @@ class TranslateNewProducts implements \Magento\Framework\Event\ObserverInterface
             $queueData = [
                 'name' => 'Auto Submission: ' .  $product->getName(),
                 'submission_instructions' => '',
-                'project_shortcode' => $shortCode,
+                'project_shortcode' => $this->helper->getProjectId($shortCode),
                 'entity_type_id' => $this->helper::CATALOG_PRODUCT_TYPE_ID,
                 'magento_admin_user_requested_by' => $this->_auth->getUser()->getId(),
                 'request_date' => $this->_dateTime->gmtTimestamp(),

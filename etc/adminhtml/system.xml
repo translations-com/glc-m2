@@ -28,14 +28,14 @@
                     <label>Re-index After Importing Translation</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="automation" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
+                <!--<field id="automation" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatic Submission and Retrieval of Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="auto_import" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
+                </field>-->
+                <!--<field id="auto_import" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Automatically Import After Checking for Translations</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
+                </field>-->
                 <field id="email_errors" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Email Errors</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -83,6 +83,7 @@
                 <field id="oauthsecret" translate="label" type="obscure" sortOrder="24" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>OAuth Client Secret</label>
                     <validate>required-entry</validate>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                     <comment><![CDATA[Required field]]></comment>
                 </field>
                 <field id="url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">

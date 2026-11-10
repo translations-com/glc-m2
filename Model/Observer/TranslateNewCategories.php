@@ -77,7 +77,7 @@ class TranslateNewCategories implements \Magento\Framework\Event\ObserverInterfa
             $queueData = [
                 'name' => 'Auto Submission: ' .  $category->getName(),
                 'submission_instructions' => '',
-                'project_shortcode' => $shortCode,
+                'project_shortcode' => $this->helper->getProjectId($shortCode),
                 'entity_type_id' => $this->helper::CATALOG_CATEGORY_TYPE_ID,
                 'magento_admin_user_requested_by' => $this->_auth->getUser()->getId(),
                 'request_date' => $this->_dateTime->gmtTimestamp(),

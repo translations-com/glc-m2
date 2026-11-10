@@ -6,6 +6,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Psr\Log\LoggerInterface;
 use TransPerfect\GlobalLink\Model\TranslationService;
+use GlobalLink\RestClient\Response\LoginResponse;
 
 /**
  * Class TestConnection
@@ -85,12 +86,9 @@ class TestConnection extends Action
         $result = true;
         try {
             $response = $this->translationService->requestGLExchange();
-            $healthCheck = $response->healthcheck();
-            if (empty($healthCheck)) {
-                $result = __('Empty response');
-            }
-            if (!$healthCheck->healthy) {
-                $result = __('Connection Failed');
+            $auth = $response->getAuthenticationResponse();
+            if ($auth->isError()) {
+                $result = __('Connection Failed - ' . $auth->errorMessage);
             }
         } catch (\Exception $e) {
             $result = __($e->getMessage());

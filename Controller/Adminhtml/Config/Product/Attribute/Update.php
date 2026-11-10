@@ -96,7 +96,7 @@ class Update extends BackendAction
         /** @var \TransPerfect\GlobalLink\Model\ResourceModel\Entity\Attribute\Collection $productAttributeCollection */
         $productAttributeCollection = $this->_getAttributeCollection();
 
-        $selected = $this->getRequest()->getParam('selected');
+        $selected = explode(",", $this->getRequest()->getParam('selected'));
 
         foreach ($productAttributeCollection as $attribute) {
             $includeInTranslation = (in_array($attribute->getEntityAttributeId(), $selected)) ? 1 : 0;

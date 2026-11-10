@@ -3,6 +3,7 @@
 namespace TransPerfect\GlobalLink\Model;
 
 use Exception;
+use GlobalLink\RestClient\Exception\AuthenticationException;
 use GlobalLink\RestClient\Exception\GlobalLinkException;
 use GlobalLink\RestClient\Request\CancelSubmissionRequest;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -110,10 +111,10 @@ class TranslationService
      * Get all project IDs configured
      * @return array
      */
-    public function getProjectIds(){
+    public function getProjectIds()
+    {
         return $this->glExchangeClient->getProjectIds($this->projectShortCodes);
     }
-
 
     /**
      * Init submission task
@@ -132,7 +133,19 @@ class TranslationService
      */
     public function getCustomAttributes($projectID)
     {
-        return $this->requestGLExchange()->getProjectCustomAttributes($projectID);
+        try {
+            $glexchange = $this->requestGLExchange();
+            return $glexchange->getProjectCustomAttributes($projectID);
+        } catch (AuthenticationException $e) {
+            if (in_array($this::LOGGING_LEVEL_ERROR, $this->enabledLevels)) {
+                $logData = [
+                    'trace' => $e->getTraceAsString(),
+                    'line' => $e->getLine(),
+                    'message' => "Status code = " . $e->getStatusCode() . ', message = ' . $e->getMessage()
+                ];
+                $this->bgLogger->error($this->bgLogger->bgLogMessage($logData));
+            }
+        }
     }
 
     /**

@@ -17,6 +17,7 @@
         <arguments>
             <argument name="sensitive" xsi:type="array">
                 <item name="globallink/connection/password" xsi:type="string">1</item>
+                <item name="globallink/connection/oauthsecret" xsi:type="string">1</item>
             </argument>
         </arguments>
     </type>

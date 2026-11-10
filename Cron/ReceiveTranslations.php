@@ -234,12 +234,13 @@ class ReceiveTranslations extends Translations
                         if (in_array($this->helper::LOGGING_LEVEL_INFO, $this->helper->loggingLevels)) {
                             $this->bgLogger->info($logMessage);
                         }
-                        $dom = simplexml_load_string($translatedText);
+                        $dom = simplexml_load_string($translatedText->content);
                         foreach ($dom->children() as $child) {
                             $nodeValue = (string)$child;
                             $nodeLength = mb_strlen($nodeValue);
                             $maxLength = (string)$child->attributes()->max_length;
                             if ($nodeLength > $maxLength && $maxLength != "none" && $maxLength != "") {
+                                $errorsEncountered++;
                                 $errorsEncountered++;
                                 $maxLengthError = true;
                                 $item->setStatusId(Item::STATUS_MAXLENGTH);
@@ -290,7 +291,7 @@ class ReceiveTranslations extends Translations
                     $fileName = 'item_' . $downloadingItemId . '.xml';
 
                     $filePath = $xmlFolder . '/' . $fileName;
-                    if (!$this->file->write($filePath, $translatedText)) {
+                    if (!$this->file->write($filePath, $translatedText->content)) {
                         $errorsEncountered++;
                         $errorMessage = "Can't write xml data to file " . $filePath;
                         $this->cliMessage($errorMessage, 'error');

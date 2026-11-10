@@ -550,19 +550,19 @@ class Form extends GenericForm
         try {
             $glExchange = $this->translationService->requestGLExchange();
             $response = $glExchange->getProjects();
-            foreach ($response as $project) {
+            foreach ($response->projects as $project) {
                 $customAttributes = $glExchange->getProjectCustomAttributes($project->projectId);
                 if (in_array($project->shortCode, $shortCodes)) {
                     $projectsArray[] = [
                         'label' => $project->name,
                         'value' => $project->projectId,
-                        'custom_attributes' => $customAttributes
+                        'custom_attributes' => $customAttributes->customAttributes
                     ];
                 }
 
                 $targetlocales[$project->projectId] = [];
                 $languageDirections = $glExchange->getProjectLanguageDirections($project->projectId);
-                foreach ($languageDirections as $languageDirection) {
+                foreach ($languageDirections->languageDirections as $languageDirection) {
                     if (array_key_exists($languageDirection->targetLanguage, $this->localize)) {
                         $serviceLocaleLabel = $languageDirection->targetLanguageDisplayName;
                         $targetlocales[$project->projectId][] = [

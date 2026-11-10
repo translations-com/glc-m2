@@ -15,6 +15,7 @@ use GlobalLink\RestClient\Request\UploadSourceFileRequest;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use mysql_xdevapi\Exception;
+use GlobalLink\RestClient\Response\LoginResponse;
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -104,11 +105,18 @@ class GLExchangeClient
         if ($this->connect instanceof GlobalLinkClient) {
             //DO NOTHING
         } else {
-            $this->connect = new GlobalLinkClient($this->connectionUrl, $this->username, $this->password, $this->oauthclient, $this->oauthsecret, null, "TEST", null);
-
+            $client = new GlobalLinkClient($this->connectionUrl, $this->username, $this->password, $this->oauthclient, $this->oauthsecret, null, "TEST", null, false);
+            $auth = $client->getAuthenticationResponse();
+            if($auth->isError()){
+                $message = "Could not connect to GlobalLink";
+                $logData = ['message' => $message];
+                if (in_array($this::LOGGING_LEVEL_INFO, $this->enabledLevels)) {
+                    $this->bgLogger->info($this->bgLogger->bgLogMessage($logData));
+                }
+            }
         }
 
-        return $this->connect;
+        return $client;
     }
 
     /**
@@ -120,11 +128,10 @@ class GLExchangeClient
     {
         $client = $this->getConnect();
         $customAttributes = $client->getProjectCustomAttributes($data['projectShortCode']);
-        $mslalevels = $client->getProjectMslaLevels($data['projectShortCode']);
         $textAttributeFilled = false;
         $comboAttributeFilled = false;
         $customAttributesToSend = [];
-        foreach ($customAttributes as $attribute) {
+        foreach ($customAttributes->customAttributes as $attribute) {
             if ($data['attribute_text'] != null && $attribute->type == 'TEXT' && $textAttributeFilled == false) {
                 $newAttribute['name'] = $attribute->name;
                 $newAttribute['value'] = $data['attribute_text'];
@@ -207,7 +214,7 @@ class GLExchangeClient
             $request = new ListProjectsRequest(
                 shortCode: $shortCode
             );
-            $projectIds[] = $this->getConnect()->getProjects($request)[0]->projectId;
+            $projectIds[] = $this->getConnect()->getProjects($request)->projects[0]->projectId;
         }
         return $projectIds;
     }
@@ -299,7 +306,7 @@ class GLExchangeClient
                 pageSize: 200,
                 pageNumber: $page
             );
-            $targetTickets = $client->getTargets($request);
+            $targetTickets = $client->getTargets($request)->targets;
             $returnTickets = array_merge($returnTickets, $targetTickets);
             if ($targetTickets == null || count($targetTickets) == 0) {
                 return $returnTickets;
@@ -323,7 +330,7 @@ class GLExchangeClient
         $page = 0;
         $returnTickets = [];
         $targetTickets = null;
-        while ($targetTickets == null || count($targetTickets) != 0) {
+        while ($targetTickets == null || count($targetTickets->targets) != 0) {
             $request = new GetTargetsRequest(
                 targetStatus: 'CANCELLED',
                 submissionIds: $submissionIds,
@@ -331,8 +338,8 @@ class GLExchangeClient
                 pageNumber: $page
             );
             $targetTickets = $client->getTargets($request);
-            $returnTickets = array_merge($returnTickets, $targetTickets);
-            if ($targetTickets == null || count($targetTickets) == 0) {
+            $returnTickets = array_merge($returnTickets, $targetTickets->targets);
+            if ($targetTickets == null || count($targetTickets->targets) == 0) {
                 return $returnTickets;
             }
             $page++;

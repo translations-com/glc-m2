@@ -1427,4 +1427,7 @@ class SubmitTranslations extends Translations
     {
         $this->ddOverride = $ddOverride;
     }
+    public function getProjectId($shortCode){
+        return $this->translationService;
+    }
 }
