@@ -2,7 +2,7 @@
     "name": "transperfect/module-globallink",
     "type": "magento2-module",
     "description": "TransPerfect GlobalLink",
-    "version": "2.0.0_RC2",
+    "version": "2.0.0_RC02",
     "homepage": "http://www.translations.com/products/globallink-magento-adaptor",
     "authors": [
         {
@@ -26,7 +26,7 @@
         "magento/marketplace-eqp": "^1.0"
     },
     "require": {
-        "translations-com/globallink-connect-api-php": "2.0.0",
+        "translations-com/globallink-connect-api-php": "2.1.0",
         "ext-zip": "*"
     },
     "autoload": {
