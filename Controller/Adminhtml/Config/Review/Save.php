@@ -50,7 +50,7 @@ class Save extends Action
     {
         if ($this->_formKeyValidator->validate($this->getRequest())) {
             $data = $this->getRequest()->getParams();
-            $fieldIds = explode(",", $data[$data['massaction_prepare_key']]);
+            $fieldIds = (is_array($data[$data['massaction_prepare_key']]) ? $data[$data['massaction_prepare_key']] : explode(",", $data[$data['massaction_prepare_key']]));
             if (!empty($fieldIds)) {
                 try {
                     $collection = $this->getFieldCollection();
