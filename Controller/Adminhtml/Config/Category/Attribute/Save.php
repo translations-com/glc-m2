@@ -14,7 +14,7 @@ class Save extends Action
         if ($this->_formKeyValidator->validate($this->getRequest())) {
             $data = $this->getRequest()->getParams();
             try {
-                $attributeIds = $data[$data['massaction_prepare_key']];
+                $attributeIds = explode(",", $data[$data['massaction_prepare_key']]);
                 if (!empty($attributeIds)) {
                     $this->helper->updateAttributesTranslation($attributeIds, Category::ENTITY);
                     $this->messageManager->addSuccessMessage(__('Category configuration has been saved'));

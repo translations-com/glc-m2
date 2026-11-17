@@ -2,7 +2,6 @@
 
 namespace TransPerfect\GlobalLink\Controller\Adminhtml\Config\Cms\Page;
 
-use Magento\Framework\View\Result\PageFactory;
 use TransPerfect\GlobalLink\Controller\Adminhtml\Config\Action;
 use TransPerfect\GlobalLink\Helper\Data;
 use TransPerfect\GlobalLink\Helper\Ui\Logger;
@@ -45,7 +44,7 @@ class Save extends Action
     {
         if ($this->_formKeyValidator->validate($this->getRequest())) {
             $data = $this->getRequest()->getParams();
-            $fieldIds = $data[$data['massaction_prepare_key']];
+            $fieldIds = explode(",", $data[$data['massaction_prepare_key']]);
             if (!empty($fieldIds)) {
                 try {
                     $collection = $this->getFieldCollection();
@@ -59,11 +58,11 @@ class Save extends Action
                     }
                     $collection->save();
                     $this->messageManager->addSuccessMessage(__('Configuration has been saved'));
-                    if($this->logger->isDebugEnabled()) {
+                    if ($this->logger->isDebugEnabled()) {
                         $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams());
                     }
                 } catch (\Exception $e) {
-                    if($this->logger->isErrorEnabled()) {
+                    if ($this->logger->isErrorEnabled()) {
                         $this->messageManager->addErrorMessage($e->getMessage());
                         $this->logger->logAction(Data::CMS_PAGE_TYPE_ID, Logger::CONFIG_ACTION_TYPE, $this->getRequest()->getParams(), Logger::CRITICAL, $e->getMessage());
                     }
