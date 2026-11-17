@@ -26,7 +26,7 @@
         "magento/marketplace-eqp": "^1.0"
     },
     "require": {
-        "translations-com/globallink-connect-api-php": "2.0.0",
+        "translations-com/globallink-connect-api-php": "2.1.1",
         "ext-zip": "*"
     },
     "autoload": {
